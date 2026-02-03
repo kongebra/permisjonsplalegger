@@ -126,12 +126,12 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 
 ## 6. Development Commands
 
-```bash
-bun dev          # Start development server (localhost:3000)
-bun build        # Production build
-bun start        # Start production server
-bun lint         # Run ESLint
-```
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server (localhost:3000) |
+| `bun build` | Production build |
+| `bun start` | Start production server |
+| `bun lint` | Run ESLint |
 
 ---
 
@@ -158,7 +158,7 @@ public/
 
 ---
 
-## Quick Reference: Key Formulas
+## 8. Quick Reference: Key Formulas
 
 ```typescript
 // Constants (define in src/lib/constants.ts)
@@ -178,3 +178,53 @@ const payout100 = basis * 1.00 * (WEEKS_100_PERCENT / 52) * 12;
 const dailySalary = grossSalary / WORK_DAYS_PER_MONTH;
 const gapCost = dailySalary * gapDays;
 ```
+
+---
+
+## 9. Task Completion Guidelines
+
+### Bug Fixes
+1. Add test case that reproduces the bug
+2. Fix the bug
+3. Verify fix with `bun dev` manual testing
+4. Run `bun lint` before committing
+
+### New Features
+1. Read `docs/KRAVSPEC.md` for acceptance criteria
+2. Implement calculation logic in `src/lib/` first
+3. Add UI components in `src/components/`
+4. Manual test with edge cases from Section 5
+
+### Refactoring
+- Ensure calculations produce identical results before/after
+- No new features during refactoring
+
+---
+
+## 10. Development Anti-Patterns
+
+### Calculation Gotchas
+
+- **Don't mix weekly/monthly/annual** - Convert everything to the same unit before comparing
+- **Don't forget the 6G cap** - Most high earners hit this limit
+- **Don't assume linear income** - Commission/bonus varies monthly
+
+### Norwegian-Specific Gotchas
+
+- **Feriepenger ≠ vacation** - It's a mandatory savings system (10.2%/12% of gross)
+- **G changes annually** - Always use the constant, never hardcode `124028`
+- **NAV weeks ≠ calendar weeks** - NAV uses 5-day weeks for calculations
+
+### React/Next.js Gotchas
+
+- **Don't use `"use client"` unnecessarily** - Server Components are the default
+- **Don't fetch data client-side** - This is a calculator, all logic runs in browser
+- **Don't use `useEffect` for calculations** - Derive values directly from state
+
+---
+
+## 11. Commit Style
+
+- Keep commits focused on a single change
+- Use imperative mood: "Add calculator logic" not "Added calculator logic"
+- Reference issue numbers if applicable
