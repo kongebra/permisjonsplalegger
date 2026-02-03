@@ -69,7 +69,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
               <td className="p-3">{formatDate(result.gap.start)}</td>
               <td className="p-3">{formatDate(result.gap.end)}</td>
               <td className="p-3 text-right">
-                {result.gap.weeks} ({result.gap.days} dager)
+                {result.gap.days} dager
               </td>
             </tr>
           )}

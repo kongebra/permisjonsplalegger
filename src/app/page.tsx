@@ -149,7 +149,7 @@ export default function Home() {
 
               {/* Høyre kolonne: Resultater */}
               <div className="space-y-6">
-                <CalendarTimeline result={result.leave} showFather={showFather} />
+                <CalendarTimeline result={result.leave} showFather={showFather} dueDate={dueDate} />
 
                 <DateSummary result={result.leave} showFather={showFather} />
 

@@ -17,31 +17,24 @@ import type { LeaveResult, LeaveSegment } from '@/lib/types';
 interface CalendarTimelineProps {
   result: LeaveResult;
   showFather: boolean;
+  dueDate: Date;
 }
 
 type DayStatus =
-  | 'mother-preBirth'
-  | 'mother-mandatory'
-  | 'mother-quota'
-  | 'mother-shared'
-  | 'father-quota'
-  | 'father-shared'
-  | 'father-overlap'
+  | 'mother'
+  | 'father'
   | 'overlap'
   | 'gap'
+  | 'duedate'
   | 'daycare'
   | 'normal';
 
 const statusColors: Record<DayStatus, string> = {
-  'mother-preBirth': 'bg-pink-200 dark:bg-pink-800',
-  'mother-mandatory': 'bg-pink-300 dark:bg-pink-700',
-  'mother-quota': 'bg-pink-400 dark:bg-pink-600',
-  'mother-shared': 'bg-orange-300 dark:bg-orange-700',
-  'father-quota': 'bg-blue-400 dark:bg-blue-600',
-  'father-shared': 'bg-orange-300 dark:bg-orange-700',
-  'father-overlap': 'bg-purple-400 dark:bg-purple-600',
-  overlap: 'bg-purple-400 dark:bg-purple-600',
+  mother: 'bg-pink-300 dark:bg-pink-500',
+  father: 'bg-blue-300 dark:bg-blue-500',
+  overlap: 'bg-orange-300 dark:bg-orange-500',
   gap: 'bg-red-200 dark:bg-red-900/50 border border-dashed border-red-400',
+  duedate: 'bg-violet-500 dark:bg-violet-600 text-white font-bold',
   daycare: 'bg-green-500 dark:bg-green-600 text-white font-bold',
   normal: 'bg-muted/30',
 };
@@ -50,9 +43,15 @@ function getDayStatus(
   date: Date,
   segments: LeaveSegment[],
   gap: { start: Date; end: Date; days: number },
+  dueDate: Date,
   daycareStart: Date
 ): DayStatus {
-  // Sjekk barnehagestart først
+  // Sjekk termindato først
+  if (isSameDay(date, dueDate)) {
+    return 'duedate';
+  }
+
+  // Sjekk barnehagestart
   if (isSameDay(date, daycareStart)) {
     return 'daycare';
   }
@@ -80,16 +79,7 @@ function getDayStatus(
 
   if (matchingSegments.length === 1) {
     const seg = matchingSegments[0];
-    if (seg.parent === 'mother') {
-      if (seg.type === 'preBirth') return 'mother-preBirth';
-      if (seg.type === 'mandatory') return 'mother-mandatory';
-      if (seg.type === 'shared') return 'mother-shared';
-      return 'mother-quota';
-    } else {
-      if (seg.type === 'overlap') return 'father-overlap';
-      if (seg.type === 'shared') return 'father-shared';
-      return 'father-quota';
-    }
+    return seg.parent === 'mother' ? 'mother' : 'father';
   }
 
   return 'normal';
@@ -99,6 +89,7 @@ interface MonthCalendarProps {
   month: Date;
   segments: LeaveSegment[];
   gap: { start: Date; end: Date; days: number };
+  dueDate: Date;
   daycareStart: Date;
   periodStart: Date;
   periodEnd: Date;
@@ -108,6 +99,7 @@ function MonthCalendar({
   month,
   segments,
   gap,
+  dueDate,
   daycareStart,
   periodStart,
   periodEnd,
@@ -150,16 +142,19 @@ function MonthCalendar({
           // Sjekk om dagen er innenfor den relevante perioden
           const isInPeriod = day >= periodStart && day <= periodEnd;
           const status = isInPeriod
-            ? getDayStatus(day, segments, gap, daycareStart)
+            ? getDayStatus(day, segments, gap, dueDate, daycareStart)
             : 'normal';
+
+          // Bygg tooltip
+          let tooltip = format(day, 'd. MMMM yyyy', { locale: nb });
+          if (isSameDay(day, dueDate)) tooltip += ' - Termindato';
+          if (isSameDay(day, daycareStart)) tooltip += ' - Barnehagestart';
 
           return (
             <div
               key={day.toISOString()}
               className={`aspect-square rounded-sm flex items-center justify-center text-xs ${statusColors[status]}`}
-              title={`${format(day, 'd. MMMM yyyy', { locale: nb })}${
-                isSameDay(day, daycareStart) ? ' - Barnehagestart' : ''
-              }`}
+              title={tooltip}
             >
               {format(day, 'd')}
             </div>
@@ -170,7 +165,7 @@ function MonthCalendar({
   );
 }
 
-export function CalendarTimeline({ result, showFather }: CalendarTimelineProps) {
+export function CalendarTimeline({ result, showFather, dueDate }: CalendarTimelineProps) {
   const { segments, gap, mother, father } = result;
 
   // Finn start og slutt for hele perioden
@@ -221,6 +216,7 @@ export function CalendarTimeline({ result, showFather }: CalendarTimelineProps) 
               month={month}
               segments={segments}
               gap={gap}
+              dueDate={dueDate}
               daycareStart={daycareStart}
               periodStart={periodStart}
               periodEnd={periodEnd}
@@ -232,22 +228,18 @@ export function CalendarTimeline({ result, showFather }: CalendarTimelineProps) 
       {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm justify-center">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded-sm bg-pink-400 dark:bg-pink-600" />
+          <div className="w-4 h-4 rounded-sm bg-pink-300 dark:bg-pink-500" />
           <span>Mor</span>
         </div>
         {showFather && (
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-sm bg-blue-400 dark:bg-blue-600" />
+            <div className="w-4 h-4 rounded-sm bg-blue-300 dark:bg-blue-500" />
             <span>Far</span>
           </div>
         )}
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded-sm bg-orange-300 dark:bg-orange-700" />
-          <span>Felles</span>
-        </div>
         {result.overlap && (
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-sm bg-purple-400 dark:bg-purple-600" />
+            <div className="w-4 h-4 rounded-sm bg-orange-300 dark:bg-orange-500" />
             <span>Overlapp</span>
           </div>
         )}
@@ -257,6 +249,10 @@ export function CalendarTimeline({ result, showFather }: CalendarTimelineProps) 
             <span>Gap</span>
           </div>
         )}
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-4 rounded-sm bg-violet-500 dark:bg-violet-600" />
+          <span>Termindato</span>
+        </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded-sm bg-green-500 dark:bg-green-600" />
           <span>Barnehagestart</span>

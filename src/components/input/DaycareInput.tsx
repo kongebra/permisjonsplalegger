@@ -67,7 +67,11 @@ export function DaycareInput({ value, onChange }: DaycareInputProps) {
             mode="single"
             selected={value}
             onSelect={(date) => date && onChange(date)}
+            defaultMonth={value}
             locale={nb}
+            captionLayout="dropdown"
+            startMonth={new Date()}
+            endMonth={new Date(new Date().getFullYear() + 4, 11)}
           />
         </PopoverContent>
       </Popover>

@@ -45,8 +45,12 @@ export function DueDateInput({ value, onChange }: DueDateInputProps) {
             mode="single"
             selected={value}
             onSelect={(date) => date && onChange(date)}
+            defaultMonth={value}
             locale={nb}
             autoFocus
+            captionLayout="dropdown"
+            startMonth={new Date()}
+            endMonth={new Date(new Date().getFullYear() + 3, 11)}
           />
         </PopoverContent>
       </Popover>
