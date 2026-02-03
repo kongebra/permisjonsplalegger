@@ -13,18 +13,22 @@ import type {
 
 /**
  * Beregner default barnehagestart (1. august)
- * Hvis termindato er etter 1. august, blir det neste år
+ * Barnet må være ca. 1 år gammelt før barnehagestart (hovedopptak)
  */
 export function getDefaultDaycareStart(dueDate: Date): Date {
   const year = dueDate.getFullYear();
-  const augustFirst = new Date(year, 7, 1); // August = 7 (0-indexed)
+  const augustFirstSameYear = new Date(year, 7, 1); // August = 7 (0-indexed)
 
-  // Hvis termindato er etter 1. august, barnehagestart blir neste år
-  if (dueDate >= augustFirst) {
-    return new Date(year + 1, 7, 1);
+  // Barnet må være ca. 1 år før barnehagestart (hovedopptak 1. august)
+  // Hvis født før 1. august: første mulighet er 1. august neste år
+  // Hvis født etter 1. august: første mulighet er 1. august året etter neste år
+  if (dueDate >= augustFirstSameYear) {
+    // F.eks. født sept 2026 → bhg start aug 2028
+    return new Date(year + 2, 7, 1);
   }
 
-  return augustFirst;
+  // F.eks. født juli 2026 → bhg start aug 2027
+  return new Date(year + 1, 7, 1);
 }
 
 /**

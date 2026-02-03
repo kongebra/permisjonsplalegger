@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { addMonths } from 'date-fns';
+import { useState, useMemo, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DueDateInput,
@@ -27,10 +26,13 @@ const defaultParentEconomy: ParentEconomy = {
 
 export default function Home() {
   // Dato-inputs
-  const [dueDate, setDueDate] = useState<Date>(() => addMonths(new Date(), 9));
+  const [dueDate, setDueDate] = useState<Date>(() => new Date());
   const [daycareStartDate, setDaycareStartDate] = useState<Date>(() =>
-    getDefaultDaycareStart(addMonths(new Date(), 9))
+    getDefaultDaycareStart(new Date())
   );
+
+  // Track om bruker har manuelt endret barnehagestart
+  const isDaycareManuallySet = useRef(false);
 
   // Permisjons-config
   const [coverage, setCoverage] = useState<Coverage>(100);
@@ -47,10 +49,18 @@ export default function Home() {
   const [fatherEconomy, setFatherEconomy] =
     useState<ParentEconomy>(defaultParentEconomy);
 
-  // Oppdater default barnehagestart når termindato endres
+  // Oppdater default barnehagestart når termindato endres (kun hvis ikke manuelt satt)
   const handleDueDateChange = (date: Date) => {
     setDueDate(date);
-    setDaycareStartDate(getDefaultDaycareStart(date));
+    if (!isDaycareManuallySet.current) {
+      setDaycareStartDate(getDefaultDaycareStart(date));
+    }
+  };
+
+  // Når bruker manuelt endrer barnehagestart
+  const handleDaycareChange = (date: Date) => {
+    isDaycareManuallySet.current = true;
+    setDaycareStartDate(date);
   };
 
   // Oppdater sharedWeeksToMother når coverage endres
@@ -135,7 +145,7 @@ export default function Home() {
 
                 <DaycareInput
                   value={daycareStartDate}
-                  onChange={setDaycareStartDate}
+                  onChange={handleDaycareChange}
                 />
 
                 <EconomySection

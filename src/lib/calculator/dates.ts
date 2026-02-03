@@ -114,14 +114,13 @@ export function calculateFatherPeriod(
     totalFatherWeeks = config.father + sharedWeeksToFather;
   }
 
-  // Far starter dagen etter mor slutter, minus eventuelle overlapp-uker
-  // Ved 0 overlapp: far starter dagen etter mor slutter
+  // Far starter på motherEnd (som er eksklusiv = dagen etter mors siste dag)
   // Ved overlapp: far starter X uker før mor slutter
   let fatherStart: Date;
   if (overlapWeeks === 0) {
-    // Legg til 1 dag så de ikke overlapper
+    // motherEnd er allerede eksklusiv (dagen etter mors siste dag)
+    // så far starter direkte på motherEnd
     fatherStart = new Date(motherEnd);
-    fatherStart.setDate(fatherStart.getDate() + 1);
   } else {
     fatherStart = subtractWeeks(motherEnd, overlapWeeks);
   }

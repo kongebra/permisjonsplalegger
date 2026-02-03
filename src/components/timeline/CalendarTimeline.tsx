@@ -5,6 +5,7 @@ import {
   format,
   startOfMonth,
   endOfMonth,
+  startOfDay,
   eachDayOfInterval,
   getDay,
   addMonths,
@@ -57,19 +58,23 @@ function getDayStatus(
   }
 
   // Sjekk gap (kun hvis det er positivt gap)
-  if (
-    gap.days > 0 &&
-    date >= gap.start &&
-    date < gap.end
-  ) {
+  // Bruk isSameDay for å unngå tidspunkt-problemer
+  const isOnOrAfterGapStart = isSameDay(date, gap.start) || date > gap.start;
+  const isBeforeGapEnd = date < gap.end && !isSameDay(date, gap.end);
+
+  if (gap.days > 0 && isOnOrAfterGapStart && isBeforeGapEnd) {
     return 'gap';
   }
 
+  // Normaliser for segment-sjekk
+  const dateNorm = startOfDay(date);
+
   // Sjekk segmenter
   const matchingSegments = segments.filter((seg) => {
-    const segEnd = new Date(seg.end);
-    segEnd.setDate(segEnd.getDate() - 1); // Slutt er ekslusiv
-    return date >= seg.start && date <= segEnd;
+    const segStartNorm = startOfDay(seg.start);
+    const segEndNorm = startOfDay(seg.end);
+    // Slutt er ekslusiv, så vi sjekker < segEnd (ikke <=)
+    return dateNorm >= segStartNorm && dateNorm < segEndNorm;
   });
 
   // Hvis det er overlapp (flere segmenter på samme dag)

@@ -1,6 +1,6 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import type { LeaveResult } from '@/lib/types';
 
@@ -11,6 +11,9 @@ interface DateSummaryProps {
 
 export function DateSummary({ result, showFather }: DateSummaryProps) {
   const formatDate = (date: Date) => format(date, 'd. MMM yyyy', { locale: nb });
+
+  // Sluttdatoer er eksklusive internt, så vi viser dagen før for brukeren
+  const formatEndDate = (date: Date) => format(subDays(date, 1), 'd. MMM yyyy', { locale: nb });
 
   return (
     <div className="rounded-lg border">
@@ -31,7 +34,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
                 Mor
               </td>
               <td className="p-3">{formatDate(result.mother.start)}</td>
-              <td className="p-3">{formatDate(result.mother.end)}</td>
+              <td className="p-3">{formatEndDate(result.mother.end)}</td>
               <td className="p-3 text-right">{result.mother.weeks}</td>
             </tr>
           )}
@@ -43,7 +46,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
                 ↳ Overlapp
               </td>
               <td className="p-3">{formatDate(result.overlap.start)}</td>
-              <td className="p-3">{formatDate(result.overlap.end)}</td>
+              <td className="p-3">{formatEndDate(result.overlap.end)}</td>
               <td className="p-3 text-right">{result.overlap.weeks}</td>
             </tr>
           )}
@@ -55,7 +58,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
                 Far
               </td>
               <td className="p-3">{formatDate(result.father.start)}</td>
-              <td className="p-3">{formatDate(result.father.end)}</td>
+              <td className="p-3">{formatEndDate(result.father.end)}</td>
               <td className="p-3 text-right">{result.father.weeks}</td>
             </tr>
           )}
