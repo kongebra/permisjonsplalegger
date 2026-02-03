@@ -15,7 +15,9 @@ This file provides guidance to AI coding agents (Claude Code, Cursor, Copilot, W
 ## Docs Index
 
 ```
-docs/KRAVSPEC.md     # Full requirements specification (Norwegian) - READ for detailed acceptance criteria
+docs/KRAVSPEC.md             # Full requirements specification (Norwegian) - READ for detailed acceptance criteria
+docs/PROGRESS.md             # Current progress, decisions, and context for new developers
+docs/IMPLEMENTATION_PLAN.md  # Original implementation plan (may be outdated)
 ```
 
 ---
@@ -140,18 +142,35 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 ```
 src/
 ├── app/
-│   ├── layout.tsx       # Root layout with Geist fonts
-│   ├── page.tsx         # Main calculator page
-│   └── globals.css      # Tailwind CSS v4 + CSS variables
-├── lib/                 # (to create) Business logic and constants
-│   └── calculator.ts    # Calculation engine
-├── components/          # (to create) React UI components
-│   └── calculator-form.tsx
+│   ├── layout.tsx           # Root layout with Geist fonts
+│   ├── page.tsx             # Main calculator page (all state lives here)
+│   └── globals.css          # Tailwind CSS v4 + CSS variables
+├── lib/
+│   ├── calculator/
+│   │   ├── index.ts         # Main exports, helper functions
+│   │   ├── dates.ts         # Date calculations (periods, gap, segments)
+│   │   └── economy.ts       # Economic comparison 80% vs 100%
+│   ├── constants.ts         # G value, leave configuration
+│   ├── types.ts             # TypeScript interfaces
+│   └── utils.ts             # cn() helper for Tailwind
+├── components/
+│   ├── input/               # All input components
+│   │   ├── DueDateInput.tsx
+│   │   ├── RightsSelector.tsx
+│   │   ├── CoverageToggle.tsx
+│   │   ├── DistributionSliders.tsx
+│   │   ├── DaycareInput.tsx
+│   │   └── EconomySection.tsx
+│   ├── timeline/
+│   │   └── CalendarTimeline.tsx  # Calendar visualization
+│   ├── results/
+│   │   ├── DateSummary.tsx       # Leave period table
+│   │   └── EconomyComparison.tsx # 80% vs 100% comparison
+│   └── ui/                  # shadcn/ui components
 docs/
-└── KRAVSPEC.md          # Full requirements specification (Norwegian)
-public/
-├── next.svg
-└── vercel.svg
+├── KRAVSPEC.md              # Full requirements specification (Norwegian)
+├── IMPLEMENTATION_PLAN.md   # Original implementation plan
+└── PROGRESS.md              # Current progress and context for new developers
 ```
 
 **Path alias:** `@/*` maps to `./src/*`
@@ -214,6 +233,24 @@ const gapCost = dailySalary * gapDays;
 - **Feriepenger ≠ vacation** - It's a mandatory savings system (10.2%/12% of gross)
 - **G changes annually** - Always use the constant, never hardcode `130160`
 - **NAV weeks ≠ calendar weeks** - NAV uses 5-day weeks for calculations
+
+### Date Handling Gotchas
+
+- **End dates are EXCLUSIVE internally** - `mother.end` is the day AFTER the last leave day
+- **Display end dates INCLUSIVELY** - Use `subDays(date, 1)` when showing to user
+- **Father starts on motherEnd** - Don't add +1 day; the exclusive end IS the next day
+- **Always use date-fns for comparisons** - Use `isSameDay()` or `startOfDay()` to avoid time issues
+- **Calendar days have time 00:00** - But calculated dates may have other times; normalize before comparing
+
+### Daycare Start Calculation
+
+```typescript
+// Child must be ~1 year old before starting daycare (August 1st intake)
+if (dueDate >= augustFirstSameYear) {
+  return new Date(year + 2, 7, 1); // Born after Aug → daycare 2 years later
+}
+return new Date(year + 1, 7, 1); // Born before Aug → daycare 1 year later
+```
 
 ### React/Next.js Gotchas
 
