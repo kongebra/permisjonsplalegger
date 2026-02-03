@@ -1,0 +1,111 @@
+/**
+ * Hovedeksport for kalkulatormotoren
+ */
+
+import { calculateLeave, calculateGap } from './dates';
+import { compareScenarios } from './economy';
+import { LEAVE_CONFIG } from '../constants';
+import type {
+  CalculatorInput,
+  CalculatorResult,
+  Coverage,
+} from '../types';
+
+/**
+ * Beregner default barnehagestart (1. august)
+ * Hvis termindato er etter 1. august, blir det neste år
+ */
+export function getDefaultDaycareStart(dueDate: Date): Date {
+  const year = dueDate.getFullYear();
+  const augustFirst = new Date(year, 7, 1); // August = 7 (0-indexed)
+
+  // Hvis termindato er etter 1. august, barnehagestart blir neste år
+  if (dueDate >= augustFirst) {
+    return new Date(year + 1, 7, 1);
+  }
+
+  return augustFirst;
+}
+
+/**
+ * Beregner default felleskvote til mor (halvparten)
+ */
+export function getDefaultSharedWeeksToMother(coverage: Coverage): number {
+  const config = LEAVE_CONFIG[coverage];
+  return Math.floor(config.shared / 2);
+}
+
+/**
+ * Hovedfunksjon: Beregner permisjon og eventuelt økonomi
+ */
+export function calculate(input: CalculatorInput): CalculatorResult {
+  const {
+    dueDate,
+    coverage,
+    rights,
+    sharedWeeksToMother,
+    overlapWeeks,
+    daycareStartDate,
+    motherEconomy,
+    fatherEconomy,
+    vacationWeeks,
+  } = input;
+
+  // Beregn permisjonsfordeling
+  const leave = calculateLeave(
+    dueDate,
+    coverage,
+    rights,
+    sharedWeeksToMother,
+    overlapWeeks,
+    daycareStartDate,
+    vacationWeeks
+  );
+
+  // Hvis økonomi-data er tilgjengelig, beregn sammenligning
+  if (motherEconomy) {
+    // Beregn gap for begge scenarioer
+    const leave80 = calculateLeave(
+      dueDate,
+      80,
+      rights,
+      Math.min(sharedWeeksToMother, LEAVE_CONFIG[80].shared),
+      overlapWeeks,
+      daycareStartDate,
+      vacationWeeks
+    );
+
+    const leave100 = calculateLeave(
+      dueDate,
+      100,
+      rights,
+      Math.min(sharedWeeksToMother, LEAVE_CONFIG[100].shared),
+      overlapWeeks,
+      daycareStartDate,
+      vacationWeeks
+    );
+
+    const economy = compareScenarios(
+      motherEconomy,
+      fatherEconomy,
+      sharedWeeksToMother,
+      leave80.gap,
+      leave100.gap
+    );
+
+    return { leave, economy };
+  }
+
+  return { leave };
+}
+
+// Re-eksporter nyttige funksjoner og typer
+export { calculateLeave, calculateGap } from './dates';
+export {
+  calculateBasis,
+  calculateDailyRate,
+  calculateNavPayout,
+  compareScenarios,
+} from './economy';
+export * from '../types';
+export * from '../constants';

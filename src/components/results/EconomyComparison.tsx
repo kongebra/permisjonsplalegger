@@ -1,0 +1,163 @@
+'use client';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { EconomyResult } from '@/lib/types';
+
+interface EconomyComparisonProps {
+  result: EconomyResult;
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('nb-NO', {
+    style: 'currency',
+    currency: 'NOK',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function EconomyComparison({ result }: EconomyComparisonProps) {
+  const { scenario80, scenario100, difference, recommendation } = result;
+  const isPositive = difference > 0;
+  const winner = isPositive ? '100%' : '80%';
+
+  return (
+    <div className="space-y-6">
+      {/* Det store tallet */}
+      <Card
+        className={`${
+          isPositive
+            ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+            : 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+        }`}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Anbefalt valg: {winner}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            className={`text-4xl font-bold ${
+              isPositive
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-orange-600 dark:text-orange-400'
+            }`}
+          >
+            {isPositive ? '+' : ''}
+            {formatCurrency(difference)}
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">{recommendation}</p>
+        </CardContent>
+      </Card>
+
+      {/* Breakdown */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* 100% scenario */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">100% dekning (49 uker)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>NAV-utbetaling</span>
+              <span className="text-green-600">
+                +{formatCurrency(scenario100.breakdown.navPayout)}
+              </span>
+            </div>
+            {scenario100.breakdown.commissionLoss > 0 && (
+              <div className="flex justify-between">
+                <span>Provisjonstap</span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario100.breakdown.commissionLoss)}
+                </span>
+              </div>
+            )}
+            {scenario100.breakdown.gapCost > 0 && (
+              <div className="flex justify-between">
+                <span>
+                  Gap-kostnad
+                  {scenario100.breakdown.gapTakenBy && (
+                    <span className="text-muted-foreground">
+                      {' '}
+                      ({scenario100.breakdown.gapTakenBy === 'mother'
+                        ? 'mor'
+                        : 'far'}{' '}
+                      tar gapet)
+                    </span>
+                  )}
+                </span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario100.breakdown.gapCost)}
+                </span>
+              </div>
+            )}
+            {scenario100.breakdown.feriepengeDifference > 0 && (
+              <div className="flex justify-between">
+                <span>Tapt feriepengeopptjening</span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario100.breakdown.feriepengeDifference)}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between border-t pt-2 font-medium">
+              <span>Totalt</span>
+              <span>{formatCurrency(scenario100.total)}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 80% scenario */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">80% dekning (59 uker)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>NAV-utbetaling</span>
+              <span className="text-green-600">
+                +{formatCurrency(scenario80.breakdown.navPayout)}
+              </span>
+            </div>
+            {scenario80.breakdown.commissionLoss > 0 && (
+              <div className="flex justify-between">
+                <span>Provisjonstap</span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario80.breakdown.commissionLoss)}
+                </span>
+              </div>
+            )}
+            {scenario80.breakdown.gapCost > 0 && (
+              <div className="flex justify-between">
+                <span>
+                  Gap-kostnad
+                  {scenario80.breakdown.gapTakenBy && (
+                    <span className="text-muted-foreground">
+                      {' '}
+                      ({scenario80.breakdown.gapTakenBy === 'mother'
+                        ? 'mor'
+                        : 'far'}{' '}
+                      tar gapet)
+                    </span>
+                  )}
+                </span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario80.breakdown.gapCost)}
+                </span>
+              </div>
+            )}
+            {scenario80.breakdown.feriepengeDifference > 0 && (
+              <div className="flex justify-between">
+                <span>Tapt feriepengeopptjening</span>
+                <span className="text-red-600">
+                  -{formatCurrency(scenario80.breakdown.feriepengeDifference)}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between border-t pt-2 font-medium">
+              <span>Totalt</span>
+              <span>{formatCurrency(scenario80.total)}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

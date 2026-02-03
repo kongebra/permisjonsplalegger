@@ -55,7 +55,7 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 
 ### 3.1 Constants
 
-- **G (Grunnbeløpet):** `124 028` (This value must be defined in a config file, easily updatable).
+- **G (Grunnbeløpet):** `130 160` (per 1. mai 2025 - oppdater årlig i src/lib/constants.ts).
 - **Work Days/Month:** `21.7` (Standard for calculating daily rates).
 - **Weeks 100%:** 49 weeks (15 + 15 + 16 + 3 weeks pre-birth).
 - **Weeks 80%:** 59 weeks (19 + 19 + 18 + 3 weeks pre-birth).
@@ -162,7 +162,7 @@ public/
 
 ```typescript
 // Constants (define in src/lib/constants.ts)
-const G = 124_028;  // Grunnbeløpet - update annually
+const G = 130_160;  // Grunnbeløpet per 1. mai 2025 - update annually
 const WORK_DAYS_PER_MONTH = 21.7;
 const WEEKS_100_PERCENT = 49;
 const WEEKS_80_PERCENT = 59;
@@ -212,7 +212,7 @@ const gapCost = dailySalary * gapDays;
 ### Norwegian-Specific Gotchas
 
 - **Feriepenger ≠ vacation** - It's a mandatory savings system (10.2%/12% of gross)
-- **G changes annually** - Always use the constant, never hardcode `124028`
+- **G changes annually** - Always use the constant, never hardcode `130160`
 - **NAV weeks ≠ calendar weeks** - NAV uses 5-day weeks for calculations
 
 ### React/Next.js Gotchas
