@@ -5,3 +5,8 @@ export { DistributionSliders } from './DistributionSliders';
 export { DaycareInput } from './DaycareInput';
 export { VacationInput } from './VacationInput';
 export { EconomySection } from './EconomySection';
+export { PeriodInput } from './PeriodInput';
+export { QuotaSummary } from './QuotaSummary';
+export { PeriodListItem } from './PeriodListItem';
+export { AddPeriodDialog } from './AddPeriodDialog';
+export { ParentPeriodSection } from './ParentPeriodSection';

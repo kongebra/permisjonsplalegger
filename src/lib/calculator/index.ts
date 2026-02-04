@@ -108,7 +108,20 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 }
 
 // Re-eksporter nyttige funksjoner og typer
-export { calculateLeave, calculateGap } from './dates';
+export {
+  calculateLeave,
+  calculateGap,
+  countVacationDays,
+  calculateQuotaUsage,
+  validatePeriods,
+  buildSegmentsFromPeriods,
+  calculateGapFromPeriods,
+  generatePeriodId,
+  addDays,
+  addWeeks,
+  daysBetween,
+  weeksBetween,
+} from './dates';
 export {
   calculateBasis,
   calculateDailyRate,
@@ -117,3 +130,4 @@ export {
 } from './economy';
 export * from '../types';
 export * from '../constants';
+export * from '../holidays';

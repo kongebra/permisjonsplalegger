@@ -3,6 +3,7 @@
  */
 
 import { LEAVE_CONFIG, WORK_DAYS_PER_WEEK } from '../constants';
+import { isHoliday } from '../holidays';
 import type {
   Coverage,
   ParentRights,
@@ -11,6 +12,11 @@ import type {
   VacationWeek,
   VacationInput,
   GapInfo,
+  JobType,
+  LeavePeriod,
+  ParentPeriodConfig,
+  QuotaUsage,
+  ValidationResult,
 } from '../types';
 
 /**
@@ -278,17 +284,33 @@ export function buildLeaveSegments(
     currentDate = quotaEnd;
   }
 
-  // Mor: Fellesperiode (sharedWeeksToMother)
-  if (sharedWeeksToMother > 0 && rights === 'both') {
-    const sharedEnd = addWeeks(currentDate, sharedWeeksToMother);
+  // Mor: Fellesperiode
+  // Ved "begge har rett": sharedWeeksToMother fra slider
+  // Ved "kun mor": hele fellesperioden går til mor
+  const motherSharedWeeks = rights === 'mother-only' ? config.shared : sharedWeeksToMother;
+  if (motherSharedWeeks > 0) {
+    const sharedEnd = addWeeks(currentDate, motherSharedWeeks);
     segments.push({
       parent: 'mother',
       type: 'shared',
       start: currentDate,
       end: sharedEnd,
-      weeks: sharedWeeksToMother,
+      weeks: motherSharedWeeks,
     });
     currentDate = sharedEnd;
+  }
+
+  // Mor: Fedrekvoten (kun når mor er alene - hun får hele permisjonen)
+  if (rights === 'mother-only' && config.father > 0) {
+    const fatherQuotaEnd = addWeeks(currentDate, config.father);
+    segments.push({
+      parent: 'mother',
+      type: 'quota', // Vises som vanlig kvote, men går til mor
+      start: currentDate,
+      end: fatherQuotaEnd,
+      weeks: config.father,
+    });
+    currentDate = fatherQuotaEnd;
   }
 
   const motherEnd = currentDate;
@@ -476,4 +498,275 @@ export function calculateLeave(
     totalCalendarWeeks,
     vacationDaysNeeded,
   };
+}
+
+// --- Advanced Period Planner Functions ---
+
+/**
+ * Get day of week (0 = Sunday, 1 = Monday, ... 6 = Saturday)
+ */
+function getDay(date: Date): number {
+  return date.getDay();
+}
+
+/**
+ * Count vacation days used in a period based on job type
+ * - Office (man-fre): Weekdays 1-5 minus holidays
+ * - Shift (man-lør): Weekdays 1-6, holidays count as normal work days
+ */
+export function countVacationDays(start: Date, end: Date, jobType: JobType): number {
+  let count = 0;
+  const current = new Date(start);
+
+  while (current < end) {
+    const weekday = getDay(current);
+
+    if (jobType === 'office') {
+      // Monday-Friday (1-5), minus holidays
+      if (weekday >= 1 && weekday <= 5 && !isHoliday(current)) {
+        count++;
+      }
+    } else {
+      // Shift work: Monday-Saturday (1-6), holidays count as normal
+      if (weekday >= 1 && weekday <= 6) {
+        count++;
+      }
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return count;
+}
+
+/**
+ * Calculate weeks used for each quota type from periods
+ */
+export function calculateQuotaUsage(
+  motherConfig: ParentPeriodConfig,
+  fatherConfig: ParentPeriodConfig,
+  coverage: Coverage,
+  rights: ParentRights
+): QuotaUsage[] {
+  const config = LEAVE_CONFIG[coverage];
+  const usages: QuotaUsage[] = [];
+
+  // Count mother quota weeks
+  let motherQuotaWeeks = 0;
+  let fatherQuotaWeeks = 0;
+  let sharedWeeks = 0;
+
+  for (const period of motherConfig.periods) {
+    const weeks = weeksBetween(period.startDate, period.endDate);
+    if (period.type === 'quota') {
+      motherQuotaWeeks += weeks;
+    } else if (period.type === 'shared') {
+      sharedWeeks += weeks;
+    }
+  }
+
+  for (const period of fatherConfig.periods) {
+    const weeks = weeksBetween(period.startDate, period.endDate);
+    if (period.type === 'quota') {
+      fatherQuotaWeeks += weeks;
+    } else if (period.type === 'shared') {
+      sharedWeeks += weeks;
+    }
+  }
+
+  // Mother quota
+  if (rights !== 'father-only') {
+    usages.push({
+      type: 'mother',
+      weeksUsed: motherQuotaWeeks,
+      weeksAvailable: config.mother,
+      isOverbooked: motherQuotaWeeks > config.mother,
+    });
+  }
+
+  // Father quota
+  if (rights !== 'mother-only') {
+    usages.push({
+      type: 'father',
+      weeksUsed: fatherQuotaWeeks,
+      weeksAvailable: config.father,
+      isOverbooked: fatherQuotaWeeks > config.father,
+    });
+  }
+
+  // Shared period
+  if (rights === 'both') {
+    usages.push({
+      type: 'shared',
+      weeksUsed: sharedWeeks,
+      weeksAvailable: config.shared,
+      isOverbooked: sharedWeeks > config.shared,
+    });
+  }
+
+  return usages;
+}
+
+/**
+ * Validate period configurations
+ */
+export function validatePeriods(
+  motherConfig: ParentPeriodConfig,
+  fatherConfig: ParentPeriodConfig,
+  coverage: Coverage,
+  rights: ParentRights,
+  dueDate: Date
+): ValidationResult {
+  const warnings: string[] = [];
+  const errors: string[] = [];
+
+  const quotaUsage = calculateQuotaUsage(motherConfig, fatherConfig, coverage, rights);
+
+  // Check for quota overbooking
+  for (const usage of quotaUsage) {
+    if (usage.isOverbooked) {
+      const typeLabel =
+        usage.type === 'mother'
+          ? 'Mødrekvote'
+          : usage.type === 'father'
+            ? 'Fedrekvote'
+            : 'Fellesperiode';
+      warnings.push(
+        `${typeLabel} er overskredet: ${usage.weeksUsed} av ${usage.weeksAvailable} uker`
+      );
+    }
+  }
+
+  // Check for periods before due date (only pre-birth is allowed)
+  const allPeriods = [...motherConfig.periods, ...fatherConfig.periods];
+  for (const period of allPeriods) {
+    // Pre-birth period for mother is allowed
+    if (period.parent === 'mother' && period.type === 'quota') {
+      continue; // Allow some quota before birth
+    }
+
+    const weeksBeforeDue = weeksBetween(period.startDate, dueDate);
+    if (period.startDate < dueDate && weeksBeforeDue > 3) {
+      warnings.push('Noen perioder starter mer enn 3 uker før termin');
+      break;
+    }
+  }
+
+  // Check for overlapping periods within same parent
+  const checkOverlaps = (periods: LeavePeriod[]) => {
+    const sorted = [...periods].sort(
+      (a, b) => a.startDate.getTime() - b.startDate.getTime()
+    );
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i].endDate > sorted[i + 1].startDate) {
+        errors.push('Noen perioder overlapper for samme forelder');
+        return;
+      }
+    }
+  };
+
+  checkOverlaps(motherConfig.periods);
+  checkOverlaps(fatherConfig.periods);
+
+  return {
+    isValid: errors.length === 0,
+    warnings,
+    errors,
+  };
+}
+
+/**
+ * Build LeaveSegment array from period configurations
+ * Used when user has explicitly defined periods
+ */
+export function buildSegmentsFromPeriods(
+  motherConfig: ParentPeriodConfig,
+  fatherConfig: ParentPeriodConfig,
+  _dueDate: Date,
+  _daycareDate: Date
+): LeaveSegment[] {
+  const segments: LeaveSegment[] = [];
+
+  const processConfig = (config: ParentPeriodConfig) => {
+    for (const period of config.periods) {
+      const weeks = weeksBetween(period.startDate, period.endDate);
+
+      // Map LeavePeriodType to LeaveSegmentType
+      let segmentType: LeaveSegment['type'];
+      switch (period.type) {
+        case 'quota':
+          segmentType = 'quota';
+          break;
+        case 'shared':
+          segmentType = 'shared';
+          break;
+        case 'vacation':
+          segmentType = 'vacation';
+          break;
+        case 'unpaid':
+          segmentType = 'unpaid';
+          break;
+        default:
+          segmentType = 'quota';
+      }
+
+      segments.push({
+        parent: period.parent,
+        type: segmentType,
+        start: period.startDate,
+        end: period.endDate,
+        weeks,
+      });
+    }
+  };
+
+  processConfig(motherConfig);
+  processConfig(fatherConfig);
+
+  // Sort by start date
+  segments.sort((a, b) => a.start.getTime() - b.start.getTime());
+
+  return segments;
+}
+
+/**
+ * Calculate gap info from period configurations
+ */
+export function calculateGapFromPeriods(
+  motherConfig: ParentPeriodConfig,
+  fatherConfig: ParentPeriodConfig,
+  daycareDate: Date
+): GapInfo {
+  const allPeriods = [...motherConfig.periods, ...fatherConfig.periods];
+
+  if (allPeriods.length === 0) {
+    return {
+      start: daycareDate,
+      end: daycareDate,
+      weeks: 0,
+      days: 0,
+    };
+  }
+
+  // Find the latest end date
+  const latestEnd = allPeriods.reduce(
+    (max, p) => (p.endDate > max ? p.endDate : max),
+    allPeriods[0].endDate
+  );
+
+  const gapDays = daysBetween(latestEnd, daycareDate);
+
+  return {
+    start: latestEnd,
+    end: daycareDate,
+    weeks: Math.max(0, Math.ceil(gapDays / 7)),
+    days: Math.max(0, gapDays),
+  };
+}
+
+/**
+ * Generate a unique ID for a new period
+ */
+export function generatePeriodId(): string {
+  return `period-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }

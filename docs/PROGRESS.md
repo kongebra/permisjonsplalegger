@@ -1,10 +1,10 @@
 # Prosjekt-fremgang
 
-Sist oppdatert: 3. februar 2026
+Sist oppdatert: 4. februar 2026
 
-## Status: MVP Fase 1 - Grunnleggende funksjonalitet
+## Status: MVP Fase 2 - Avansert permisjonsplanlegger
 
-Kalkulatoren er funksjonell med datokalkulator og visuell tidslinje. Økonomisk sammenligning er delvis implementert.
+Kalkulatoren er funksjonell med datokalkulator, visuell tidslinje og økonomisk sammenligning. Nå utvidet med avansert permisjonsplanlegger for fleksible perioder.
 
 ---
 
@@ -27,6 +27,18 @@ Kalkulatoren er funksjonell med datokalkulator og visuell tidslinje. Økonomisk 
 | `dates.ts` | Datoberegninger (permisjonsperioder, gap, segmenter) | ✅ Ferdig |
 | `economy.ts` | Økonomisk sammenligning 80% vs 100% | ✅ Ferdig |
 | `index.ts` | Hovedeksport, hjelpefunksjoner | ✅ Ferdig |
+| `holidays.ts` | Norske helligdager 2025-2027 med påskeberegning | ✅ Ferdig |
+
+### 2b. Helligdagsmodul (`src/lib/holidays.ts`)
+
+Ny modul for norske helligdager med:
+- **Computus-algoritme** for beregning av påskedagen
+- **Faste helligdager:** Nyttår, 1. mai, 17. mai, jul
+- **Påske-relative:** Skjærtorsdag, langfredag, påske, pinse, Kr. himmelfart
+- **Utility-funksjoner:** `isHoliday()`, `getHolidayName()`, `getHolidaysInRange()`
+- **Caching** for ytelse
+
+Verifisert mot timeanddate.no for 2026 og 2027.
 
 ### 3. UI-komponenter
 
@@ -39,13 +51,26 @@ Kalkulatoren er funksjonell med datokalkulator og visuell tidslinje. Økonomisk 
 | `CoverageToggle` | Toggle 100%/80% med ukevisning | ✅ Ferdig |
 | `DistributionSliders` | Slidere for felleskvote og overlapp | ✅ Ferdig |
 | `DaycareInput` | Datepicker for barnehagestart | ✅ Ferdig |
+| `VacationInput` | Feriedager før/etter permisjon | ✅ Ferdig |
 | `EconomySection` | Lønn og arbeidsgiverinfo (collapsible) | ✅ Ferdig |
+| `PeriodInput` | Avansert permisjonsplanlegger (collapsible) | ✅ Ferdig |
+| `ParentPeriodSection` | Per-forelder seksjon med jobbtype | ✅ Ferdig |
+| `AddPeriodDialog` | Modal for å legge til perioder | ✅ Ferdig |
+| `PeriodListItem` | Viser en periode med type-badge | ✅ Ferdig |
+| `QuotaSummary` | Kvote-bruk med progress bar | ✅ Ferdig |
 
 #### Tidslinje (`src/components/timeline/`)
 
 | Komponent | Beskrivelse | Status |
 |-----------|-------------|--------|
 | `CalendarTimeline` | Kalendervisning med fargekodede perioder | ✅ Ferdig |
+
+**CalendarTimeline-funksjoner:**
+- Fargekoding: mor (rosa), far (blå), overlapp (gradient), gap (rød stiplet)
+- Ferie vises med stiplet kant
+- Ulønnet permisjon vises med grå bakgrunn + stiplet kant
+- **Røde dager:** Søndager og helligdager vises med rød, fet tekst
+- Tooltip viser helligdagsnavn ved hover
 
 #### Resultater (`src/components/results/`)
 
@@ -101,12 +126,13 @@ return new Date(year + 1, 7, 1); // Født før aug → bhg 1 år senere
 
 ### Ikke implementert ennå
 
-1. **Feriedag-markering i kalender** - Mulighet til å klikke på dager i gap for å markere ferie
+1. ~~**Feriedag-markering i kalender**~~ ✅ Implementert via PeriodInput
 2. **Likviditetsgraf** - Akkumulert inntekt over tid (Recharts)
 3. **Feriepenge-beregning** - Differanse NAV vs arbeidsgiver (delvis i economy.ts)
 4. **Validering av input** - Negative verdier, ugyldige datoer
 5. **Mobile responsivitet** - Fungerer, men kan forbedres
 6. **Dark mode testing** - Implementert via Tailwind, men ikke grundig testet
+7. **Integrasjon av PeriodInput med beregninger** - Periodene vises, men brukes ikke ennå i hovedberegningen
 
 ### Kjente bugs
 
@@ -162,22 +188,32 @@ src/
 │   │   ├── CoverageToggle.tsx
 │   │   ├── DistributionSliders.tsx
 │   │   ├── DaycareInput.tsx
-│   │   └── EconomySection.tsx
+│   │   ├── VacationInput.tsx
+│   │   ├── EconomySection.tsx
+│   │   ├── PeriodInput.tsx       # Avansert permisjonsplanlegger
+│   │   ├── ParentPeriodSection.tsx
+│   │   ├── AddPeriodDialog.tsx
+│   │   ├── PeriodListItem.tsx
+│   │   └── QuotaSummary.tsx
 │   ├── timeline/
 │   │   ├── index.ts
-│   │   └── CalendarTimeline.tsx
+│   │   └── CalendarTimeline.tsx  # Med helligdags-styling
 │   ├── results/
 │   │   ├── index.ts
 │   │   ├── DateSummary.tsx
 │   │   └── EconomyComparison.tsx
 │   └── ui/                 # shadcn/ui komponenter
+│       ├── dialog.tsx      # Ny
+│       ├── select.tsx      # Ny
+│       └── ...
 ├── lib/
 │   ├── calculator/
 │   │   ├── index.ts        # Hovedeksport
-│   │   ├── dates.ts        # Datoberegninger
+│   │   ├── dates.ts        # Datoberegninger + periodelogikk
 │   │   └── economy.ts      # Økonomiberegninger
+│   ├── holidays.ts         # Norske helligdager (ny)
 │   ├── constants.ts        # G, ukefordeling
-│   ├── types.ts            # TypeScript interfaces
+│   ├── types.ts            # TypeScript interfaces (utvidet)
 │   └── utils.ts            # cn() helper
 docs/
 ├── KRAVSPEC.md             # Kravspesifikasjon
@@ -189,7 +225,7 @@ docs/
 
 ## Neste steg (prioritert)
 
-1. **Feriedag-funksjonalitet** - Klikk på dager i gap for å markere ferie, tell opp feriedager
+1. **Integrer PeriodInput med beregninger** - Bruk periodene i hovedberegningen og kalenderen
 2. **Forbedre økonomisk sammenligning** - Mer detaljert breakdown, tydeligere anbefaling
 3. **Likviditetsgraf** - Visuell sammenligning av inntekt over tid
 4. **Validering og feilmeldinger** - Bedre UX ved ugyldige input

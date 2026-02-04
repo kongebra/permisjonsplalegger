@@ -6,6 +6,12 @@ export type Coverage = 100 | 80;
 export type ParentRights = 'both' | 'mother-only' | 'father-only';
 export type Parent = 'mother' | 'father';
 
+// Job type affects vacation day counting
+export type JobType = 'office' | 'shift';
+
+// Period types for the advanced leave planner
+export type LeavePeriodType = 'quota' | 'shared' | 'vacation' | 'unpaid';
+
 export interface VacationInput {
   mother: {
     daysAfter: number; // Feriedager etter mors permisjon
@@ -108,4 +114,54 @@ export interface EconomyResult {
 export interface CalculatorResult {
   leave: LeaveResult;
   economy?: EconomyResult; // Kun hvis økonomi-data er fylt ut
+}
+
+// --- Advanced Period Planner Types ---
+
+/**
+ * A single leave period (vacation, quota, shared, or unpaid leave)
+ */
+export interface LeavePeriod {
+  id: string;
+  parent: Parent;
+  type: LeavePeriodType;
+  startDate: Date;
+  endDate: Date; // Exclusive (day after last leave day)
+  vacationDaysUsed?: number; // Calculated for vacation periods based on job type
+}
+
+/**
+ * Configuration for one parent's periods and job type
+ */
+export interface ParentPeriodConfig {
+  jobType: JobType;
+  periods: LeavePeriod[];
+}
+
+/**
+ * Quota usage summary for display
+ */
+export interface QuotaUsage {
+  type: 'mother' | 'father' | 'shared';
+  weeksUsed: number;
+  weeksAvailable: number;
+  isOverbooked: boolean;
+}
+
+/**
+ * Validation result for period configuration
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  warnings: string[];
+  errors: string[];
+}
+
+/**
+ * Norwegian holiday information
+ */
+export interface Holiday {
+  date: Date;
+  name: string;
+  isEasterRelative: boolean;
 }

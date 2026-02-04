@@ -10,12 +10,20 @@ import {
   DaycareInput,
   VacationInput,
   EconomySection,
+  PeriodInput,
 } from '@/components/input';
 import { CalendarTimeline } from '@/components/timeline';
 import { DateSummary, EconomyComparison } from '@/components/results';
 import { calculate, getDefaultDaycareStart, getDefaultSharedWeeksToMother } from '@/lib/calculator';
 import { LEAVE_CONFIG } from '@/lib/constants';
-import type { Coverage, ParentRights, ParentEconomy, VacationWeek, VacationInput as VacationInputType } from '@/lib/types';
+import type {
+  Coverage,
+  ParentRights,
+  ParentEconomy,
+  VacationWeek,
+  VacationInput as VacationInputType,
+  ParentPeriodConfig,
+} from '@/lib/types';
 
 // Default økonomi-verdier
 const defaultParentEconomy: ParentEconomy = {
@@ -46,6 +54,16 @@ export default function Home() {
   const [vacation, setVacation] = useState<VacationInputType>({
     mother: { daysAfter: 0, duringFatherLeave: false },
     father: { daysBefore: 0, duringMotherLeave: false, daysAfter: 0 },
+  });
+
+  // Advanced period planner state
+  const [motherPeriodConfig, setMotherPeriodConfig] = useState<ParentPeriodConfig>({
+    jobType: 'office',
+    periods: [],
+  });
+  const [fatherPeriodConfig, setFatherPeriodConfig] = useState<ParentPeriodConfig>({
+    jobType: 'office',
+    periods: [],
   });
 
   // Økonomi
@@ -161,6 +179,16 @@ export default function Home() {
                   rights={rights}
                 />
 
+                <PeriodInput
+                  motherConfig={motherPeriodConfig}
+                  fatherConfig={fatherPeriodConfig}
+                  onMotherConfigChange={setMotherPeriodConfig}
+                  onFatherConfigChange={setFatherPeriodConfig}
+                  rights={rights}
+                  coverage={coverage}
+                  dueDate={dueDate}
+                />
+
                 <EconomySection
                   rights={rights}
                   motherEconomy={motherEconomy}
@@ -240,8 +268,24 @@ export default function Home() {
       </main>
 
       <footer className="border-t mt-12">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          <p>
+        <div className="container mx-auto px-4 py-6 space-y-4">
+          {/* Disclaimer */}
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">
+              Viktig informasjon
+            </h4>
+            <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+              Dette er et planleggingsverktøy, ikke en offisiell kilde.
+            </p>
+            <ul className="text-sm text-amber-700 dark:text-amber-300 list-disc list-inside space-y-1">
+              <li>Resultatene er estimater basert på generelle regler</li>
+              <li>Kontakt NAV for offisielle beregninger og godkjenning</li>
+              <li>Snakk med arbeidsgiver om deres spesifikke ordninger</li>
+              <li>Regler kan endres - sjekk alltid nav.no for oppdatert informasjon</li>
+            </ul>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground">
             Dette er et verktøy for illustrasjonsformål. Kontakt NAV for
             offisielle beregninger.
           </p>

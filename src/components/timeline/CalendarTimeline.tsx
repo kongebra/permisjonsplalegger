@@ -14,6 +14,7 @@ import {
 } from "date-fns";
 import { nb } from "date-fns/locale";
 import type { LeaveResult, LeaveSegment } from "@/lib/types";
+import { getHolidayMap } from "@/lib/holidays";
 
 interface CalendarTimelineProps {
   result: LeaveResult;
@@ -34,6 +35,7 @@ type DayStatus =
   | "daycare"
   | "daycareWithMotherVacation" // Barnehagestart + mor ferie
   | "daycareWithFatherVacation" // Barnehagestart + far ferie
+  | "unpaid" // Ulønnet permisjon
   | "normal";
 
 const statusColors: Record<DayStatus, string> = {
@@ -49,6 +51,7 @@ const statusColors: Record<DayStatus, string> = {
   daycare: "bg-green-500 dark:bg-green-600 text-white font-bold",
   daycareWithMotherVacation: "bg-green-500 dark:bg-green-600 text-white font-bold", // Green bg + dashed border
   daycareWithFatherVacation: "bg-green-500 dark:bg-green-600 text-white font-bold", // Green bg + dashed border
+  unpaid: "bg-gray-200 dark:bg-gray-700", // Gray background for unpaid leave
   normal: "bg-muted",
 };
 
@@ -90,6 +93,11 @@ const getVacationHalfBorderStyle = (parent: 'mother' | 'father'): React.CSSPrope
     borderBottom: '2px dashed rgb(30, 64, 175)',
   };
 };
+
+// Dashed border style for unpaid leave
+const getUnpaidStyle = (): React.CSSProperties => ({
+  border: '2px dashed rgb(107, 114, 128)',
+});
 
 function getDayStatus(
   date: Date,
@@ -165,6 +173,9 @@ function getDayStatus(
     if (seg.type === "vacation") {
       return seg.parent === "mother" ? "motherVacation" : "fatherVacation";
     }
+    if (seg.type === "unpaid") {
+      return "unpaid";
+    }
     return seg.parent === "mother" ? "mother" : "father";
   }
 
@@ -179,6 +190,12 @@ interface MonthCalendarProps {
   daycareStart: Date;
   periodStart: Date;
   periodEnd: Date;
+  holidayMap: Map<string, string>;
+}
+
+// Helper to create date key for holiday lookup
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function MonthCalendar({
@@ -189,6 +206,7 @@ function MonthCalendar({
   daycareStart,
   periodStart,
   periodEnd,
+  holidayMap,
 }: MonthCalendarProps) {
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
@@ -231,8 +249,17 @@ function MonthCalendar({
             ? getDayStatus(day, segments, gap, dueDate, daycareStart)
             : "normal";
 
+          // Check if day is a holiday or Sunday
+          const key = dateKey(day);
+          const holidayName = holidayMap.get(key);
+          const isHoliday = !!holidayName;
+          const isSunday = getDay(day) === 0; // 0 = Sunday
+          const isRedDay = isHoliday || isSunday;
+
           // Bygg tooltip
           let tooltip = format(day, "d. MMMM yyyy", { locale: nb });
+          if (isHoliday) tooltip += ` - ${holidayName}`;
+          if (isSunday && !isHoliday) tooltip += " - Søndag";
           if (isSameDay(day, dueDate)) tooltip += " - Termindato";
           if (isSameDay(day, daycareStart)) tooltip += " - Barnehagestart";
 
@@ -253,6 +280,8 @@ function MonthCalendar({
                 return getVacationFullBorderStyle('mother');
               case "daycareWithFatherVacation":
                 return getVacationFullBorderStyle('father');
+              case "unpaid":
+                return getUnpaidStyle();
               default:
                 return undefined;
             }
@@ -261,7 +290,7 @@ function MonthCalendar({
           return (
             <div
               key={day.toISOString()}
-              className={`aspect-square rounded-sm flex items-center justify-center text-xs ${statusColors[status]}`}
+              className={`aspect-square rounded-sm flex items-center justify-center text-xs ${statusColors[status]} ${isRedDay ? 'text-red-600 dark:text-red-400 font-bold' : ''}`}
               style={getInlineStyle()}
               title={tooltip}
             >
@@ -320,6 +349,11 @@ export function CalendarTimeline({
     return monthList;
   }, [periodStart, periodEnd]);
 
+  // Get holiday map for the entire period
+  const holidayMap = useMemo(() => {
+    return getHolidayMap(periodStart, periodEnd);
+  }, [periodStart, periodEnd]);
+
   return (
     <div className="space-y-4">
       <h3 className="font-medium">Permisjonskalender</h3>
@@ -337,6 +371,7 @@ export function CalendarTimeline({
               daycareStart={daycareStart}
               periodStart={periodStart}
               periodEnd={periodEnd}
+              holidayMap={holidayMap}
             />
           ))}
         </div>
@@ -378,6 +413,15 @@ export function CalendarTimeline({
             <span>Far ferie</span>
           </div>
         )}
+        {segments.some((s) => s.type === "unpaid") && (
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-4 h-4 rounded-sm bg-gray-200 dark:bg-gray-700"
+              style={{ border: '2px dashed rgb(107, 114, 128)' }}
+            />
+            <span>Ulønnet</span>
+          </div>
+        )}
         {gap.days > 0 && (
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded-sm border border-dashed border-red-400 bg-red-200 dark:bg-red-900/50" />
@@ -391,6 +435,12 @@ export function CalendarTimeline({
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded-sm bg-green-500 dark:bg-green-600" />
           <span>Barnehagestart</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-4 rounded-sm bg-muted text-red-600 font-bold flex items-center justify-center text-[8px]">
+            R
+          </div>
+          <span>Rød dag (søn/helligdag)</span>
         </div>
       </div>
     </div>
