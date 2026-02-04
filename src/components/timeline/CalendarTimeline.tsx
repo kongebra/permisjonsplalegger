@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   format,
   startOfMonth,
@@ -11,9 +11,9 @@ import {
   addMonths,
   max,
   isSameDay,
-} from 'date-fns';
-import { nb } from 'date-fns/locale';
-import type { LeaveResult, LeaveSegment } from '@/lib/types';
+} from "date-fns";
+import { nb } from "date-fns/locale";
+import type { LeaveResult, LeaveSegment } from "@/lib/types";
 
 interface CalendarTimelineProps {
   result: LeaveResult;
@@ -22,39 +22,52 @@ interface CalendarTimelineProps {
 }
 
 type DayStatus =
-  | 'mother'
-  | 'father'
-  | 'overlap'
-  | 'gap'
-  | 'duedate'
-  | 'daycare'
-  | 'normal';
+  | "mother"
+  | "father"
+  | "motherVacation"
+  | "fatherVacation"
+  | "overlap"
+  | "gap"
+  | "duedate"
+  | "daycare"
+  | "normal";
 
 const statusColors: Record<DayStatus, string> = {
-  mother: 'bg-pink-300 dark:bg-pink-500',
-  father: 'bg-blue-300 dark:bg-blue-500',
-  overlap: 'bg-orange-300 dark:bg-orange-500',
-  gap: 'bg-red-200 dark:bg-red-900/50 border border-dashed border-red-400',
-  duedate: 'bg-violet-500 dark:bg-violet-600 text-white font-bold',
-  daycare: 'bg-green-500 dark:bg-green-600 text-white font-bold',
-  normal: 'bg-muted/30',
+  mother: "bg-pink-300 dark:bg-pink-500",
+  father: "bg-blue-300 dark:bg-blue-500",
+  motherVacation:
+    "bg-pink-200 dark:bg-pink-400 border-2 border-pink-500 dark:border-pink-300",
+  fatherVacation:
+    "bg-blue-200 dark:bg-blue-400 border-2 border-blue-500 dark:border-blue-300",
+  overlap: "", // Handled via inline style for gradient
+  gap: "bg-red-200 dark:bg-red-900/50 border border-dashed border-red-400",
+  duedate: "bg-violet-500 dark:bg-violet-600 text-white font-bold",
+  daycare: "bg-green-500 dark:bg-green-600 text-white font-bold",
+  normal: "bg-muted",
 };
+
+// Diagonal gradient for overlap: pink (mother) top-left, blue (father) bottom-right
+const getOverlapStyle = (): React.CSSProperties => ({
+  background: `linear-gradient(135deg,
+    rgb(249, 168, 212) 50%,
+    rgb(147, 197, 253) 50%)`,
+});
 
 function getDayStatus(
   date: Date,
   segments: LeaveSegment[],
   gap: { start: Date; end: Date; days: number },
   dueDate: Date,
-  daycareStart: Date
+  daycareStart: Date,
 ): DayStatus {
   // Sjekk termindato først
   if (isSameDay(date, dueDate)) {
-    return 'duedate';
+    return "duedate";
   }
 
   // Sjekk barnehagestart
   if (isSameDay(date, daycareStart)) {
-    return 'daycare';
+    return "daycare";
   }
 
   // Sjekk gap (kun hvis det er positivt gap)
@@ -63,7 +76,7 @@ function getDayStatus(
   const isBeforeGapEnd = date < gap.end && !isSameDay(date, gap.end);
 
   if (gap.days > 0 && isOnOrAfterGapStart && isBeforeGapEnd) {
-    return 'gap';
+    return "gap";
   }
 
   // Normaliser for segment-sjekk
@@ -79,15 +92,18 @@ function getDayStatus(
 
   // Hvis det er overlapp (flere segmenter på samme dag)
   if (matchingSegments.length > 1) {
-    return 'overlap';
+    return "overlap";
   }
 
   if (matchingSegments.length === 1) {
     const seg = matchingSegments[0];
-    return seg.parent === 'mother' ? 'mother' : 'father';
+    if (seg.type === "vacation") {
+      return seg.parent === "mother" ? "motherVacation" : "fatherVacation";
+    }
+    return seg.parent === "mother" ? "mother" : "father";
   }
 
-  return 'normal';
+  return "normal";
 }
 
 interface MonthCalendarProps {
@@ -124,11 +140,11 @@ function MonthCalendar({
   return (
     <div className="flex flex-col w-full">
       <div className="text-sm font-medium text-center mb-1 capitalize">
-        {format(month, 'MMMM yyyy', { locale: nb })}
+        {format(month, "MMMM yyyy", { locale: nb })}
       </div>
       <div className="grid grid-cols-7 gap-0.5">
         {/* Ukedager header */}
-        {['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'].map((day, i) => (
+        {["Ma", "Ti", "On", "To", "Fr", "Lø", "Sø"].map((day, i) => (
           <div
             key={i}
             className="aspect-square flex items-center justify-center text-[10px] text-muted-foreground font-medium"
@@ -148,20 +164,24 @@ function MonthCalendar({
           const isInPeriod = day >= periodStart && day <= periodEnd;
           const status = isInPeriod
             ? getDayStatus(day, segments, gap, dueDate, daycareStart)
-            : 'normal';
+            : "normal";
 
           // Bygg tooltip
-          let tooltip = format(day, 'd. MMMM yyyy', { locale: nb });
-          if (isSameDay(day, dueDate)) tooltip += ' - Termindato';
-          if (isSameDay(day, daycareStart)) tooltip += ' - Barnehagestart';
+          let tooltip = format(day, "d. MMMM yyyy", { locale: nb });
+          if (isSameDay(day, dueDate)) tooltip += " - Termindato";
+          if (isSameDay(day, daycareStart)) tooltip += " - Barnehagestart";
+
+          // Bruk inline style for overlap gradient, ellers CSS classes
+          const isOverlap = status === "overlap";
 
           return (
             <div
               key={day.toISOString()}
               className={`aspect-square rounded-sm flex items-center justify-center text-xs ${statusColors[status]}`}
+              style={isOverlap ? getOverlapStyle() : undefined}
               title={tooltip}
             >
-              {format(day, 'd')}
+              {format(day, "d")}
             </div>
           );
         })}
@@ -170,7 +190,11 @@ function MonthCalendar({
   );
 }
 
-export function CalendarTimeline({ result, showFather, dueDate }: CalendarTimelineProps) {
+export function CalendarTimeline({
+  result,
+  showFather,
+  dueDate,
+}: CalendarTimelineProps) {
   const { segments, gap, mother, father } = result;
 
   // Finn start og slutt for hele perioden
@@ -244,8 +268,14 @@ export function CalendarTimeline({ result, showFather, dueDate }: CalendarTimeli
         )}
         {result.overlap && (
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-sm bg-orange-300 dark:bg-orange-500" />
+            <div className="w-4 h-4 rounded-sm" style={getOverlapStyle()} />
             <span>Overlapp</span>
+          </div>
+        )}
+        {segments.some((s) => s.type === "vacation") && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-sm bg-pink-200 dark:bg-pink-400 border-2 border-pink-500 dark:border-pink-300" />
+            <span>Ferie</span>
           </div>
         )}
         {gap.days > 0 && (

@@ -9,16 +9,24 @@ import type {
   LeaveSegment,
   LeaveResult,
   VacationWeek,
+  VacationInput,
   GapInfo,
 } from '../types';
+
+/**
+ * Legger til dager til en dato
+ */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
 
 /**
  * Legger til uker til en dato
  */
 export function addWeeks(date: Date, weeks: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + weeks * 7);
-  return result;
+  return addDays(date, weeks * 7);
 }
 
 /**
@@ -89,13 +97,15 @@ export function calculateMotherPeriod(
 /**
  * Beregner fars permisjonsperiode
  * NB: Overlapp forkorter total kalendertid
+ * NB: Mors feriedager etter permisjon kan skyve fars start hvis ikke overlapp
  */
 export function calculateFatherPeriod(
   motherEnd: Date,
   coverage: Coverage,
   sharedWeeksToMother: number,
   overlapWeeks: number,
-  rights: ParentRights
+  rights: ParentRights,
+  vacation?: VacationInput
 ): { start: Date; end: Date; weeks: number } | null {
   if (rights === 'mother-only') {
     return null;
@@ -124,6 +134,13 @@ export function calculateFatherPeriod(
   } else {
     fatherStart = subtractWeeks(motherEnd, overlapWeeks);
   }
+
+  // Hvis mor har ferie etter permisjon og det IKKE overlapper med fars permisjon,
+  // skyv fars start med antall feriedager
+  if (vacation && vacation.mother.daysAfter > 0 && !vacation.mother.duringFatherLeave) {
+    fatherStart = addDays(fatherStart, vacation.mother.daysAfter);
+  }
+
   const fatherEnd = addWeeks(fatherStart, totalFatherWeeks);
 
   return {
@@ -181,7 +198,8 @@ export function buildLeaveSegments(
   sharedWeeksToMother: number,
   overlapWeeks: number,
   _daycareStartDate: Date,
-  _vacationWeeks: VacationWeek[]
+  _vacationWeeks: VacationWeek[],
+  vacation?: VacationInput
 ): LeaveSegment[] {
   const segments: LeaveSegment[] = [];
   const config = LEAVE_CONFIG[coverage];
@@ -199,6 +217,17 @@ export function buildLeaveSegments(
       end: fatherEnd,
       weeks: config.total,
     });
+
+    // Far: Ferie etter permisjon
+    if (vacation && vacation.father.daysAfter > 0) {
+      segments.push({
+        parent: 'father',
+        type: 'vacation',
+        start: fatherEnd,
+        end: addDays(fatherEnd, vacation.father.daysAfter),
+        weeks: vacation.father.daysAfter / 7,
+      });
+    }
 
     return segments;
   }
@@ -258,12 +287,32 @@ export function buildLeaveSegments(
 
   const motherEnd = currentDate;
 
+  // Mor: Ferie etter permisjon
+  if (vacation && vacation.mother.daysAfter > 0) {
+    const motherVacationStart = motherEnd;
+    const motherVacationEnd = addDays(motherEnd, vacation.mother.daysAfter);
+    segments.push({
+      parent: 'mother',
+      type: 'vacation',
+      start: motherVacationStart,
+      end: motherVacationEnd,
+      weeks: vacation.mother.daysAfter / 7,
+    });
+  }
+
   if (rights === 'mother-only') {
     return segments;
   }
 
+  // Beregn fars faktiske start (tar hensyn til mors ferie)
+  let fatherStartBase = motherEnd;
+  if (vacation && vacation.mother.daysAfter > 0 && !vacation.mother.duringFatherLeave) {
+    // Mors ferie skyver fars start
+    fatherStartBase = addDays(motherEnd, vacation.mother.daysAfter);
+  }
+
   // Far: Starter før mor slutter hvis overlapp
-  const fatherStart = subtractWeeks(motherEnd, overlapWeeks);
+  const fatherStart = subtractWeeks(fatherStartBase, overlapWeeks);
   const sharedWeeksToFather = config.shared - sharedWeeksToMother;
 
   // Far: Overlapp-periode
@@ -272,13 +321,13 @@ export function buildLeaveSegments(
       parent: 'father',
       type: 'overlap',
       start: fatherStart,
-      end: motherEnd,
+      end: fatherStartBase,
       weeks: overlapWeeks,
     });
   }
 
   // Far: Fedrekvote
-  const fatherQuotaStart = motherEnd;
+  const fatherQuotaStart = fatherStartBase;
   const fatherQuotaEnd = addWeeks(fatherQuotaStart, config.father - overlapWeeks);
   if (config.father - overlapWeeks > 0) {
     segments.push({
@@ -291,6 +340,7 @@ export function buildLeaveSegments(
   }
 
   // Far: Fellesperiode
+  let fatherLastEnd = fatherQuotaEnd;
   if (sharedWeeksToFather > 0) {
     const fatherSharedStart = fatherQuotaEnd;
     const fatherSharedEnd = addWeeks(fatherSharedStart, sharedWeeksToFather);
@@ -300,6 +350,18 @@ export function buildLeaveSegments(
       start: fatherSharedStart,
       end: fatherSharedEnd,
       weeks: sharedWeeksToFather,
+    });
+    fatherLastEnd = fatherSharedEnd;
+  }
+
+  // Far: Ferie etter permisjon
+  if (vacation && vacation.father.daysAfter > 0) {
+    segments.push({
+      parent: 'father',
+      type: 'vacation',
+      start: fatherLastEnd,
+      end: addDays(fatherLastEnd, vacation.father.daysAfter),
+      weeks: vacation.father.daysAfter / 7,
     });
   }
 
@@ -316,7 +378,8 @@ export function calculateLeave(
   sharedWeeksToMother: number,
   overlapWeeks: number,
   daycareStartDate: Date,
-  vacationWeeks: VacationWeek[] = []
+  vacationWeeks: VacationWeek[] = [],
+  vacation?: VacationInput
 ): LeaveResult {
   const leaveStart = calculateLeaveStart(dueDate, coverage);
 
@@ -333,13 +396,19 @@ export function calculateLeave(
     coverage,
     sharedWeeksToMother,
     overlapWeeks,
-    rights
+    rights,
+    vacation
   );
 
-  // Finn siste slutt-dato
-  const lastLeaveEnd = fatherPeriod
+  // Finn siste slutt-dato (inkludert feriedager)
+  let lastLeaveEnd = fatherPeriod
     ? new Date(Math.max(motherPeriod.end.getTime(), fatherPeriod.end.getTime()))
     : motherPeriod.end;
+
+  // Legg til fars feriedager etter permisjon til siste slutt-dato
+  if (vacation && vacation.father.daysAfter > 0 && fatherPeriod) {
+    lastLeaveEnd = addDays(fatherPeriod.end, vacation.father.daysAfter);
+  }
 
   const gap = calculateGap(lastLeaveEnd, daycareStartDate);
   const vacationDaysNeeded = calculateVacationDaysNeeded(gap, vacationWeeks);
@@ -351,7 +420,8 @@ export function calculateLeave(
     sharedWeeksToMother,
     overlapWeeks,
     daycareStartDate,
-    vacationWeeks
+    vacationWeeks,
+    vacation
   );
 
   // Total kalendertid (overlapp forkorter denne)

@@ -6,6 +6,18 @@ export type Coverage = 100 | 80;
 export type ParentRights = 'both' | 'mother-only' | 'father-only';
 export type Parent = 'mother' | 'father';
 
+export interface VacationInput {
+  mother: {
+    daysAfter: number; // Feriedager etter mors permisjon
+    duringFatherLeave: boolean; // true = overlapp med far, false = skyv fars start
+  };
+  father: {
+    daysBefore: number; // Feriedager før fars permisjon
+    duringMotherLeave: boolean; // true = overlapp med mor, false = skyv mors slutt
+    daysAfter: number; // Feriedager etter fars permisjon (dekker gap)
+  };
+}
+
 export interface ParentEconomy {
   monthlySalary: number;
   monthlyCommissionLoss: number;
@@ -23,6 +35,7 @@ export interface CalculatorInput {
   motherEconomy?: ParentEconomy;
   fatherEconomy?: ParentEconomy;
   vacationWeeks: VacationWeek[];
+  vacation?: VacationInput; // Feriedager (ny modell)
 }
 
 export interface VacationWeek {

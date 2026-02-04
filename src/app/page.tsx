@@ -8,13 +8,14 @@ import {
   CoverageToggle,
   DistributionSliders,
   DaycareInput,
+  VacationInput,
   EconomySection,
 } from '@/components/input';
 import { CalendarTimeline } from '@/components/timeline';
 import { DateSummary, EconomyComparison } from '@/components/results';
 import { calculate, getDefaultDaycareStart, getDefaultSharedWeeksToMother } from '@/lib/calculator';
 import { LEAVE_CONFIG } from '@/lib/constants';
-import type { Coverage, ParentRights, ParentEconomy, VacationWeek } from '@/lib/types';
+import type { Coverage, ParentRights, ParentEconomy, VacationWeek, VacationInput as VacationInputType } from '@/lib/types';
 
 // Default økonomi-verdier
 const defaultParentEconomy: ParentEconomy = {
@@ -42,6 +43,10 @@ export default function Home() {
   );
   const [overlapWeeks, setOverlapWeeks] = useState<number>(0);
   const [vacationWeeks] = useState<VacationWeek[]>([]);
+  const [vacation, setVacation] = useState<VacationInputType>({
+    mother: { daysAfter: 0, duringFatherLeave: false },
+    father: { daysBefore: 0, duringMotherLeave: false, daysAfter: 0 },
+  });
 
   // Økonomi
   const [motherEconomy, setMotherEconomy] =
@@ -88,6 +93,7 @@ export default function Home() {
       fatherEconomy:
         hasEconomyData && rights === 'both' ? fatherEconomy : undefined,
       vacationWeeks,
+      vacation,
     });
   }, [
     dueDate,
@@ -99,6 +105,7 @@ export default function Home() {
     motherEconomy,
     fatherEconomy,
     vacationWeeks,
+    vacation,
   ]);
 
   const showFather = rights !== 'mother-only';
@@ -146,6 +153,12 @@ export default function Home() {
                 <DaycareInput
                   value={daycareStartDate}
                   onChange={handleDaycareChange}
+                />
+
+                <VacationInput
+                  vacation={vacation}
+                  onChange={setVacation}
+                  rights={rights}
                 />
 
                 <EconomySection
