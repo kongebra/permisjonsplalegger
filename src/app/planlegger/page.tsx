@@ -1,60 +1,116 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePlannerStore } from '@/store';
+import { WizardContainer } from '@/components/wizard';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import Link from 'next/link';
 
-export default function PlanleggerPage() {
-  const { checkForSavedPlan, hasSavedPlan, loadPlan, wizardCompleted } = usePlannerStore();
+// Check localStorage on client side only
+function checkLocalStorage(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem('permisjonsplan-v1');
+  return saved !== null;
+}
 
+export default function PlanleggerPage() {
+  const router = useRouter();
+  const { loadPlan, wizardCompleted, resetAll, checkForSavedPlan } = usePlannerStore();
+
+  // Initialize dialog state based on localStorage (computed once)
+  const [dialogDismissed, setDialogDismissed] = useState(false);
+
+  // Check if there's a saved plan (computed once on mount)
+  const hasSavedPlan = checkLocalStorage();
+
+  // Sync store state with localStorage check
   useEffect(() => {
     checkForSavedPlan();
   }, [checkForSavedPlan]);
 
-  // Placeholder - will be replaced with WizardContainer
+  // If wizard is already completed, redirect to calendar
+  useEffect(() => {
+    if (wizardCompleted) {
+      router.push('/planlegger/kalender');
+    }
+  }, [wizardCompleted, router]);
+
+  const handleContinue = useCallback(() => {
+    loadPlan();
+    setDialogDismissed(true);
+  }, [loadPlan]);
+
+  const handleStartNew = useCallback(() => {
+    resetAll();
+    setDialogDismissed(true);
+  }, [resetAll]);
+
+  const handleDialogChange = useCallback((open: boolean) => {
+    if (!open) {
+      setDialogDismissed(true);
+    }
+  }, []);
+
+  // Show dialog only if: has saved plan, wizard not completed, and not dismissed
+  const showDialog = hasSavedPlan && !wizardCompleted && !dialogDismissed;
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold">Permisjonsplanlegger</h1>
-          <p className="text-muted-foreground">
-            Planlegg foreldrepermisjonen steg for steg
-          </p>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">Permisjonsplanlegger</h1>
+            <p className="text-sm text-muted-foreground">
+              Planlegg foreldrepermisjonen steg for steg
+            </p>
+          </div>
+          <Link href="/gammel">
+            <Button variant="ghost" size="sm">
+              Gammel kalkulator
+            </Button>
+          </Link>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto space-y-6">
-          {hasSavedPlan && !wizardCompleted && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <h3 className="font-medium mb-2">Fortsett der du slapp?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Du har en lagret plan fra tidligere.
-              </p>
-              <div className="flex gap-2">
-                <Button onClick={() => loadPlan()}>
-                  Fortsett
-                </Button>
-                <Button variant="outline">
-                  Start på nytt
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              Wizard-komponenten kommer her...
-            </p>
-            <Link href="/gammel">
-              <Button variant="outline">
-                Bruk gammel kalkulator
-              </Button>
-            </Link>
-          </div>
-        </div>
+        <WizardContainer />
       </main>
+
+      {/* Continue dialog */}
+      <Dialog open={showDialog} onOpenChange={handleDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Fortsett der du slapp?</DialogTitle>
+            <DialogDescription>
+              Du har en lagret plan fra tidligere. Vil du fortsette med den
+              eller starte på nytt?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button onClick={handleContinue}>
+              Fortsett
+            </Button>
+            <Button variant="outline" onClick={handleStartNew}>
+              Start på nytt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <footer className="border-t mt-12">
+        <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
+          Dette er et planleggingsverktøy. Kontakt NAV for offisielle beregninger.
+        </div>
+      </footer>
     </div>
   );
 }

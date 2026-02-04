@@ -22,15 +22,16 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] Flytt gammel kalkulator til /gammel (2025-02-04)
 
 ### Fase 2: Wizard
-- [ ] WizardContainer med steg-navigasjon
-- [ ] WizardProgress indikator
-- [ ] DueDateStep
-- [ ] RightsStep
-- [ ] CoverageStep
-- [ ] DistributionStep
-- [ ] DaycareStep
-- [ ] JobSettingsStep
-- [ ] SummaryStep med tilbake-funksjon
+- [x] WizardContainer med steg-navigasjon (2025-02-04)
+- [x] WizardProgress indikator (2025-02-04)
+- [x] DueDateStep (2025-02-04)
+- [x] RightsStep (2025-02-04)
+- [x] CoverageStep (2025-02-04)
+- [x] DistributionStep (2025-02-04)
+- [x] DaycareStep (2025-02-04)
+- [x] JobSettingsStep (2025-02-04)
+- [x] SummaryStep med tilbake-funksjon (2025-02-04)
+- [x] Switch UI-komponent (2025-02-04)
 
 ### Fase 3: Kalender-grunnlag
 - [ ] PlannerCalendar hovedkomponent
