@@ -59,9 +59,29 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] "Ny plan" med bekreftelse (2025-02-04)
 
 ### Fase 7: Polish
-- [ ] Responsive desktop-tilpasninger
+- [ ] Responsive desktop-tilpasninger (flere måneder per rad)
 - [ ] Animasjoner og overganger
 - [ ] Edge case-håndtering
+- [x] TypeScript build verification (2025-02-04)
+
+---
+
+## Status: Kjernefunksjonalitet ferdig
+
+Implementert 2025-02-04:
+- Wizard med 7 steg (termin, rettigheter, dekning, fordeling, barnehage, jobb, oppsummering)
+- Interaktiv kalender med månedsvisning og oversikt
+- Tap-tap periode-opprettelse med toolbar
+- Periode-redigering via modal
+- Stats bar med kvote-oversikt og gap-status
+- Toast-varsler system
+- localStorage lagring med auto-save
+- "Fortsett der du slapp" dialog
+
+Gjenstår (polish):
+- Desktop-optimalisering
+- Animasjoner
+- Edge case testing
 
 ---
 
