@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar } from '@/components/planner';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,18 @@ export default function KalenderPage() {
     setAutoSaveEnabled,
     undoStack,
     undo,
-  } = usePlannerStore();
+  } = usePlannerStore(
+    useShallow((state) => ({
+      wizardCompleted: state.wizardCompleted,
+      checkForSavedPlan: state.checkForSavedPlan,
+      loadPlan: state.loadPlan,
+      savePlan: state.savePlan,
+      autoSaveEnabled: state.autoSaveEnabled,
+      setAutoSaveEnabled: state.setAutoSaveEnabled,
+      undoStack: state.undoStack,
+      undo: state.undo,
+    }))
+  );
 
   // Check for saved plan synchronously before first render
   const hasSavedPlan = checkLocalStorage();

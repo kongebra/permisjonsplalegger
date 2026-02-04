@@ -1,7 +1,9 @@
 /**
  * Convenience hooks for accessing store slices
+ * Uses useShallow for proper React 19 SSR compatibility
  */
 
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
 import type { LeaveResult } from '@/lib/types';
 import { calculateLeave } from '@/lib/calculator';
@@ -10,105 +12,115 @@ import { calculateLeave } from '@/lib/calculator';
  * Hook for wizard state and actions
  */
 export function useWizard() {
-  return usePlannerStore((state) => ({
-    currentStep: state.currentStep,
-    wizardCompleted: state.wizardCompleted,
-    dueDate: state.dueDate,
-    rights: state.rights,
-    coverage: state.coverage,
-    sharedWeeksToMother: state.sharedWeeksToMother,
-    daycareStartDate: state.daycareStartDate,
-    daycareEnabled: state.daycareEnabled,
-    setCurrentStep: state.setCurrentStep,
-    nextStep: state.nextStep,
-    prevStep: state.prevStep,
-    completeWizard: state.completeWizard,
-    resetWizard: state.resetWizard,
-    setDueDate: state.setDueDate,
-    setRights: state.setRights,
-    setCoverage: state.setCoverage,
-    setSharedWeeksToMother: state.setSharedWeeksToMother,
-    setDaycareStartDate: state.setDaycareStartDate,
-    setDaycareEnabled: state.setDaycareEnabled,
-  }));
+  return usePlannerStore(
+    useShallow((state) => ({
+      currentStep: state.currentStep,
+      wizardCompleted: state.wizardCompleted,
+      dueDate: state.dueDate,
+      rights: state.rights,
+      coverage: state.coverage,
+      sharedWeeksToMother: state.sharedWeeksToMother,
+      daycareStartDate: state.daycareStartDate,
+      daycareEnabled: state.daycareEnabled,
+      setCurrentStep: state.setCurrentStep,
+      nextStep: state.nextStep,
+      prevStep: state.prevStep,
+      completeWizard: state.completeWizard,
+      resetWizard: state.resetWizard,
+      setDueDate: state.setDueDate,
+      setRights: state.setRights,
+      setCoverage: state.setCoverage,
+      setSharedWeeksToMother: state.setSharedWeeksToMother,
+      setDaycareStartDate: state.setDaycareStartDate,
+      setDaycareEnabled: state.setDaycareEnabled,
+    }))
+  );
 }
 
 /**
  * Hook for job settings
  */
 export function useJobSettings() {
-  return usePlannerStore((state) => ({
-    motherJobSettings: state.motherJobSettings,
-    fatherJobSettings: state.fatherJobSettings,
-    setMotherJobSettings: state.setMotherJobSettings,
-    setFatherJobSettings: state.setFatherJobSettings,
-    setJobSettings: state.setJobSettings,
-    resetJobSettings: state.resetJobSettings,
-  }));
+  return usePlannerStore(
+    useShallow((state) => ({
+      motherJobSettings: state.motherJobSettings,
+      fatherJobSettings: state.fatherJobSettings,
+      setMotherJobSettings: state.setMotherJobSettings,
+      setFatherJobSettings: state.setFatherJobSettings,
+      setJobSettings: state.setJobSettings,
+      resetJobSettings: state.resetJobSettings,
+    }))
+  );
 }
 
 /**
  * Hook for periods management
  */
 export function usePeriods() {
-  return usePlannerStore((state) => ({
-    periods: state.periods,
-    undoStack: state.undoStack,
-    addPeriod: state.addPeriod,
-    updatePeriod: state.updatePeriod,
-    deletePeriod: state.deletePeriod,
-    undo: state.undo,
-    clearPeriods: state.clearPeriods,
-    setPeriods: state.setPeriods,
-    getPeriodsByParent: state.getPeriodsByParent,
-    getPeriodsByType: state.getPeriodsByType,
-    getPeriodsInRange: state.getPeriodsInRange,
-  }));
+  return usePlannerStore(
+    useShallow((state) => ({
+      periods: state.periods,
+      undoStack: state.undoStack,
+      addPeriod: state.addPeriod,
+      updatePeriod: state.updatePeriod,
+      deletePeriod: state.deletePeriod,
+      undo: state.undo,
+      clearPeriods: state.clearPeriods,
+      setPeriods: state.setPeriods,
+      getPeriodsByParent: state.getPeriodsByParent,
+      getPeriodsByType: state.getPeriodsByType,
+      getPeriodsInRange: state.getPeriodsInRange,
+    }))
+  );
 }
 
 /**
  * Hook for UI state
  */
 export function useUi() {
-  return usePlannerStore((state) => ({
-    selectedPeriodType: state.selectedPeriodType,
-    selectedParent: state.selectedParent,
-    selectionStartDate: state.selectionStartDate,
-    selectionEndDate: state.selectionEndDate,
-    isSelecting: state.isSelecting,
-    activeMonth: state.activeMonth,
-    showMonthOverview: state.showMonthOverview,
-    editingPeriodId: state.editingPeriodId,
-    showPeriodModal: state.showPeriodModal,
-    setSelectedPeriodType: state.setSelectedPeriodType,
-    setSelectedParent: state.setSelectedParent,
-    startSelection: state.startSelection,
-    setSelectionEnd: state.setSelectionEnd,
-    clearSelection: state.clearSelection,
-    setActiveMonth: state.setActiveMonth,
-    navigateMonth: state.navigateMonth,
-    setShowMonthOverview: state.setShowMonthOverview,
-    openPeriodModal: state.openPeriodModal,
-    closePeriodModal: state.closePeriodModal,
-    resetUi: state.resetUi,
-  }));
+  return usePlannerStore(
+    useShallow((state) => ({
+      selectedPeriodType: state.selectedPeriodType,
+      selectedParent: state.selectedParent,
+      selectionStartDate: state.selectionStartDate,
+      selectionEndDate: state.selectionEndDate,
+      isSelecting: state.isSelecting,
+      activeMonth: state.activeMonth,
+      showMonthOverview: state.showMonthOverview,
+      editingPeriodId: state.editingPeriodId,
+      showPeriodModal: state.showPeriodModal,
+      setSelectedPeriodType: state.setSelectedPeriodType,
+      setSelectedParent: state.setSelectedParent,
+      startSelection: state.startSelection,
+      setSelectionEnd: state.setSelectionEnd,
+      clearSelection: state.clearSelection,
+      setActiveMonth: state.setActiveMonth,
+      navigateMonth: state.navigateMonth,
+      setShowMonthOverview: state.setShowMonthOverview,
+      openPeriodModal: state.openPeriodModal,
+      closePeriodModal: state.closePeriodModal,
+      resetUi: state.resetUi,
+    }))
+  );
 }
 
 /**
  * Hook for persistence
  */
 export function usePersistence() {
-  return usePlannerStore((state) => ({
-    hasSavedPlan: state.hasSavedPlan,
-    autoSaveEnabled: state.autoSaveEnabled,
-    lastSavedAt: state.lastSavedAt,
-    checkForSavedPlan: state.checkForSavedPlan,
-    setAutoSaveEnabled: state.setAutoSaveEnabled,
-    savePlan: state.savePlan,
-    loadPlan: state.loadPlan,
-    clearSavedPlan: state.clearSavedPlan,
-    resetAll: state.resetAll,
-  }));
+  return usePlannerStore(
+    useShallow((state) => ({
+      hasSavedPlan: state.hasSavedPlan,
+      autoSaveEnabled: state.autoSaveEnabled,
+      lastSavedAt: state.lastSavedAt,
+      checkForSavedPlan: state.checkForSavedPlan,
+      setAutoSaveEnabled: state.setAutoSaveEnabled,
+      savePlan: state.savePlan,
+      loadPlan: state.loadPlan,
+      clearSavedPlan: state.clearSavedPlan,
+      resetAll: state.resetAll,
+    }))
+  );
 }
 
 /**
@@ -116,19 +128,22 @@ export function usePersistence() {
  */
 export function useCalculatedLeave(): LeaveResult {
   const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
-    usePlannerStore((state) => ({
-      dueDate: state.dueDate,
-      coverage: state.coverage,
-      rights: state.rights,
-      sharedWeeksToMother: state.sharedWeeksToMother,
-      daycareStartDate: state.daycareStartDate,
-      daycareEnabled: state.daycareEnabled,
-    }));
+    usePlannerStore(
+      useShallow((state) => ({
+        dueDate: state.dueDate,
+        coverage: state.coverage,
+        rights: state.rights,
+        sharedWeeksToMother: state.sharedWeeksToMother,
+        daycareStartDate: state.daycareStartDate,
+        daycareEnabled: state.daycareEnabled,
+      }))
+    );
 
   // Use daycare date or a far-future date if disabled
-  const effectiveDaycareDate = daycareEnabled && daycareStartDate
-    ? daycareStartDate
-    : new Date(dueDate.getFullYear() + 3, 7, 1);
+  const effectiveDaycareDate =
+    daycareEnabled && daycareStartDate
+      ? daycareStartDate
+      : new Date(dueDate.getFullYear() + 3, 7, 1);
 
   return calculateLeave(
     dueDate,
@@ -146,12 +161,14 @@ export function useCalculatedLeave(): LeaveResult {
  * Hook for checking if we can proceed to next wizard step
  */
 export function useCanProceed(): boolean {
-  const { currentStep, dueDate, rights, coverage } = usePlannerStore((state) => ({
-    currentStep: state.currentStep,
-    dueDate: state.dueDate,
-    rights: state.rights,
-    coverage: state.coverage,
-  }));
+  const { currentStep, dueDate, rights, coverage } = usePlannerStore(
+    useShallow((state) => ({
+      currentStep: state.currentStep,
+      dueDate: state.dueDate,
+      rights: state.rights,
+      coverage: state.coverage,
+    }))
+  );
 
   // All steps are valid by default since we have sensible defaults
   switch (currentStep) {

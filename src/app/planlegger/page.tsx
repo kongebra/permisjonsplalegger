@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { WizardContainer } from '@/components/wizard';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,14 @@ function checkLocalStorage(): boolean {
 
 export default function PlanleggerPage() {
   const router = useRouter();
-  const { loadPlan, wizardCompleted, resetAll, checkForSavedPlan } = usePlannerStore();
+  const { loadPlan, wizardCompleted, resetAll, checkForSavedPlan } = usePlannerStore(
+    useShallow((state) => ({
+      loadPlan: state.loadPlan,
+      wizardCompleted: state.wizardCompleted,
+      resetAll: state.resetAll,
+      checkForSavedPlan: state.checkForSavedPlan,
+    }))
+  );
 
   // Initialize dialog state based on localStorage (computed once)
   const [dialogDismissed, setDialogDismissed] = useState(false);
