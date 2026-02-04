@@ -1,60 +1,127 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePlannerStore } from '@/store';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { usePlannerStore } from '@/store';
+import { PlannerCalendar } from '@/components/planner';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, Save, Undo2 } from 'lucide-react';
+
+// Check localStorage on client side only
+function checkLocalStorage(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem('permisjonsplan-v1');
+  return saved !== null;
+}
 
 export default function KalenderPage() {
   const router = useRouter();
-  const { wizardCompleted, checkForSavedPlan, loadPlan } = usePlannerStore();
+  const hasCheckedRef = useRef(false);
 
+  const {
+    wizardCompleted,
+    checkForSavedPlan,
+    loadPlan,
+    savePlan,
+    autoSaveEnabled,
+    setAutoSaveEnabled,
+    undoStack,
+    undo,
+  } = usePlannerStore();
+
+  // Check for saved plan synchronously before first render
+  const hasSavedPlan = checkLocalStorage();
+
+  // Determine if we need to redirect
+  const needsRedirect = !wizardCompleted && !hasSavedPlan;
+
+  // Sync store state and handle loading/redirect
   useEffect(() => {
-    // Check for saved plan on mount
-    const hasSaved = checkForSavedPlan();
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
 
-    // If no saved plan and wizard not completed, redirect to wizard
-    if (!hasSaved && !wizardCompleted) {
+    checkForSavedPlan();
+
+    if (needsRedirect) {
       router.push('/planlegger');
-    } else if (hasSaved && !wizardCompleted) {
-      // Auto-load saved plan
+      return;
+    }
+
+    // If not completed but has saved plan, try to load it
+    if (!wizardCompleted && hasSavedPlan) {
       loadPlan();
     }
-  }, [wizardCompleted, checkForSavedPlan, loadPlan, router]);
+  }, [needsRedirect, wizardCompleted, hasSavedPlan, checkForSavedPlan, loadPlan, router]);
 
-  // Placeholder - will be replaced with PlannerCalendar
+  const handleSave = useCallback(() => {
+    savePlan();
+    if (!autoSaveEnabled) {
+      setAutoSaveEnabled(true);
+    }
+  }, [savePlan, autoSaveEnabled, setAutoSaveEnabled]);
+
+  // Show loading while redirecting
+  if (needsRedirect) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Laster...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Kalender</h1>
-            <p className="text-sm text-muted-foreground">
-              Interaktiv permisjonskalender
-            </p>
-          </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b sticky top-0 bg-background z-40">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/planlegger">
-            <Button variant="outline" size="sm">
-              Tilbake til wizard
+            <Button variant="ghost" size="sm" className="flex items-center gap-1">
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Tilbake</span>
             </Button>
           </Link>
+
+          <h1 className="text-lg font-semibold">Kalender</h1>
+
+          <div className="flex items-center gap-2">
+            {/* Undo button */}
+            {undoStack.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={undo}
+                aria-label="Angre"
+              >
+                <Undo2 className="w-4 h-4" />
+              </Button>
+            )}
+
+            {/* Save button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSave}
+              className="flex items-center gap-1"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Lagre</span>
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
-            Kalender-komponenten kommer her...
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {wizardCompleted
-              ? 'Wizard er fullført - klar for kalendervisning'
-              : 'Fullfør wizard først for å se kalenderen'
-            }
-          </p>
-        </div>
+      {/* Main content */}
+      <main className="flex-1 container mx-auto px-4 py-4">
+        <PlannerCalendar />
       </main>
+
+      {/* Footer with auto-save indicator */}
+      {autoSaveEnabled && (
+        <footer className="border-t py-2 text-center text-xs text-muted-foreground">
+          Autolagring aktivert
+        </footer>
+      )}
     </div>
   );
 }

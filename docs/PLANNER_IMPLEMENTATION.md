@@ -34,11 +34,12 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] Switch UI-komponent (2025-02-04)
 
 ### Fase 3: Kalender-grunnlag
-- [ ] PlannerCalendar hovedkomponent
-- [ ] MonthView med dager
-- [ ] DayCell med periode-visning
-- [ ] Swipe-navigasjon med snap
-- [ ] MonthOverview for hopping mellom måneder
+- [x] PlannerCalendar hovedkomponent (2025-02-04)
+- [x] MonthView med dager (2025-02-04)
+- [x] DayCell med periode-visning (2025-02-04)
+- [x] Swipe-navigasjon med touch events (2025-02-04)
+- [x] MonthOverview for hopping mellom måneder (2025-02-04)
+- [x] Kalender-side med header og lagring (2025-02-04)
 
 ### Fase 4: Perioder
 - [ ] PeriodToolbar for valg av periodetype/forelder
