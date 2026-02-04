@@ -141,6 +141,12 @@ export function calculateFatherPeriod(
     fatherStart = addDays(fatherStart, vacation.mother.daysAfter);
   }
 
+  // Hvis far har ferie FØR permisjon og det IKKE overlapper med mors permisjon,
+  // skyv fars start med antall feriedager
+  if (vacation && vacation.father.daysBefore > 0 && !vacation.father.duringMotherLeave) {
+    fatherStart = addDays(fatherStart, vacation.father.daysBefore);
+  }
+
   const fatherEnd = addWeeks(fatherStart, totalFatherWeeks);
 
   return {
@@ -304,11 +310,38 @@ export function buildLeaveSegments(
     return segments;
   }
 
-  // Beregn fars faktiske start (tar hensyn til mors ferie)
+  // Beregn fars faktiske start (tar hensyn til mors ferie og fars ferie før)
   let fatherStartBase = motherEnd;
   if (vacation && vacation.mother.daysAfter > 0 && !vacation.mother.duringFatherLeave) {
     // Mors ferie skyver fars start
     fatherStartBase = addDays(motherEnd, vacation.mother.daysAfter);
+  }
+  if (vacation && vacation.father.daysBefore > 0 && !vacation.father.duringMotherLeave) {
+    // Fars ferie før skyver også fars start
+    fatherStartBase = addDays(fatherStartBase, vacation.father.daysBefore);
+  }
+
+  // Far: Ferie før permisjon
+  if (vacation && vacation.father.daysBefore > 0) {
+    let fatherVacationBeforeStart: Date;
+    if (vacation.father.duringMotherLeave) {
+      // Overlapp med mors permisjon: ferien starter før motherEnd
+      fatherVacationBeforeStart = addDays(motherEnd, -vacation.father.daysBefore);
+    } else {
+      // Ikke overlapp: ferien starter etter mors eventuelle ferie
+      let vacationStart = motherEnd;
+      if (vacation.mother.daysAfter > 0 && !vacation.mother.duringFatherLeave) {
+        vacationStart = addDays(motherEnd, vacation.mother.daysAfter);
+      }
+      fatherVacationBeforeStart = vacationStart;
+    }
+    segments.push({
+      parent: 'father',
+      type: 'vacation',
+      start: fatherVacationBeforeStart,
+      end: addDays(fatherVacationBeforeStart, vacation.father.daysBefore),
+      weeks: vacation.father.daysBefore / 7,
+    });
   }
 
   // Far: Starter før mor slutter hvis overlapp

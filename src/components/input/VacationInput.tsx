@@ -139,6 +139,90 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
             <div className="space-y-4">
               <h4 className="font-medium text-blue-600 dark:text-blue-400">Far / Medmor</h4>
 
+              {/* Feriedager FØR permisjon */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Feriedager før permisjon</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>
+                          Antall feriedager far tar før permisjonen starter.
+                          Kan brukes for å ha mer tid sammen som familie.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  type="number"
+                  min={0}
+                  max={25}
+                  value={vacation.father.daysBefore || ''}
+                  onChange={(e) =>
+                    onChange({
+                      ...vacation,
+                      father: {
+                        ...vacation.father,
+                        daysBefore: Math.max(0, Math.min(25, Number(e.target.value))),
+                      },
+                    })
+                  }
+                  placeholder="0"
+                />
+              </div>
+
+              {vacation.father.daysBefore > 0 && showMother && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>Overlapper ferien med mors permisjon?</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>
+                            Hvis ja: far er hjemme på ferie samtidig som mor har permisjon.
+                            Hvis nei: fars permisjonsstart skyves med antall feriedager.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex gap-2">
+                    <Toggle
+                      pressed={vacation.father.duringMotherLeave}
+                      onPressedChange={(pressed) =>
+                        onChange({
+                          ...vacation,
+                          father: { ...vacation.father, duringMotherLeave: pressed },
+                        })
+                      }
+                      className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
+                    >
+                      Ja (overlapp)
+                    </Toggle>
+                    <Toggle
+                      pressed={!vacation.father.duringMotherLeave}
+                      onPressedChange={(pressed) =>
+                        onChange({
+                          ...vacation,
+                          father: { ...vacation.father, duringMotherLeave: !pressed },
+                        })
+                      }
+                      className="data-[state=on]:bg-blue-600 data-[state=on]:text-white"
+                    >
+                      Nei (skyv far)
+                    </Toggle>
+                  </div>
+                </div>
+              )}
+
+              {/* Feriedager ETTER permisjon */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label>Feriedager etter permisjon</Label>

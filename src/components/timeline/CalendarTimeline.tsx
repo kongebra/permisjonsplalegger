@@ -26,23 +26,29 @@ type DayStatus =
   | "father"
   | "motherVacation"
   | "fatherVacation"
+  | "motherVacationOverlapFather" // Mor ferie + far permisjon samme dag
+  | "fatherVacationOverlapMother" // Far ferie + mor permisjon samme dag
   | "overlap"
   | "gap"
   | "duedate"
   | "daycare"
+  | "daycareWithMotherVacation" // Barnehagestart + mor ferie
+  | "daycareWithFatherVacation" // Barnehagestart + far ferie
   | "normal";
 
 const statusColors: Record<DayStatus, string> = {
   mother: "bg-pink-300 dark:bg-pink-500",
   father: "bg-blue-300 dark:bg-blue-500",
-  motherVacation:
-    "bg-pink-200 dark:bg-pink-400 border-2 border-pink-500 dark:border-pink-300",
-  fatherVacation:
-    "bg-blue-200 dark:bg-blue-400 border-2 border-blue-500 dark:border-blue-300",
+  motherVacation: "bg-pink-300 dark:bg-pink-500", // Full dashed border via inline style
+  fatherVacation: "bg-blue-300 dark:bg-blue-500", // Full dashed border via inline style
+  motherVacationOverlapFather: "", // Gradient + half border via inline style
+  fatherVacationOverlapMother: "", // Gradient + half border via inline style
   overlap: "", // Handled via inline style for gradient
   gap: "bg-red-200 dark:bg-red-900/50 border border-dashed border-red-400",
   duedate: "bg-violet-500 dark:bg-violet-600 text-white font-bold",
   daycare: "bg-green-500 dark:bg-green-600 text-white font-bold",
+  daycareWithMotherVacation: "bg-green-500 dark:bg-green-600 text-white font-bold", // Green bg + dashed border
+  daycareWithFatherVacation: "bg-green-500 dark:bg-green-600 text-white font-bold", // Green bg + dashed border
   normal: "bg-muted",
 };
 
@@ -52,6 +58,38 @@ const getOverlapStyle = (): React.CSSProperties => ({
     rgb(249, 168, 212) 50%,
     rgb(147, 197, 253) 50%)`,
 });
+
+// Full dashed border styles for vacation days (when no overlap with other parent)
+const getVacationFullBorderStyle = (parent: 'mother' | 'father'): React.CSSProperties => {
+  if (parent === 'mother') {
+    return {
+      border: '2px dashed rgb(190, 24, 93)',
+    };
+  }
+  return {
+    border: '2px dashed rgb(30, 64, 175)',
+  };
+};
+
+// Half dashed border styles for vacation days overlapping with other parent's leave
+const getVacationHalfBorderStyle = (parent: 'mother' | 'father'): React.CSSProperties => {
+  if (parent === 'mother') {
+    return {
+      background: `linear-gradient(135deg,
+        rgb(249, 168, 212) 50%,
+        rgb(147, 197, 253) 50%)`,
+      borderLeft: '2px dashed rgb(190, 24, 93)',
+      borderTop: '2px dashed rgb(190, 24, 93)',
+    };
+  }
+  return {
+    background: `linear-gradient(135deg,
+      rgb(249, 168, 212) 50%,
+      rgb(147, 197, 253) 50%)`,
+    borderRight: '2px dashed rgb(30, 64, 175)',
+    borderBottom: '2px dashed rgb(30, 64, 175)',
+  };
+};
 
 function getDayStatus(
   date: Date,
@@ -65,8 +103,20 @@ function getDayStatus(
     return "duedate";
   }
 
-  // Sjekk barnehagestart
+  // Sjekk barnehagestart - men sjekk også om det er ferie denne dagen
   if (isSameDay(date, daycareStart)) {
+    const dateNorm = startOfDay(date);
+    const vacationOnDaycare = segments.find((seg) => {
+      if (seg.type !== "vacation") return false;
+      const segStartNorm = startOfDay(seg.start);
+      const segEndNorm = startOfDay(seg.end);
+      return dateNorm >= segStartNorm && dateNorm < segEndNorm;
+    });
+    if (vacationOnDaycare) {
+      return vacationOnDaycare.parent === "mother"
+        ? "daycareWithMotherVacation"
+        : "daycareWithFatherVacation";
+    }
     return "daycare";
   }
 
@@ -92,6 +142,21 @@ function getDayStatus(
 
   // Hvis det er overlapp (flere segmenter på samme dag)
   if (matchingSegments.length > 1) {
+    // Sjekk om det er ferie som overlapper med permisjon
+    const motherVacation = matchingSegments.find(s => s.parent === 'mother' && s.type === 'vacation');
+    const fatherVacation = matchingSegments.find(s => s.parent === 'father' && s.type === 'vacation');
+    const motherLeave = matchingSegments.find(s => s.parent === 'mother' && s.type !== 'vacation');
+    const fatherLeave = matchingSegments.find(s => s.parent === 'father' && s.type !== 'vacation');
+
+    // Mor ferie + far permisjon
+    if (motherVacation && fatherLeave) {
+      return "motherVacationOverlapFather";
+    }
+    // Far ferie + mor permisjon
+    if (fatherVacation && motherLeave) {
+      return "fatherVacationOverlapMother";
+    }
+    // Vanlig overlapp (begge har permisjon)
     return "overlap";
   }
 
@@ -171,14 +236,33 @@ function MonthCalendar({
           if (isSameDay(day, dueDate)) tooltip += " - Termindato";
           if (isSameDay(day, daycareStart)) tooltip += " - Barnehagestart";
 
-          // Bruk inline style for overlap gradient, ellers CSS classes
-          const isOverlap = status === "overlap";
+          // Bruk inline style for overlap gradient og ferie-styling
+          const getInlineStyle = (): React.CSSProperties | undefined => {
+            switch (status) {
+              case "overlap":
+                return getOverlapStyle();
+              case "motherVacation":
+                return getVacationFullBorderStyle('mother');
+              case "fatherVacation":
+                return getVacationFullBorderStyle('father');
+              case "motherVacationOverlapFather":
+                return getVacationHalfBorderStyle('mother');
+              case "fatherVacationOverlapMother":
+                return getVacationHalfBorderStyle('father');
+              case "daycareWithMotherVacation":
+                return getVacationFullBorderStyle('mother');
+              case "daycareWithFatherVacation":
+                return getVacationFullBorderStyle('father');
+              default:
+                return undefined;
+            }
+          };
 
           return (
             <div
               key={day.toISOString()}
               className={`aspect-square rounded-sm flex items-center justify-center text-xs ${statusColors[status]}`}
-              style={isOverlap ? getOverlapStyle() : undefined}
+              style={getInlineStyle()}
               title={tooltip}
             >
               {format(day, "d")}
@@ -201,11 +285,15 @@ export function CalendarTimeline({
   const periodStart = mother.start;
   const daycareStart = gap.end;
 
-  // Slutt er den seneste av: mor ferdig, far ferdig, eller barnehagestart
+  // Slutt er den seneste av: mor ferdig, far ferdig, barnehagestart, eller siste segment (inkl. ferie)
   const possibleEndDates = [mother.end, gap.end];
   if (showFather && father.weeks > 0) {
     possibleEndDates.push(father.end);
   }
+  // Inkluder alle segmenters slutt-datoer (viktig for ferie som kan gå forbi barnehagestart)
+  segments.forEach((seg) => {
+    possibleEndDates.push(seg.end);
+  });
   const periodEnd = max(possibleEndDates);
 
   // Generer alle måneder som skal vises (med padding til hele rader av 4)
@@ -272,10 +360,22 @@ export function CalendarTimeline({
             <span>Overlapp</span>
           </div>
         )}
-        {segments.some((s) => s.type === "vacation") && (
+        {segments.some((s) => s.type === "vacation" && s.parent === "mother") && (
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-sm bg-pink-200 dark:bg-pink-400 border-2 border-pink-500 dark:border-pink-300" />
-            <span>Ferie</span>
+            <div
+              className="w-4 h-4 rounded-sm bg-pink-300 dark:bg-pink-500"
+              style={{ border: '2px dashed rgb(190, 24, 93)' }}
+            />
+            <span>Mor ferie</span>
+          </div>
+        )}
+        {segments.some((s) => s.type === "vacation" && s.parent === "father") && (
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-4 h-4 rounded-sm bg-blue-300 dark:bg-blue-500"
+              style={{ border: '2px dashed rgb(30, 64, 175)' }}
+            />
+            <span>Far ferie</span>
           </div>
         )}
         {gap.days > 0 && (

@@ -130,10 +130,10 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 
 | Command | Description |
 |---------|-------------|
-| `bun dev` | Start development server (localhost:3000) |
-| `bun build` | Production build |
-| `bun start` | Start production server |
-| `bun lint` | Run ESLint |
+| `bun run dev` | Start development server (localhost:3000) |
+| `bun run build` | Production build |
+| `bun run start` | Start production server |
+| `bun run lint` | Run ESLint |
 
 ---
 
