@@ -53,9 +53,10 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] Providers wrapper for app layout (2025-02-04)
 
 ### Fase 6: Lagring
-- [ ] SaveControls komponent
-- [ ] "Fortsett der du slapp" dialog
-- [ ] "Ny plan" med bekreftelse
+- [x] SaveControls komponent (2025-02-04)
+- [x] localStorage-integrasjon (i store) (2025-02-04)
+- [x] "Fortsett der du slapp" dialog (2025-02-04)
+- [x] "Ny plan" med bekreftelse (2025-02-04)
 
 ### Fase 7: Polish
 - [ ] Responsive desktop-tilpasninger
