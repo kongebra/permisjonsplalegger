@@ -165,3 +165,70 @@ export interface Holiday {
   name: string;
   isEasterRelative: boolean;
 }
+
+// --- Interactive Planner Types ---
+
+/**
+ * Period types for the interactive planner
+ */
+export type PlannerPeriodType = 'permisjon' | 'ferie' | 'ulonnet' | 'annet';
+
+/**
+ * A custom period added by the user in the interactive planner
+ */
+export interface CustomPeriod {
+  id: string;
+  type: PlannerPeriodType;
+  parent: Parent;
+  startDate: Date;
+  endDate: Date; // Exclusive (day after last day)
+  label?: string; // For 'annet' type
+  color?: string; // Custom color for 'annet' type
+}
+
+/**
+ * Job settings for vacation day calculation
+ */
+export interface JobSettings {
+  jobType: JobType;
+  vacationDays: number;
+}
+
+/**
+ * Undo action for period operations
+ */
+export interface UndoAction {
+  type: 'add' | 'delete' | 'update';
+  period: CustomPeriod;
+  previousPeriod?: CustomPeriod; // For update actions
+}
+
+/**
+ * Saved plan structure for localStorage
+ */
+export interface SavedPlan {
+  version: 1;
+  savedAt: string;
+  wizard: {
+    dueDate: string;
+    rights: ParentRights;
+    coverage: Coverage;
+    sharedWeeksToMother: number;
+    daycareStartDate: string | null;
+    daycareEnabled: boolean;
+  };
+  jobSettings: {
+    mother: JobSettings | null;
+    father: JobSettings | null;
+  };
+  periods: Array<{
+    id: string;
+    type: PlannerPeriodType;
+    parent: Parent;
+    startDate: string;
+    endDate: string;
+    label?: string;
+    color?: string;
+  }>;
+  autoSaveEnabled: boolean;
+}
