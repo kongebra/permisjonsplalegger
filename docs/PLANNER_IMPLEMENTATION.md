@@ -42,10 +42,10 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] Kalender-side med header og lagring (2025-02-04)
 
 ### Fase 4: Perioder
-- [ ] PeriodToolbar for valg av periodetype/forelder
-- [ ] Tap-tap interaksjon for periode-opprettelse
-- [ ] PeriodModal for redigering
-- [ ] Undo-funksjonalitet i UI
+- [x] PeriodToolbar for valg av periodetype/forelder (2025-02-04)
+- [x] Tap-tap interaksjon for periode-opprettelse (2025-02-04)
+- [x] PeriodModal for redigering (2025-02-04)
+- [x] Undo-funksjonalitet i UI (allerede i header) (2025-02-04)
 
 ### Fase 5: Stats og varsler
 - [ ] StatsBar med kvote-oversikt
