@@ -120,8 +120,8 @@ export function MonthView({
               segments={segments}
               customPeriods={customPeriods}
               isSelected={
-                (selectionStart && isSameDay(day, selectionStart)) ||
-                (selectionEnd && isSameDay(day, selectionEnd))
+                (selectionStart !== null && isSameDay(day, selectionStart)) ||
+                (selectionEnd !== null && isSameDay(day, selectionEnd))
               }
               isInSelection={isInSelectionRange(day)}
               isSelectionStart={selectionStart !== null && isSameDay(day, selectionStart)}
