@@ -48,8 +48,9 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] Undo-funksjonalitet i UI (allerede i header) (2025-02-04)
 
 ### Fase 5: Stats og varsler
-- [ ] StatsBar med kvote-oversikt
-- [ ] Toast-varsler for overlapp, gap, etc.
+- [x] StatsBar med kvote-oversikt (2025-02-04)
+- [x] Toast-varsler system med ToastProvider (2025-02-04)
+- [x] Providers wrapper for app layout (2025-02-04)
 
 ### Fase 6: Lagring
 - [ ] SaveControls komponent

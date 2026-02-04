@@ -4,3 +4,4 @@ export { MonthOverview } from './MonthOverview';
 export { DayCell } from './DayCell';
 export { PeriodToolbar } from './PeriodToolbar';
 export { PeriodModal } from './PeriodModal';
+export { StatsBar } from './StatsBar';

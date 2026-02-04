@@ -8,6 +8,7 @@ import { MonthView } from './MonthView';
 import { MonthOverview } from './MonthOverview';
 import { PeriodToolbar } from './PeriodToolbar';
 import { PeriodModal } from './PeriodModal';
+import { StatsBar } from './StatsBar';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import type { CustomPeriod } from '@/lib/types';
@@ -16,7 +17,7 @@ export function PlannerCalendar() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Store state
-  const { dueDate, coverage, rights } = useWizard();
+  const { dueDate, coverage, rights, daycareStartDate, daycareEnabled } = useWizard();
   const { periods, addPeriod, updatePeriod, deletePeriod } = usePeriods();
   const {
     activeMonth,
@@ -226,6 +227,16 @@ export function PlannerCalendar() {
             onDayClick={handleDayClick}
           />
         </div>
+
+        {/* Stats bar */}
+        <StatsBar
+          coverage={coverage}
+          rights={rights}
+          leaveResult={leaveResult}
+          customPeriods={periods}
+          daycareEnabled={daycareEnabled}
+          daycareDate={daycareStartDate}
+        />
 
         {/* Selection hint */}
         {isSelecting && selectionStartDate && !selectionEndDate && (
