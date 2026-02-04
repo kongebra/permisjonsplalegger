@@ -18,8 +18,8 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [x] store/index.ts - kombinert store med auto-save (2025-02-04)
 - [x] Utvidet types.ts med nye typer (2025-02-04)
 - [x] store/hooks.ts - convenience hooks (2025-02-04)
-- [ ] Opprett route-struktur (/planlegger, /planlegger/kalender)
-- [ ] Flytt gammel kalkulator til /gammel
+- [x] Opprett route-struktur (/planlegger, /planlegger/kalender) (2025-02-04)
+- [x] Flytt gammel kalkulator til /gammel (2025-02-04)
 
 ### Fase 2: Wizard
 - [ ] WizardContainer med steg-navigasjon
