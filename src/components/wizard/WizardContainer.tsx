@@ -13,7 +13,7 @@ import { DaycareStep } from './steps/DaycareStep';
 import { JobSettingsStep } from './steps/JobSettingsStep';
 import { EconomyStep } from './steps/EconomyStep';
 import { SummaryStep } from './steps/SummaryStep';
-import { useWizard, useJobSettings, useEconomy, useCalculatedLeave, usePersistence } from '@/store/hooks';
+import { useWizard, useJobSettings, useEconomy, useCalculatedLeave, usePersistence, useCanProceed } from '@/store/hooks';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TOTAL_STEPS = 8;
@@ -66,6 +66,9 @@ export function WizardContainer() {
 
   // Calculate leave result
   const leaveResult = useCalculatedLeave();
+
+  // Check if we can proceed to next step
+  const canProceed = useCanProceed();
 
   // Handle wizard completion
   const handleComplete = () => {
@@ -179,7 +182,11 @@ export function WizardContainer() {
             Tilbake
           </Button>
 
-          <Button onClick={nextStep} className="flex items-center gap-2">
+          <Button
+            onClick={nextStep}
+            disabled={!canProceed}
+            className="flex items-center gap-2"
+          >
             Neste
             <ChevronRight className="w-4 h-4" />
           </Button>
