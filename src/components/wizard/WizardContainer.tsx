@@ -173,25 +173,34 @@ export function WizardContainer() {
 
       {/* Navigation buttons */}
       {!isLastStep && (
-        <div className="flex justify-between gap-4">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={isFirstStep}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Tilbake
-          </Button>
+        <div className="space-y-3">
+          <div className="flex justify-between gap-4">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={isFirstStep}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Tilbake
+            </Button>
 
-          <Button
-            onClick={nextStep}
-            disabled={!canProceed}
-            className="flex items-center gap-2"
-          >
-            Neste
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+            <Button
+              onClick={nextStep}
+              disabled={!canProceed}
+              className="flex items-center gap-2"
+            >
+              Neste
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Help text when Next is disabled */}
+          {!canProceed && (
+            <p className="text-sm text-amber-600 text-center">
+              Fyll ut informasjonen over for å fortsette
+            </p>
+          )}
         </div>
       )}
     </div>

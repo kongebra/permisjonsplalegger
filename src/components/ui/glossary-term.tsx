@@ -1,6 +1,11 @@
 'use client';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const GLOSSARY: Record<string, string> = {
   foreldrepenger:
@@ -28,15 +33,17 @@ export function GlossaryTerm({ term, children }: GlossaryTermProps) {
   if (!explanation) return <>{children}</>;
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="underline decoration-dotted decoration-muted-foreground cursor-help">
-          {children}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs">
-        <p>{explanation}</p>
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="underline decoration-dotted decoration-muted-foreground cursor-help">
+            {children}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          <p>{explanation}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
