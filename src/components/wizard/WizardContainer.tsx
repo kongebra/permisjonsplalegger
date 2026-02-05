@@ -104,6 +104,8 @@ export function WizardContainer() {
             leaveEndDate={leaveResult.father.end}
             onDateChange={setDaycareStartDate}
             onEnabledChange={setDaycareEnabled}
+            motherEconomy={motherEconomy}
+            fatherEconomy={fatherEconomy}
           />
         );
       case 6:
