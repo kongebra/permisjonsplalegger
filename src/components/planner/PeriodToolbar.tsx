@@ -115,7 +115,7 @@ export function PeriodToolbar({
 
         {/* Instructions */}
         <p className="text-center text-xs text-muted-foreground">
-          Trykk på startdato, deretter sluttdato
+          Dra over dagene du vil markere
         </p>
       </div>
     </div>
