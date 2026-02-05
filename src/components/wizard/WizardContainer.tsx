@@ -1,20 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { WizardProgress } from './WizardProgress';
-import { WelcomeIntro } from './WelcomeIntro';
-import { DueDateStep } from './steps/DueDateStep';
-import { RightsStep } from './steps/RightsStep';
-import { CoverageStep } from './steps/CoverageStep';
-import { DistributionStep } from './steps/DistributionStep';
-import { DaycareStep } from './steps/DaycareStep';
-import { JobSettingsStep } from './steps/JobSettingsStep';
-import { EconomyStep } from './steps/EconomyStep';
-import { SummaryStep } from './steps/SummaryStep';
-import { useWizard, useJobSettings, useEconomy, useCalculatedLeave, usePersistence, useCanProceed } from '@/store/hooks';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { WizardProgress } from "./WizardProgress";
+import { WelcomeIntro } from "./WelcomeIntro";
+import { DueDateStep } from "./steps/DueDateStep";
+import { RightsStep } from "./steps/RightsStep";
+import { CoverageStep } from "./steps/CoverageStep";
+import { DistributionStep } from "./steps/DistributionStep";
+import { DaycareStep } from "./steps/DaycareStep";
+import { JobSettingsStep } from "./steps/JobSettingsStep";
+import { EconomyStep } from "./steps/EconomyStep";
+import { SummaryStep } from "./steps/SummaryStep";
+import {
+  useWizard,
+  useJobSettings,
+  useEconomy,
+  useCalculatedLeave,
+  usePersistence,
+  useCanProceed,
+} from "@/store/hooks";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const TOTAL_STEPS = 8;
 
@@ -52,7 +59,8 @@ export function WizardContainer() {
   } = useJobSettings();
 
   // Economy data
-  const { motherEconomy, fatherEconomy, setMotherEconomy, setFatherEconomy } = useEconomy();
+  const { motherEconomy, fatherEconomy, setMotherEconomy, setFatherEconomy } =
+    useEconomy();
 
   // Persistence
   const { savePlan, hasSavedPlan } = usePersistence();
@@ -74,7 +82,7 @@ export function WizardContainer() {
   const handleComplete = () => {
     completeWizard();
     savePlan();
-    router.push('/planlegger/kalender');
+    router.push("/planlegger/kalender");
   };
 
   // Render current step
@@ -104,8 +112,6 @@ export function WizardContainer() {
             leaveEndDate={leaveResult.father.end}
             onDateChange={setDaycareStartDate}
             onEnabledChange={setDaycareEnabled}
-            motherEconomy={motherEconomy}
-            fatherEconomy={fatherEconomy}
           />
         );
       case 6:
@@ -164,7 +170,7 @@ export function WizardContainer() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-8">
+    <div className="max-w-lg mx-auto space-y-4">
       {/* Progress indicator */}
       <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
