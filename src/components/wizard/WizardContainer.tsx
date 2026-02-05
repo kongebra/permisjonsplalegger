@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { WizardProgress } from './WizardProgress';
+import { WelcomeIntro } from './WelcomeIntro';
 import { DueDateStep } from './steps/DueDateStep';
 import { RightsStep } from './steps/RightsStep';
 import { CoverageStep } from './steps/CoverageStep';
@@ -18,6 +20,7 @@ const TOTAL_STEPS = 8;
 
 export function WizardContainer() {
   const router = useRouter();
+  const [showIntro, setShowIntro] = useState(true);
 
   // Wizard state
   const {
@@ -52,7 +55,14 @@ export function WizardContainer() {
   const { motherEconomy, fatherEconomy, setMotherEconomy, setFatherEconomy } = useEconomy();
 
   // Persistence
-  const { savePlan } = usePersistence();
+  const { savePlan, hasSavedPlan } = usePersistence();
+
+  // Skip intro if user has saved plan or is past step 1
+  useEffect(() => {
+    if (hasSavedPlan || currentStep > 1) {
+      setShowIntro(false);
+    }
+  }, [hasSavedPlan, currentStep]);
 
   // Calculate leave result
   const leaveResult = useCalculatedLeave();
@@ -138,6 +148,15 @@ export function WizardContainer() {
 
   const isFirstStep = currentStep === 1;
   const isLastStep = currentStep === TOTAL_STEPS;
+
+  // Show welcome intro for first-time users
+  if (showIntro) {
+    return (
+      <div className="max-w-lg mx-auto">
+        <WelcomeIntro onStart={() => setShowIntro(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-8">
