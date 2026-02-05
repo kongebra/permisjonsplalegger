@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { format } from "date-fns";
+import { nb } from "date-fns/locale";
 
 interface DueDateStepProps {
   value: Date;
@@ -12,7 +18,7 @@ interface DueDateStepProps {
 
 export function DueDateStep({ value, onChange }: DueDateStepProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Når er termin?</h2>
         <p className="text-muted-foreground">
@@ -23,9 +29,7 @@ export function DueDateStep({ value, onChange }: DueDateStepProps) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Termindato</CardTitle>
-          <CardDescription>
-            Velg forventet fødselsdato
-          </CardDescription>
+          <CardDescription>Velg forventet fødselsdato</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
           <Calendar
@@ -33,7 +37,10 @@ export function DueDateStep({ value, onChange }: DueDateStepProps) {
             selected={value}
             onSelect={(date) => date && onChange(date)}
             locale={nb}
-            className="rounded-md border"
+            captionLayout="dropdown"
+            startMonth={new Date(new Date().getFullYear(), 0)}
+            endMonth={new Date(new Date().getFullYear() + 2, 11)}
+            className="rounded-md border w-full"
           />
         </CardContent>
       </Card>
@@ -42,7 +49,7 @@ export function DueDateStep({ value, onChange }: DueDateStepProps) {
         <div className="text-center p-4 bg-muted rounded-lg">
           <p className="text-sm text-muted-foreground">Valgt dato</p>
           <p className="text-xl font-semibold">
-            {format(value, 'd. MMMM yyyy', { locale: nb })}
+            {format(value, "d. MMMM yyyy", { locale: nb })}
           </p>
         </div>
       )}

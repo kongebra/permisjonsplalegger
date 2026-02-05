@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { format, differenceInWeeks, differenceInDays } from 'date-fns';
-import { nb } from 'date-fns/locale';
-import { AlertCircle } from 'lucide-react';
-import { calculateGapCost, calculateDailyRate } from '@/lib/calculator/economy';
-import type { ParentEconomy } from '@/lib/types';
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { format, differenceInWeeks, differenceInDays } from "date-fns";
+import { nb } from "date-fns/locale";
+import { AlertCircle } from "lucide-react";
+import { calculateGapCost, calculateDailyRate } from "@/lib/calculator/economy";
+import type { ParentEconomy } from "@/lib/types";
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
+  return new Intl.NumberFormat("nb-NO", {
+    style: "currency",
+    currency: "NOK",
     maximumFractionDigits: 0,
   }).format(value);
 }
@@ -39,26 +45,40 @@ export function DaycareStep({
   motherEconomy,
   fatherEconomy,
 }: DaycareStepProps) {
-  // Calculate gap
-  const gapWeeks = daycareEnabled && daycareDate
-    ? Math.max(0, differenceInWeeks(daycareDate, leaveEndDate))
-    : 0;
+  // Calculate expected daycare start (August 1st intake)
+  const expectedDaycareStart = (() => {
+    const year = dueDate.getFullYear();
+    const augustFirstSameYear = new Date(year, 7, 1);
+    if (dueDate >= augustFirstSameYear) {
+      return new Date(year + 2, 7, 1); // Born after Aug → daycare 2 years later
+    }
+    return new Date(year + 1, 7, 1); // Born before Aug → daycare 1 year later
+  })();
 
-  const gapDays = daycareEnabled && daycareDate
-    ? Math.max(0, differenceInDays(daycareDate, leaveEndDate))
-    : 0;
+  // Calculate gap
+  const gapWeeks =
+    daycareEnabled && daycareDate
+      ? Math.max(0, differenceInWeeks(daycareDate, leaveEndDate))
+      : 0;
+
+  const gapDays =
+    daycareEnabled && daycareDate
+      ? Math.max(0, differenceInDays(daycareDate, leaveEndDate))
+      : 0;
 
   const hasGap = gapWeeks > 0;
 
   // Calculate gap cost if we have salary data
-  const hasEconomyData = motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary;
-  const gapCost = hasGap && hasEconomyData
-    ? calculateGapCost(
-        calculateDailyRate(motherEconomy?.monthlySalary || 0),
-        calculateDailyRate(fatherEconomy?.monthlySalary || 0),
-        gapDays
-      )
-    : null;
+  const hasEconomyData =
+    motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary;
+  const gapCost =
+    hasGap && hasEconomyData
+      ? calculateGapCost(
+          calculateDailyRate(motherEconomy?.monthlySalary || 0),
+          calculateDailyRate(fatherEconomy?.monthlySalary || 0),
+          gapDays,
+        )
+      : null;
 
   return (
     <div className="space-y-6">
@@ -106,6 +126,7 @@ export function DaycareStep({
                 onSelect={(date) => onDateChange(date ?? null)}
                 locale={nb}
                 captionLayout="dropdown"
+                defaultMonth={daycareDate ?? expectedDaycareStart}
                 startMonth={dueDate}
                 endMonth={new Date(dueDate.getFullYear() + 3, 11)}
                 disabled={(date) => date < dueDate}
@@ -124,8 +145,9 @@ export function DaycareStep({
                     Gap på {gapWeeks} uker
                   </h4>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    Det blir et gap mellom permisjonen slutter og barnehagen starter.
-                    Dette kan dekkes med ferie, ulønnet permisjon, eller annen dekning.
+                    Det blir et gap mellom permisjonen slutter og barnehagen
+                    starter. Dette kan dekkes med ferie, ulønnet permisjon,
+                    eller annen dekning.
                   </p>
                   {gapCost && (
                     <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mt-2">
@@ -141,15 +163,19 @@ export function DaycareStep({
           {daycareDate && (
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Permisjon slutter</p>
+                <p className="text-sm text-muted-foreground">
+                  Permisjon slutter
+                </p>
                 <p className="font-semibold">
-                  {format(leaveEndDate, 'd. MMM yyyy', { locale: nb })}
+                  {format(leaveEndDate, "d. MMM yyyy", { locale: nb })}
                 </p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Barnehage starter</p>
+                <p className="text-sm text-muted-foreground">
+                  Barnehage starter
+                </p>
                 <p className="font-semibold">
-                  {format(daycareDate, 'd. MMM yyyy', { locale: nb })}
+                  {format(daycareDate, "d. MMM yyyy", { locale: nb })}
                 </p>
               </div>
             </div>

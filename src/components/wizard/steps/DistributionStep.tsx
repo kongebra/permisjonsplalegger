@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LEAVE_CONFIG } from '@/lib/constants';
-import type { Coverage, ParentRights } from '@/lib/types';
-import { GlossaryTerm } from '@/components/ui/glossary-term';
+import { Slider } from "@/components/ui/slider";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LEAVE_CONFIG } from "@/lib/constants";
+import type { Coverage, ParentRights } from "@/lib/types";
+import { GlossaryTerm } from "@/components/ui/glossary-term";
 
 interface DistributionStepProps {
   coverage: Coverage;
@@ -24,15 +30,15 @@ export function DistributionStep({
   const sharedWeeksToFather = maxShared - sharedWeeksToMother;
 
   // Skip if only one parent has rights
-  if (rights !== 'both') {
+  if (rights !== "both") {
     return (
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Fordeling</h2>
           <p className="text-muted-foreground">
-            {rights === 'mother-only'
-              ? 'Mor tar hele permisjonen'
-              : 'Far tar hele permisjonen'}
+            {rights === "mother-only"
+              ? "Mor tar hele permisjonen"
+              : "Far tar hele permisjonen"}
           </p>
         </div>
 
@@ -43,9 +49,9 @@ export function DistributionStep({
                 {config.total} uker total permisjon
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                {rights === 'mother-only'
-                  ? 'Inkluderer 3 uker før termin'
-                  : 'Far kan starte fra fødsel'}
+                {rights === "mother-only"
+                  ? "Inkluderer 3 uker før termin"
+                  : "Far kan starte fra fødsel"}
               </p>
             </div>
           </CardContent>
@@ -65,7 +71,10 @@ export function DistributionStep({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Fordel <GlossaryTerm term="fellesperiode">fellesperioden</GlossaryTerm></h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Fordel{" "}
+          <GlossaryTerm term="fellesperiode">fellesperioden</GlossaryTerm>
+        </h2>
         <p className="text-muted-foreground">
           {maxShared} uker kan fordeles fritt mellom foreldrene
         </p>
@@ -73,7 +82,9 @@ export function DistributionStep({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg"><GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm></CardTitle>
+          <CardTitle className="text-lg">
+            <GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm>
+          </CardTitle>
           <CardDescription>
             Dra slideren for å justere fordelingen
           </CardDescription>
@@ -89,7 +100,7 @@ export function DistributionStep({
           />
 
           {/* Visual distribution */}
-          <div className="flex gap-2 h-4 rounded-full overflow-hidden">
+          <div className="flex gap-2 h-4 rounded-full overflow-hidden outline-4 outline-black/10">
             <div
               className="bg-pink-400 transition-all"
               style={{ width: `${(sharedWeeksToMother / maxShared) * 100}%` }}
@@ -126,7 +137,10 @@ export function DistributionStep({
                 {motherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {config.preBirth} før + {motherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> + {sharedWeeksToMother} <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
+                {config.preBirth} før + {motherQuota}{" "}
+                <GlossaryTerm term="kvote">kvote</GlossaryTerm> +{" "}
+                {sharedWeeksToMother}{" "}
+                <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
               </p>
             </div>
           </CardContent>
@@ -140,7 +154,9 @@ export function DistributionStep({
                 {fatherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {fatherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> + {sharedWeeksToFather} <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
+                {fatherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> +{" "}
+                {sharedWeeksToFather}{" "}
+                <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
               </p>
             </div>
           </CardContent>
