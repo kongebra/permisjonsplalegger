@@ -1,8 +1,11 @@
 export { PlannerCalendar } from './PlannerCalendar';
 export { MonthView } from './MonthView';
-export { MonthOverview } from './MonthOverview';
+export { YearOverview } from './YearOverview';
+export { MiniMonth } from './MiniMonth';
 export { DayCell } from './DayCell';
+export { StripeRenderer } from './StripeRenderer';
 export { PeriodToolbar } from './PeriodToolbar';
 export { PeriodModal } from './PeriodModal';
 export { StatsBar } from './StatsBar';
 export { SaveControls } from './SaveControls';
+export { CalendarOnboarding } from './CalendarOnboarding';

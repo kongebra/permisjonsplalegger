@@ -1,27 +1,22 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
-import { PlannerCalendar } from '@/components/planner';
+import { PlannerCalendar, CalendarOnboarding } from '@/components/planner';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Save, Undo2 } from 'lucide-react';
 
-// Check localStorage on client side only
-function checkLocalStorage(): boolean {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem('permisjonsplan-v1');
-  return saved !== null;
-}
-
 export default function KalenderPage() {
   const router = useRouter();
-  const hasCheckedRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const {
     wizardCompleted,
+    hasSavedPlan,
     checkForSavedPlan,
     loadPlan,
     savePlan,
@@ -32,6 +27,7 @@ export default function KalenderPage() {
   } = usePlannerStore(
     useShallow((state) => ({
       wizardCompleted: state.wizardCompleted,
+      hasSavedPlan: state.hasSavedPlan,
       checkForSavedPlan: state.checkForSavedPlan,
       loadPlan: state.loadPlan,
       savePlan: state.savePlan,
@@ -42,29 +38,35 @@ export default function KalenderPage() {
     }))
   );
 
-  // Check for saved plan synchronously before first render
-  const hasSavedPlan = checkLocalStorage();
-
-  // Determine if we need to redirect
-  const needsRedirect = !wizardCompleted && !hasSavedPlan;
-
-  // Sync store state and handle loading/redirect
+  // Mark as hydrated after first render (client-side only)
   useEffect(() => {
-    if (hasCheckedRef.current) return;
-    hasCheckedRef.current = true;
+    setIsHydrated(true);
+  }, []);
 
+  // Initialize store state and handle loading/redirect after hydration
+  useEffect(() => {
+    if (!isHydrated || isInitialized) return;
+
+    // Check for saved plan in localStorage
     checkForSavedPlan();
+    setIsInitialized(true);
+  }, [isHydrated, isInitialized, checkForSavedPlan]);
 
-    if (needsRedirect) {
+  // Handle redirect and loading after initialization
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // Redirect if wizard not completed and no saved plan
+    if (!wizardCompleted && !hasSavedPlan) {
       router.push('/planlegger');
       return;
     }
 
-    // If not completed but has saved plan, try to load it
+    // Load saved plan if wizard not completed but plan exists
     if (!wizardCompleted && hasSavedPlan) {
       loadPlan();
     }
-  }, [needsRedirect, wizardCompleted, hasSavedPlan, checkForSavedPlan, loadPlan, router]);
+  }, [isInitialized, wizardCompleted, hasSavedPlan, loadPlan, router]);
 
   const handleSave = useCallback(() => {
     savePlan();
@@ -73,8 +75,17 @@ export default function KalenderPage() {
     }
   }, [savePlan, autoSaveEnabled, setAutoSaveEnabled]);
 
+  // Show loading during SSR and initialization
+  if (!isHydrated || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Laster...</div>
+      </div>
+    );
+  }
+
   // Show loading while redirecting
-  if (needsRedirect) {
+  if (!wizardCompleted && !hasSavedPlan) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Laster...</div>
@@ -134,6 +145,9 @@ export default function KalenderPage() {
           Autolagring aktivert
         </footer>
       )}
+
+      {/* Onboarding overlay for first-time users */}
+      <CalendarOnboarding />
     </div>
   );
 }
