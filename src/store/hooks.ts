@@ -85,8 +85,13 @@ export function useUi() {
       selectionStartDate: state.selectionStartDate,
       selectionEndDate: state.selectionEndDate,
       isSelecting: state.isSelecting,
+      // Drag state
+      isDragging: state.isDragging,
+      dragStartDate: state.dragStartDate,
+      dragCurrentDate: state.dragCurrentDate,
       activeMonth: state.activeMonth,
       showMonthOverview: state.showMonthOverview,
+      showYearOverview: state.showYearOverview,
       editingPeriodId: state.editingPeriodId,
       showPeriodModal: state.showPeriodModal,
       setSelectedPeriodType: state.setSelectedPeriodType,
@@ -94,12 +99,34 @@ export function useUi() {
       startSelection: state.startSelection,
       setSelectionEnd: state.setSelectionEnd,
       clearSelection: state.clearSelection,
+      // Drag actions
+      startDrag: state.startDrag,
+      updateDrag: state.updateDrag,
+      endDrag: state.endDrag,
+      cancelDrag: state.cancelDrag,
       setActiveMonth: state.setActiveMonth,
       navigateMonth: state.navigateMonth,
       setShowMonthOverview: state.setShowMonthOverview,
+      setShowYearOverview: state.setShowYearOverview,
       openPeriodModal: state.openPeriodModal,
       closePeriodModal: state.closePeriodModal,
       resetUi: state.resetUi,
+    }))
+  );
+}
+
+/**
+ * Hook for economy data
+ */
+export function useEconomy() {
+  return usePlannerStore(
+    useShallow((state) => ({
+      motherEconomy: state.motherEconomy,
+      fatherEconomy: state.fatherEconomy,
+      setMotherEconomy: state.setMotherEconomy,
+      setFatherEconomy: state.setFatherEconomy,
+      setEconomy: state.setEconomy,
+      resetEconomy: state.resetEconomy,
     }))
   );
 }

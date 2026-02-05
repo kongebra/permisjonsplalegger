@@ -8,6 +8,7 @@ import { createWizardSlice, type WizardSlice } from './slices/wizardSlice';
 import { createJobSettingsSlice, type JobSettingsSlice } from './slices/jobSettingsSlice';
 import { createPeriodsSlice, type PeriodsSlice } from './slices/periodsSlice';
 import { createUiSlice, type UiSlice } from './slices/uiSlice';
+import { createEconomySlice, type EconomySlice } from './slices/economySlice';
 import {
   createPersistenceSlice,
   savePlanToStorage,
@@ -23,7 +24,8 @@ export type PlannerStore = WizardSlice &
   JobSettingsSlice &
   PeriodsSlice &
   UiSlice &
-  PersistenceSlice & {
+  PersistenceSlice &
+  EconomySlice & {
     // Cross-slice actions
     savePlan: () => void;
     loadPlan: () => boolean;
@@ -37,6 +39,7 @@ export const usePlannerStore = create<PlannerStore>()(
     ...createPeriodsSlice(...a),
     ...createUiSlice(...a),
     ...createPersistenceSlice(...a),
+    ...createEconomySlice(...a),
 
     // Save entire plan to localStorage
     savePlan: () => {
@@ -56,6 +59,10 @@ export const usePlannerStore = create<PlannerStore>()(
         jobSettings: {
           mother: state.motherJobSettings,
           father: state.fatherJobSettings,
+        },
+        economy: {
+          mother: state.motherEconomy,
+          father: state.fatherEconomy,
         },
         periods: serializePeriods(state.periods),
         autoSaveEnabled: state.autoSaveEnabled,
@@ -87,6 +94,12 @@ export const usePlannerStore = create<PlannerStore>()(
       state.setMotherJobSettings(plan.jobSettings.mother);
       state.setFatherJobSettings(plan.jobSettings.father);
 
+      // Restore economy settings (if present in saved plan)
+      if (plan.economy) {
+        state.setMotherEconomy(plan.economy.mother);
+        state.setFatherEconomy(plan.economy.father);
+      }
+
       // Restore periods
       state.setPeriods(deserializePeriods(plan.periods));
 
@@ -102,6 +115,7 @@ export const usePlannerStore = create<PlannerStore>()(
       const state = usePlannerStore.getState();
       state.resetWizard();
       state.resetJobSettings();
+      state.resetEconomy();
       state.clearPeriods();
       state.resetUi();
       state.clearSavedPlan();
@@ -124,6 +138,8 @@ usePlannerStore.subscribe(
     daycareEnabled: state.daycareEnabled,
     motherJobSettings: state.motherJobSettings,
     fatherJobSettings: state.fatherJobSettings,
+    motherEconomy: state.motherEconomy,
+    fatherEconomy: state.fatherEconomy,
     periods: state.periods,
   }),
   (curr, prev) => {
@@ -150,3 +166,4 @@ export type { JobSettingsSlice } from './slices/jobSettingsSlice';
 export type { PeriodsSlice } from './slices/periodsSlice';
 export type { UiSlice } from './slices/uiSlice';
 export type { PersistenceSlice } from './slices/persistenceSlice';
+export type { EconomySlice } from './slices/economySlice';

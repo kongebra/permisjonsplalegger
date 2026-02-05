@@ -221,6 +221,10 @@ export interface SavedPlan {
     mother: JobSettings | null;
     father: JobSettings | null;
   };
+  economy?: {
+    mother: ParentEconomy;
+    father: ParentEconomy;
+  };
   periods: Array<{
     id: string;
     type: PlannerPeriodType;
