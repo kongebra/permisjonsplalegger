@@ -3,11 +3,20 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG } from '@/lib/constants';
-import type { Coverage, ParentRights, JobSettings, LeaveResult } from '@/lib/types';
+import { compareScenarios } from '@/lib/calculator/economy';
+import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy } from '@/lib/types';
 import { format, differenceInWeeks } from 'date-fns';
 import { nb } from 'date-fns/locale';
-import { CalendarDays, Users, Percent, Baby, Briefcase, AlertCircle, ChevronRight } from 'lucide-react';
+import { CalendarDays, Users, Percent, Baby, Briefcase, AlertCircle, ChevronRight, DollarSign, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('nb-NO', {
+    style: 'currency',
+    currency: 'NOK',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
 
 interface SummaryStepProps {
   dueDate: Date;
@@ -18,6 +27,8 @@ interface SummaryStepProps {
   daycareEnabled: boolean;
   motherJobSettings: JobSettings | null;
   fatherJobSettings: JobSettings | null;
+  motherEconomy?: ParentEconomy;
+  fatherEconomy?: ParentEconomy;
   leaveResult: LeaveResult;
   onGoBack: (step: number) => void;
   onComplete: () => void;
@@ -58,6 +69,8 @@ export function SummaryStep({
   daycareEnabled,
   motherJobSettings,
   fatherJobSettings,
+  motherEconomy,
+  fatherEconomy,
   leaveResult,
   onGoBack,
   onComplete,
@@ -94,6 +107,21 @@ export function SummaryStep({
         .filter(Boolean)
         .join(', ')
     : 'Ikke angitt';
+
+  // Economy summary
+  const hasEconomyData = motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary;
+  const economyLabel = hasEconomyData ? 'Lønn angitt' : 'Ikke angitt';
+
+  // Calculate economy result if data exists
+  const economyResult = hasEconomyData && motherEconomy
+    ? compareScenarios(
+        motherEconomy,
+        rights !== 'mother-only' ? fatherEconomy : undefined,
+        sharedWeeksToMother,
+        leaveResult.gap,
+        leaveResult.gap
+      )
+    : null;
 
   return (
     <div className="space-y-6">
@@ -157,6 +185,13 @@ export function SummaryStep({
               step={6}
               onEdit={onGoBack}
             />
+            <SummaryRow
+              icon={<Wallet className="w-5 h-5" />}
+              label="Økonomi"
+              value={economyLabel}
+              step={7}
+              onEdit={onGoBack}
+            />
           </div>
         </CardContent>
       </Card>
@@ -176,6 +211,50 @@ export function SummaryStep({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Economy comparison */}
+      {economyResult && (
+        <Card className="border-2 border-green-200 dark:border-green-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Økonomisk sammenligning
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted-foreground">
+                Differanse mellom 100% og 80%
+              </p>
+              <p className={cn(
+                "text-3xl font-bold",
+                economyResult.difference >= 0 ? "text-green-600" : "text-red-600"
+              )}>
+                {economyResult.difference >= 0 ? '+' : ''}
+                {formatCurrency(economyResult.difference)}
+              </p>
+              <p className="text-sm font-medium mt-1">
+                {economyResult.recommendation}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="font-medium">100% dekning</p>
+                <p className="text-muted-foreground">
+                  Totalt: {formatCurrency(economyResult.scenario100.total)}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium">80% dekning</p>
+                <p className="text-muted-foreground">
+                  Totalt: {formatCurrency(economyResult.scenario80.total)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Leave period summary */}

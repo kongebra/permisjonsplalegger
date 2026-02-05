@@ -124,6 +124,8 @@ export function WizardContainer() {
             daycareEnabled={daycareEnabled}
             motherJobSettings={motherJobSettings}
             fatherJobSettings={fatherJobSettings}
+            motherEconomy={motherEconomy}
+            fatherEconomy={fatherEconomy}
             leaveResult={leaveResult}
             onGoBack={setCurrentStep}
             onComplete={handleComplete}
