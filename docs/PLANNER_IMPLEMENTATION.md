@@ -64,6 +64,32 @@ Bygge en mobil-first, wizard-basert permisjonsplanlegger med interaktiv kalender
 - [ ] Edge case-håndtering
 - [x] TypeScript build verification (2025-02-04)
 
+### Fase 8: Kalender-redesign (2025-02-05)
+- [x] Drag-seleksjon med Pointer Events (erstatter tap-tap) (2025-02-05)
+- [x] Rød tekst for søndager og helligdager (2025-02-05)
+- [x] Fjernet grå prikker for låste datoer (2025-02-05)
+- [x] Ny uiSlice med drag-state (isDragging, dragStartDate, dragCurrentDate) (2025-02-05)
+- [x] StripeRenderer komponent for horisontale periodestriper (2025-02-05)
+- [x] Refaktorert MonthView til uke-rad struktur med striper (2025-02-05)
+- [x] YearOverview med MiniMonth komponenter (erstatter MonthOverview) (2025-02-05)
+- [x] Dropdown måned/år-velger i datepicker (2025-02-05)
+- [x] Slettet MonthOverview.tsx (2025-02-05)
+
+### Fase 9: UX-forbedringer (2026-02-05)
+Basert på brukertesting med 5 personas (Emilie, Fatima, Maja, Jonas, Erik).
+Se `docs/plans/2026-02-05-ux-improvements.md` for detaljer.
+
+- [x] economySlice for lønn og økonomiske data (2026-02-05)
+- [x] EconomyStep wizard-steg (steg 7 av 8) (2026-02-05)
+- [x] Økonomi-sammenligning i SummaryStep (2026-02-05)
+- [x] Fikset kalender-instruksjonstekst (drag i stedet for tap-tap) (2026-02-05)
+- [x] GlossaryTerm komponent for NAV-terminologi (2026-02-05)
+- [x] WelcomeIntro velkomstskjerm før wizard (2026-02-05)
+- [x] Disable Neste-knapp til steg er validert + hjelpetekst (2026-02-05)
+- [x] Gap-kostnad i kroner i DaycareStep (2026-02-05)
+- [x] CalendarOnboarding overlay for førstegangsbrukere (2026-02-05)
+- [x] Info-boks for enslige foreldre i RightsStep (2026-02-05)
+
 ---
 
 ## Status: Kjernefunksjonalitet ferdig
@@ -127,7 +153,9 @@ src/components/
 │   ├── PlannerCalendar.tsx
 │   ├── MonthView.tsx
 │   ├── DayCell.tsx
-│   ├── MonthOverview.tsx
+│   ├── YearOverview.tsx
+│   ├── MiniMonth.tsx
+│   ├── StripeRenderer.tsx
 │   ├── PeriodToolbar.tsx
 │   ├── StatsBar.tsx
 │   ├── PeriodModal.tsx
