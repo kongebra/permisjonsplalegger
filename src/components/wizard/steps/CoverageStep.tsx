@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import type { Coverage } from '@/lib/types';
 import { Percent, Clock } from 'lucide-react';
+import { GlossaryTerm } from '@/components/ui/glossary-term';
 
 interface CoverageStepProps {
   value: Coverage;
@@ -40,7 +41,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Velg dekningsgrad</h2>
+        <h2 className="text-2xl font-bold mb-2">Velg <GlossaryTerm term="dekningsgrad">dekningsgrad</GlossaryTerm></h2>
         <p className="text-muted-foreground">
           Du får samme totalsum uansett valg, men fordelt ulikt over tid
         </p>
@@ -118,7 +119,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
 
       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
         <p className="text-blue-800 dark:text-blue-200">
-          <strong>Tips:</strong> De fleste sparer penger på 100% fordi gapet mellom
+          <strong>Tips:</strong> De fleste sparer penger på 100% fordi <GlossaryTerm term="gap">gapet</GlossaryTerm> mellom
           permisjon og barnehage ofte blir dyrt å dekke.
         </p>
       </div>

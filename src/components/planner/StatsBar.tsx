@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import type { Coverage, ParentRights, LeaveResult, CustomPeriod } from '@/lib/types';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { GlossaryTerm } from '@/components/ui/glossary-term';
 
 interface StatsBarProps {
   coverage: Coverage;
@@ -136,7 +137,11 @@ export function StatsBar({
         {quotas.map((quota) => (
           <div key={quota.label} className="space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">{quota.label}</span>
+              <span className="text-muted-foreground">
+                {quota.label === 'Mors kvote' && <>Mors <GlossaryTerm term="kvote">kvote</GlossaryTerm></>}
+                {quota.label === 'Fars kvote' && <>Fars <GlossaryTerm term="kvote">kvote</GlossaryTerm></>}
+                {quota.label === 'Fellesperiode' && <GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm>}
+              </span>
               <span className="font-medium">
                 {quota.used}/{quota.total} uker
               </span>
@@ -164,13 +169,13 @@ export function StatsBar({
           {gapInfo.isCovered ? (
             <>
               <CheckCircle className="w-4 h-4 shrink-0" />
-              <span>Gap dekket med ferie/permisjon</span>
+              <span><GlossaryTerm term="gap">Gap</GlossaryTerm> dekket med ferie/permisjon</span>
             </>
           ) : (
             <>
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
-                {gapInfo.remainingDays} dager udekket gap
+                {gapInfo.remainingDays} dager udekket <GlossaryTerm term="gap">gap</GlossaryTerm>
                 {gapInfo.coveredDays > 0 && ` (${gapInfo.coveredDays} dekket)`}
               </span>
             </>

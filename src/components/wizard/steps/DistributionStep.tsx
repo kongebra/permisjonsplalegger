@@ -4,6 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import type { Coverage, ParentRights } from '@/lib/types';
+import { GlossaryTerm } from '@/components/ui/glossary-term';
 
 interface DistributionStepProps {
   coverage: Coverage;
@@ -64,7 +65,7 @@ export function DistributionStep({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Fordel fellesperioden</h2>
+        <h2 className="text-2xl font-bold mb-2">Fordel <GlossaryTerm term="fellesperiode">fellesperioden</GlossaryTerm></h2>
         <p className="text-muted-foreground">
           {maxShared} uker kan fordeles fritt mellom foreldrene
         </p>
@@ -72,7 +73,7 @@ export function DistributionStep({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Fellesperiode</CardTitle>
+          <CardTitle className="text-lg"><GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm></CardTitle>
           <CardDescription>
             Dra slideren for å justere fordelingen
           </CardDescription>
@@ -125,7 +126,7 @@ export function DistributionStep({
                 {motherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {config.preBirth} før + {motherQuota} kvote + {sharedWeeksToMother} felles
+                {config.preBirth} før + {motherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> + {sharedWeeksToMother} <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
               </p>
             </div>
           </CardContent>
@@ -139,7 +140,7 @@ export function DistributionStep({
                 {fatherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {fatherQuota} kvote + {sharedWeeksToFather} felles
+                {fatherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> + {sharedWeeksToFather} <GlossaryTerm term="fellesperiode">felles</GlossaryTerm>
               </p>
             </div>
           </CardContent>
