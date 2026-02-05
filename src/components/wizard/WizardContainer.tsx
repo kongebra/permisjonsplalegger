@@ -9,11 +9,12 @@ import { CoverageStep } from './steps/CoverageStep';
 import { DistributionStep } from './steps/DistributionStep';
 import { DaycareStep } from './steps/DaycareStep';
 import { JobSettingsStep } from './steps/JobSettingsStep';
+import { EconomyStep } from './steps/EconomyStep';
 import { SummaryStep } from './steps/SummaryStep';
-import { useWizard, useJobSettings, useCalculatedLeave, usePersistence } from '@/store/hooks';
+import { useWizard, useJobSettings, useEconomy, useCalculatedLeave, usePersistence } from '@/store/hooks';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export function WizardContainer() {
   const router = useRouter();
@@ -46,6 +47,9 @@ export function WizardContainer() {
     setMotherJobSettings,
     setFatherJobSettings,
   } = useJobSettings();
+
+  // Economy data
+  const { motherEconomy, fatherEconomy, setMotherEconomy, setFatherEconomy } = useEconomy();
 
   // Persistence
   const { savePlan } = usePersistence();
@@ -100,6 +104,16 @@ export function WizardContainer() {
           />
         );
       case 7:
+        return (
+          <EconomyStep
+            rights={rights}
+            motherEconomy={motherEconomy}
+            fatherEconomy={fatherEconomy}
+            onMotherChange={setMotherEconomy}
+            onFatherChange={setFatherEconomy}
+          />
+        );
+      case 8:
         return (
           <SummaryStep
             dueDate={dueDate}
