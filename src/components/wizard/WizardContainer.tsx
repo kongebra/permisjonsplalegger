@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { WizardProgress } from "./WizardProgress";
@@ -22,12 +22,14 @@ import {
   useCanProceed,
 } from "@/store/hooks";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const TOTAL_STEPS = 8;
+import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
 
 export function WizardContainer() {
   const router = useRouter();
   const [showIntro, setShowIntro] = useState(true);
+  const [cameFromSummary, setCameFromSummary] = useState(false);
+  const stepContentRef = useRef<HTMLDivElement>(null);
+  const prevStepRef = useRef<number>(1);
 
   // Wizard state
   const {
@@ -72,11 +74,69 @@ export function WizardContainer() {
     }
   }, [hasSavedPlan, currentStep]);
 
+  // Derive animation direction from step change
+  const direction = currentStep >= prevStepRef.current ? 'forward' : 'backward';
+
+  // Focus step content and track direction on step change (a11y)
+  useEffect(() => {
+    prevStepRef.current = currentStep;
+    if (stepContentRef.current) {
+      stepContentRef.current.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep]);
+
+  // Sync wizard step with browser history for back button support
+  const isPopstateRef = useRef(false);
+
+  useEffect(() => {
+    // Push new history state when step changes (but not from popstate)
+    if (isPopstateRef.current) {
+      isPopstateRef.current = false;
+      return;
+    }
+    window.history.pushState({ wizardStep: currentStep }, '', `#steg-${currentStep}`);
+  }, [currentStep]);
+
+  useEffect(() => {
+    const handlePopstate = (e: PopStateEvent) => {
+      const step = e.state?.wizardStep;
+      if (typeof step === 'number' && step >= 1 && step <= TOTAL_WIZARD_STEPS) {
+        isPopstateRef.current = true;
+        setCurrentStep(step);
+      }
+    };
+
+    // Set initial history state
+    window.history.replaceState({ wizardStep: currentStep }, '', `#steg-${currentStep}`);
+    window.addEventListener('popstate', handlePopstate);
+    return () => window.removeEventListener('popstate', handlePopstate);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Calculate leave result
   const leaveResult = useCalculatedLeave();
 
   // Check if we can proceed to next step
   const canProceed = useCanProceed();
+
+  // Handle editing from summary
+  const handleGoBackFromSummary = (step: number) => {
+    setCameFromSummary(true);
+    setCurrentStep(step);
+  };
+
+  // Handle returning to summary
+  const handleReturnToSummary = () => {
+    setCameFromSummary(false);
+    setCurrentStep(TOTAL_WIZARD_STEPS);
+  };
+
+  // Clear flag when arriving at summary normally
+  useEffect(() => {
+    if (currentStep === TOTAL_WIZARD_STEPS) {
+      setCameFromSummary(false);
+    }
+  }, [currentStep]);
 
   // Handle wizard completion
   const handleComplete = () => {
@@ -148,7 +208,7 @@ export function WizardContainer() {
             motherEconomy={motherEconomy}
             fatherEconomy={fatherEconomy}
             leaveResult={leaveResult}
-            onGoBack={setCurrentStep}
+            onGoBack={handleGoBackFromSummary}
             onComplete={handleComplete}
           />
         );
@@ -158,7 +218,14 @@ export function WizardContainer() {
   };
 
   const isFirstStep = currentStep === 1;
-  const isLastStep = currentStep === TOTAL_STEPS;
+  const isLastStep = currentStep === TOTAL_WIZARD_STEPS;
+
+  // Step-specific validation hints
+  const stepHints: Record<number, string> = {
+    1: 'Velg termindato for å gå videre',
+    2: 'Velg hvem som har rett til foreldrepenger',
+    3: 'Velg dekningsgrad',
+  };
 
   // Show welcome intro for first-time users
   if (showIntro) {
@@ -170,43 +237,64 @@ export function WizardContainer() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-4">
+    <div className="max-w-lg mx-auto" role="region" aria-label="Permisjonsplanlegger">
       {/* Progress indicator */}
-      <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <WizardProgress currentStep={currentStep} totalSteps={TOTAL_WIZARD_STEPS} />
 
       {/* Step content */}
-      <div className="min-h-[400px]">{renderStep()}</div>
+      <div
+        ref={stepContentRef}
+        tabIndex={-1}
+        className="py-4 pb-28 outline-none"
+        aria-live="polite"
+      >
+        <div
+          key={currentStep}
+          className={direction === 'forward' ? 'animate-slide-in-right' : 'animate-slide-in-left'}
+        >
+          {renderStep()}
+        </div>
+      </div>
 
-      {/* Navigation buttons */}
+      {/* Navigation buttons — sticky bottom */}
       {!isLastStep && (
-        <div className="space-y-3">
-          <div className="flex justify-between gap-4">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={isFirstStep}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Tilbake
-            </Button>
+        <div className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t pb-[env(safe-area-inset-bottom)]">
+          <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
+            {!canProceed && (
+              <p className="text-xs text-amber-600 text-center">
+                {stepHints[currentStep] || 'Fyll ut informasjonen over for å fortsette'}
+              </p>
+            )}
+            {cameFromSummary && (
+              <Button
+                variant="secondary"
+                onClick={handleReturnToSummary}
+                className="w-full min-h-[36px] text-sm"
+              >
+                Tilbake til oppsummering
+              </Button>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={isFirstStep}
+                className="flex items-center gap-2 min-h-[44px]"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Tilbake
+              </Button>
 
-            <Button
-              onClick={nextStep}
-              disabled={!canProceed}
-              className="flex items-center gap-2"
-            >
-              Neste
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <Button
+                onClick={nextStep}
+                disabled={!canProceed}
+                className="flex items-center justify-center gap-2 min-h-[44px] flex-1"
+              >
+                Neste
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-
-          {/* Help text when Next is disabled */}
-          {!canProceed && (
-            <p className="text-sm text-amber-600 text-center">
-              Fyll ut informasjonen over for å fortsette
-            </p>
-          )}
         </div>
       )}
     </div>

@@ -15,7 +15,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Permisjonsøkonomi-kalkulator",
-  description: "Sammenlign 80% vs 100% foreldrepermisjon og finn ut hva som lønner seg for din familie",
+  description: "Sammenlign 80% vs 100% foreldrepermisjon og finn ut hva som lønner seg for familien",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover' as const,
 };
 
 export default function RootLayout({

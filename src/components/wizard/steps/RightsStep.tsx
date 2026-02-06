@@ -2,7 +2,8 @@
 
 import { cn } from '@/lib/utils';
 import type { ParentRights } from '@/lib/types';
-import { Users, User, Info } from 'lucide-react';
+import { Users, User } from 'lucide-react';
+import { InfoBox } from '@/components/ui/info-box';
 
 interface RightsStepProps {
   value: ParentRights;
@@ -41,28 +42,27 @@ export function RightsStep({ value, onChange }: RightsStepProps) {
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Hvem har rett til foreldrepenger?</h2>
         <p className="text-muted-foreground">
-          For å ha rett må du ha vært i arbeid minst 6 av de siste 10 månedene
+          Kravet er å ha vært i arbeid minst 6 av de siste 10 månedene
         </p>
       </div>
 
       {/* Info box for single parents */}
       {(value === 'mother-only' || value === 'father-only') && (
-        <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4 flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
-            <p className="font-medium">Som enslig forelder</p>
-            <p className="mt-1">
-              Du har rett til hele foreldrepengeperioden inkludert fellesperioden.
-              Det betyr opptil 46 uker (100%) eller 56 uker (80%) totalt, pluss 3 uker før termin.
-            </p>
-          </div>
-        </div>
+        <InfoBox variant="info">
+          <p className="font-medium">Som enslig forelder</p>
+          <p className="mt-1">
+            Forelderen har rett til hele permisjonsperioden inkludert fellesperioden.
+            Det betyr opptil 46 uker (100%) eller 56 uker (80%) totalt, pluss 3 uker før termin.
+          </p>
+        </InfoBox>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-4" role="radiogroup" aria-label="Hvem har rett til foreldrepenger?">
         {rightsOptions.map((option) => (
           <button
             key={option.value}
+            role="radio"
+            aria-checked={value === option.value}
             onClick={() => onChange(option.value)}
             className={cn(
               'w-full p-4 rounded-lg border-2 text-left transition-all',

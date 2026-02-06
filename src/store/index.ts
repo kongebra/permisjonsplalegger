@@ -49,6 +49,8 @@ export const usePlannerStore = create<PlannerStore>()(
         version: 1,
         savedAt: new Date().toISOString(),
         wizard: {
+          currentStep: state.currentStep,
+          wizardCompleted: state.wizardCompleted,
           dueDate: state.dueDate.toISOString(),
           rights: state.rights,
           coverage: state.coverage,
@@ -88,7 +90,14 @@ export const usePlannerStore = create<PlannerStore>()(
       if (plan.wizard.daycareStartDate) {
         state.setDaycareStartDate(new Date(plan.wizard.daycareStartDate));
       }
-      state.completeWizard();
+
+      // Restore wizard progress or mark as completed
+      if (plan.wizard.wizardCompleted !== false) {
+        state.completeWizard();
+      }
+      if (plan.wizard.currentStep) {
+        state.setCurrentStep(plan.wizard.currentStep);
+      }
 
       // Restore job settings
       state.setMotherJobSettings(plan.jobSettings.mother);
@@ -130,6 +139,7 @@ usePlannerStore.subscribe(
   (state) => ({
     autoSaveEnabled: state.autoSaveEnabled,
     wizardCompleted: state.wizardCompleted,
+    currentStep: state.currentStep,
     dueDate: state.dueDate,
     rights: state.rights,
     coverage: state.coverage,
@@ -143,11 +153,15 @@ usePlannerStore.subscribe(
     periods: state.periods,
   }),
   (curr, prev) => {
-    // Only auto-save if enabled and wizard is completed
-    if (!curr.autoSaveEnabled || !curr.wizardCompleted) return;
+    // Auto-save when wizard step changes (saves progress)
+    // or when autoSave is enabled and wizard is completed
+    const wizardStepChanged = curr.currentStep !== prev.currentStep;
+    const postWizardChange = curr.autoSaveEnabled && curr.wizardCompleted;
 
-    // Skip if nothing changed
-    if (JSON.stringify(curr) === JSON.stringify(prev)) return;
+    if (!wizardStepChanged && !postWizardChange) return;
+
+    // Skip if nothing changed (for post-wizard saves)
+    if (!wizardStepChanged && JSON.stringify(curr) === JSON.stringify(prev)) return;
 
     // Debounce auto-save
     if (autoSaveTimeout) {
@@ -156,7 +170,7 @@ usePlannerStore.subscribe(
 
     autoSaveTimeout = setTimeout(() => {
       usePlannerStore.getState().savePlan();
-    }, 2000);
+    }, wizardStepChanged ? 500 : 2000);
   }
 );
 

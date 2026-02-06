@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
+import { WIZARD_STEPS } from '@/lib/constants';
 
 interface WizardProgressProps {
   currentStep: number;
@@ -9,23 +10,17 @@ interface WizardProgressProps {
   labels?: string[];
 }
 
-const DEFAULT_LABELS = [
-  'Termin',
-  'Rettigheter',
-  'Dekning',
-  'Fordeling',
-  'Barnehage',
-  'Jobb',
-  'Oppsummering',
-];
+const DEFAULT_LABELS = WIZARD_STEPS.map((s) => s.label);
 
 export function WizardProgress({
   currentStep,
   totalSteps,
   labels = DEFAULT_LABELS,
 }: WizardProgressProps) {
+  const progressPercent = Math.round((currentStep / totalSteps) * 100);
+
   return (
-    <div className="w-full">
+    <nav aria-label="Wizard-fremgang" className="w-full">
       {/* Mobile: compact progress bar */}
       <div className="sm:hidden">
         <div className="flex items-center justify-between mb-2">
@@ -36,23 +31,34 @@ export function WizardProgress({
             {labels[currentStep - 1]}
           </span>
         </div>
-        <div className="w-full bg-muted rounded-full h-2">
+        <div
+          className="w-full bg-muted rounded-full h-2"
+          role="progressbar"
+          aria-valuenow={currentStep}
+          aria-valuemin={1}
+          aria-valuemax={totalSteps}
+          aria-label={`Steg ${currentStep} av ${totalSteps}: ${labels[currentStep - 1]}`}
+        >
           <div
             className="bg-primary h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
       {/* Desktop: step indicators */}
-      <div className="hidden sm:flex items-center justify-between">
+      <ol className="hidden sm:flex items-center justify-between" aria-label="Wizard-steg">
         {Array.from({ length: totalSteps }, (_, i) => {
           const stepNumber = i + 1;
           const isCompleted = stepNumber < currentStep;
           const isCurrent = stepNumber === currentStep;
 
           return (
-            <div key={stepNumber} className="flex items-center">
+            <li
+              key={stepNumber}
+              className="flex items-center"
+              aria-current={isCurrent ? 'step' : undefined}
+            >
               {/* Step circle */}
               <div className="flex flex-col items-center">
                 <div
@@ -62,6 +68,7 @@ export function WizardProgress({
                     isCurrent && 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2',
                     !isCompleted && !isCurrent && 'bg-muted text-muted-foreground'
                   )}
+                  aria-hidden="true"
                 >
                   {isCompleted ? (
                     <Check className="w-4 h-4" />
@@ -87,12 +94,13 @@ export function WizardProgress({
                     isCompleted ? 'bg-primary' : 'bg-muted'
                   )}
                   style={{ minWidth: '2rem' }}
+                  aria-hidden="true"
                 />
               )}
-            </div>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ol>
+    </nav>
   );
 }

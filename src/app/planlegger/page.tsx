@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useShallow } from 'zustand/react/shallow';
-import { usePlannerStore } from '@/store';
-import { WizardContainer } from '@/components/wizard';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useShallow } from "zustand/react/shallow";
+import { usePlannerStore } from "@/store";
+import { WizardContainer } from "@/components/wizard";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,32 +13,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import Link from 'next/link';
+} from "@/components/ui/dialog";
+import Link from "next/link";
 
 // Check localStorage on client side only
 function checkLocalStorage(): boolean {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem('permisjonsplan-v1');
+  if (typeof window === "undefined") return false;
+  const saved = localStorage.getItem("permisjonsplan-v1");
   return saved !== null;
 }
 
 export default function PlanleggerPage() {
   const router = useRouter();
-  const { loadPlan, wizardCompleted, resetAll, checkForSavedPlan } = usePlannerStore(
-    useShallow((state) => ({
-      loadPlan: state.loadPlan,
-      wizardCompleted: state.wizardCompleted,
-      resetAll: state.resetAll,
-      checkForSavedPlan: state.checkForSavedPlan,
-    }))
-  );
+  const { loadPlan, wizardCompleted, resetAll, checkForSavedPlan } =
+    usePlannerStore(
+      useShallow((state) => ({
+        loadPlan: state.loadPlan,
+        wizardCompleted: state.wizardCompleted,
+        resetAll: state.resetAll,
+        checkForSavedPlan: state.checkForSavedPlan,
+      })),
+    );
 
   // Initialize dialog state based on localStorage (computed once)
   const [dialogDismissed, setDialogDismissed] = useState(false);
 
-  // Check if there's a saved plan (computed once on mount)
-  const hasSavedPlan = checkLocalStorage();
+  // Check if there's a saved plan (computed once on mount, not every render)
+  const [hasSavedPlan] = useState(() => checkLocalStorage());
 
   // Sync store state with localStorage check
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function PlanleggerPage() {
   // If wizard is already completed, redirect to calendar
   useEffect(() => {
     if (wizardCompleted) {
-      router.push('/planlegger/kalender');
+      router.push("/planlegger/kalender");
     }
   }, [wizardCompleted, router]);
 
@@ -72,8 +73,8 @@ export default function PlanleggerPage() {
   const showDialog = hasSavedPlan && !wizardCompleted && !dialogDismissed;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-dvh bg-background">
+      {/* <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Permisjonsplanlegger</h1>
@@ -87,9 +88,9 @@ export default function PlanleggerPage() {
             </Button>
           </Link>
         </div>
-      </header>
+      </header> */}
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4">
         <WizardContainer />
       </main>
 
@@ -104,9 +105,7 @@ export default function PlanleggerPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-start">
-            <Button onClick={handleContinue}>
-              Fortsett
-            </Button>
+            <Button onClick={handleContinue}>Fortsett</Button>
             <Button variant="outline" onClick={handleStartNew}>
               Start på nytt
             </Button>
@@ -114,11 +113,7 @@ export default function PlanleggerPage() {
         </DialogContent>
       </Dialog>
 
-      <footer className="border-t mt-12">
-        <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
-          Dette er et planleggingsverktøy. Kontakt NAV for offisielle beregninger.
-        </div>
-      </footer>
+      {/* Disclaimer vises én gang i WelcomeIntro */}
     </div>
   );
 }

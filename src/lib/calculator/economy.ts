@@ -286,12 +286,12 @@ export function calculate100Scenario(
 }
 
 /**
- * Genererer anbefaling basert på differanse
+ * Genererer anbefaling basert på differanse og hva som faktisk bidrar
  */
 function generateRecommendation(
   difference: number,
-  _scenario80: ScenarioResult,
-  _scenario100: ScenarioResult
+  scenario80: ScenarioResult,
+  scenario100: ScenarioResult
 ): string {
   const absDiff = Math.abs(difference);
   const formatted = new Intl.NumberFormat('nb-NO', {
@@ -300,12 +300,31 @@ function generateRecommendation(
     maximumFractionDigits: 0,
   }).format(absDiff);
 
-  if (difference > 10000) {
-    return `100% dekning gir deg ${formatted} mer totalt. Dette skyldes hovedsakelig høyere NAV-utbetaling og kortere provisjonstap.`;
-  } else if (difference < -10000) {
-    return `80% dekning gir deg ${formatted} mer totalt. Den lengre permisjonen veier opp for lavere sats.`;
-  } else {
+  if (Math.abs(difference) <= 10000) {
     return `Forskjellen er liten (${formatted}). Vurder hva som passer best for familiens situasjon.`;
+  }
+
+  // Build explanation based on what actually contributes
+  const reasons: string[] = [];
+  const navDiff = scenario100.breakdown.navPayout - scenario80.breakdown.navPayout;
+  const gapDiff = scenario100.breakdown.gapCost - scenario80.breakdown.gapCost;
+  const commissionDiff = scenario100.breakdown.commissionLoss - scenario80.breakdown.commissionLoss;
+  const feriepengeDiff = scenario100.breakdown.feriepengeDifference - scenario80.breakdown.feriepengeDifference;
+
+  if (difference > 0) {
+    if (navDiff > 0) reasons.push('høyere NAV-utbetaling');
+    if (gapDiff > 0) reasons.push('lengre ulønnet periode');
+    if (commissionDiff < 0) reasons.push('kortere provisjonstap');
+    if (feriepengeDiff < 0) reasons.push('bedre feriepengeopptjening');
+    const reason = reasons.length > 0 ? ` Dette skyldes hovedsakelig ${reasons.join(' og ')}.` : '';
+    return `100% dekning gir ${formatted} mer totalt.${reason}`;
+  } else {
+    if (navDiff < 0) reasons.push('lengre permisjonstid');
+    if (gapDiff < 0) reasons.push('kortere ulønnet periode');
+    if (commissionDiff > 0) reasons.push('lengre provisjonstap');
+    if (feriepengeDiff > 0) reasons.push('lavere feriepengeopptjening');
+    const reason = reasons.length > 0 ? ` ${reasons[0].charAt(0).toUpperCase() + reasons[0].slice(1)}${reasons.length > 1 ? ' og ' + reasons.slice(1).join(' og ') : ''} veier opp for lavere sats.` : '';
+    return `80% dekning gir ${formatted} mer totalt.${reason}`;
   }
 }
 

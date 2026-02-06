@@ -210,6 +210,8 @@ export interface SavedPlan {
   version: 1;
   savedAt: string;
   wizard: {
+    currentStep?: number;
+    wizardCompleted?: boolean;
     dueDate: string;
     rights: ParentRights;
     coverage: Coverage;

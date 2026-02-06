@@ -1,22 +1,15 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import { compareScenarios } from '@/lib/calculator/economy';
-import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy } from '@/lib/types';
+import { calculateLeave } from '@/lib/calculator';
+import { formatCurrency } from '@/lib/format';
+import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
 import { format, differenceInWeeks } from 'date-fns';
 import { nb } from 'date-fns/locale';
-import { CalendarDays, Users, Percent, Baby, Briefcase, AlertCircle, ChevronRight, DollarSign, Wallet } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { CalendarDays, Users, Percent, Baby, Briefcase, AlertCircle, ChevronRight, ChevronDown, Wallet, Lightbulb, ArrowRight } from 'lucide-react';
 
 interface SummaryStepProps {
   dueDate: Date;
@@ -42,20 +35,169 @@ interface SummaryRowProps {
   onEdit: (step: number) => void;
 }
 
+function ExplanationPanel({ result, gap80Weeks, gap100Weeks }: {
+  result: EconomyResult;
+  gap80Weeks: number;
+  gap100Weeks: number;
+}) {
+  const { scenario80, scenario100, difference } = result;
+  const favors100 = difference > 0;
+
+  // Build short explanation based on which scenario wins and why
+  const getExplanation = () => {
+    if (Math.abs(difference) <= 5000) {
+      return 'Forskjellen er liten. Valget handler mer om hvor lang permisjon familien ønsker.';
+    }
+    if (favors100) {
+      if (gap100Weeks > gap80Weeks) {
+        return `100% gir full lønn i 49 uker. Selv om gapet er lengre (${gap100Weeks} vs ${gap80Weeks} uker), veier den høyere NAV-utbetalingen opp.`;
+      }
+      return '100% gir full lønn i 49 uker, noe som gir høyere total utbetaling enn 80% over 59 uker.';
+    }
+    return `80% gir permisjon i 59 uker — 10 uker mer enn 100%. Det gir et kortere gap (${gap80Weeks} vs ${gap100Weeks} uker) og lavere totalkostnad.`;
+  };
+
+  // Only show factors that actually differ meaningfully (> 500 kr)
+  const factors: { label: string; val80: number; val100: number; isLoss: boolean }[] = [];
+
+  if (Math.abs(scenario100.breakdown.navPayout - scenario80.breakdown.navPayout) > 500) {
+    factors.push({
+      label: 'NAV-utbetaling',
+      val80: scenario80.breakdown.navPayout,
+      val100: scenario100.breakdown.navPayout,
+      isLoss: false,
+    });
+  }
+  if (scenario80.breakdown.gapCost > 0 || scenario100.breakdown.gapCost > 0) {
+    factors.push({
+      label: 'Gap-kostnad',
+      val80: scenario80.breakdown.gapCost,
+      val100: scenario100.breakdown.gapCost,
+      isLoss: true,
+    });
+  }
+  if (scenario80.breakdown.feriepengeDifference > 0 || scenario100.breakdown.feriepengeDifference > 0) {
+    factors.push({
+      label: 'Tapt feriepenger',
+      val80: scenario80.breakdown.feriepengeDifference,
+      val100: scenario100.breakdown.feriepengeDifference,
+      isLoss: true,
+    });
+  }
+  if (scenario80.breakdown.commissionLoss > 0 || scenario100.breakdown.commissionLoss > 0) {
+    factors.push({
+      label: 'Provisjonstap',
+      val80: scenario80.breakdown.commissionLoss,
+      val100: scenario100.breakdown.commissionLoss,
+      isLoss: true,
+    });
+  }
+
+  return (
+    <div className="space-y-3 pt-2 border-t border-[var(--color-info-fg)]/15">
+      <p className="text-xs text-[var(--color-info-fg)]">
+        {getExplanation()}
+      </p>
+
+      {/* Factor table */}
+      {factors.length > 0 && (
+        <div className="rounded-md bg-background/60 text-xs">
+          {/* Header */}
+          <div className="grid grid-cols-3 gap-1 px-2 py-1.5 text-muted-foreground font-medium border-b">
+            <span />
+            <span className="text-right">80%</span>
+            <span className="text-right">100%</span>
+          </div>
+          {/* Rows */}
+          {factors.map((f) => (
+            <div key={f.label} className="grid grid-cols-3 gap-1 px-2 py-1.5 border-b border-border/50 last:border-0">
+              <span className="text-muted-foreground">{f.label}</span>
+              <span className="text-right tabular-nums">
+                {f.isLoss && f.val80 > 0 ? '−' : ''}{formatCurrency(f.val80)}
+              </span>
+              <span className="text-right tabular-nums">
+                {f.isLoss && f.val100 > 0 ? '−' : ''}{formatCurrency(f.val100)}
+              </span>
+            </div>
+          ))}
+          {/* Net total */}
+          <div className="grid grid-cols-3 gap-1 px-2 py-1.5 font-semibold bg-muted/30 rounded-b-md">
+            <span>Netto</span>
+            <span className="text-right tabular-nums">{formatCurrency(scenario80.total)}</span>
+            <span className="text-right tabular-nums">{formatCurrency(scenario100.total)}</span>
+          </div>
+        </div>
+      )}
+
+      <p className="text-[11px] text-[var(--color-info-fg)]/60">
+        Beregningen er et estimat basert på oppgitt lønn. Se full tidslinje og detaljer i kalenderen.
+      </p>
+    </div>
+  );
+}
+
+function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks }: {
+  economyResult: EconomyResult;
+  gap80Weeks: number;
+  gap100Weeks: number;
+}) {
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  const recommendationText = economyResult.difference > 5000
+    ? '100% dekning kan lønne seg for deres situasjon'
+    : economyResult.difference < -5000
+    ? '80% dekning kan lønne seg for deres situasjon'
+    : 'Forskjellen mellom 80% og 100% er liten for deres situasjon';
+
+  return (
+    <div className="rounded-lg bg-[var(--color-info-bg)] p-3 space-y-2">
+      <div className="flex items-start gap-2.5">
+        <Lightbulb className="w-4 h-4 text-[var(--color-info-fg)] shrink-0 mt-0.5" />
+        <div className="flex-1 space-y-1">
+          <p className="text-sm font-medium text-[var(--color-info-fg)]">
+            {recommendationText}
+          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-[var(--color-info-fg)]/70 flex items-center gap-1">
+              <ArrowRight className="w-3 h-3" />
+              Detaljert tidslinje i kalenderen
+            </p>
+            <button
+              onClick={() => setShowExplanation(!showExplanation)}
+              className="text-xs text-[var(--color-info-fg)] font-medium flex items-center gap-0.5 hover:underline shrink-0"
+            >
+              Hvorfor?
+              <ChevronDown className={`w-3 h-3 transition-transform ${showExplanation ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {showExplanation && (
+        <ExplanationPanel
+          result={economyResult}
+          gap80Weeks={gap80Weeks}
+          gap100Weeks={gap100Weeks}
+        />
+      )}
+    </div>
+  );
+}
+
 function SummaryRow({ icon, label, value, step, onEdit }: SummaryRowProps) {
   return (
     <button
       onClick={() => onEdit(step)}
-      className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-lg transition-colors text-left"
+      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 rounded-lg transition-colors text-left"
     >
-      <div className="p-2 bg-muted rounded-lg">
+      <div className="p-1.5 bg-muted rounded-md">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="font-medium truncate">{value}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium truncate">{value}</p>
       </div>
-      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
     </button>
   );
 }
@@ -112,194 +254,109 @@ export function SummaryStep({
   const hasEconomyData = motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary;
   const economyLabel = hasEconomyData ? 'Lønn angitt' : 'Ikke angitt';
 
-  // Calculate economy result if data exists
+  // Calculate gaps for BOTH scenarios (80% and 100% have different leave lengths → different gaps)
+  const effectiveDaycareDate = daycareEnabled && daycareDate
+    ? daycareDate
+    : new Date(dueDate.getFullYear() + 3, 7, 1);
+
+  const leaveResult80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
+  const leaveResult100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
+
+  // Calculate economy result if data exists — now with correct per-scenario gaps
   const economyResult = hasEconomyData && motherEconomy
     ? compareScenarios(
         motherEconomy,
         rights !== 'mother-only' ? fatherEconomy : undefined,
         sharedWeeksToMother,
-        leaveResult.gap,
-        leaveResult.gap
+        leaveResult80.gap,
+        leaveResult100.gap
       )
     : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Oppsummering</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold mb-1">Oppsummering</h2>
+        <p className="text-sm text-muted-foreground">
           Trykk på et felt for å gå tilbake og endre
         </p>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Dine valg</CardTitle>
-          <CardDescription>Klikk for å redigere</CardDescription>
-        </CardHeader>
-        <CardContent className="p-2">
-          <div className="divide-y">
-            <SummaryRow
-              icon={<CalendarDays className="w-5 h-5" />}
-              label="Termindato"
-              value={format(dueDate, 'd. MMMM yyyy', { locale: nb })}
-              step={1}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Users className="w-5 h-5" />}
-              label="Rettigheter"
-              value={rightsLabel}
-              step={2}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Percent className="w-5 h-5" />}
-              label="Dekningsgrad"
-              value={`${coverage}% - ${config.total} uker`}
-              step={3}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Users className="w-5 h-5" />}
-              label="Fordeling"
-              value={distributionLabel}
-              step={4}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Baby className="w-5 h-5" />}
-              label="Barnehagestart"
-              value={
-                daycareEnabled && daycareDate
-                  ? format(daycareDate, 'd. MMMM yyyy', { locale: nb })
-                  : 'Ikke angitt'
-              }
-              step={5}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Briefcase className="w-5 h-5" />}
-              label="Jobbinnstillinger"
-              value={jobLabel}
-              step={6}
-              onEdit={onGoBack}
-            />
-            <SummaryRow
-              icon={<Wallet className="w-5 h-5" />}
-              label="Økonomi"
-              value={economyLabel}
-              step={7}
-              onEdit={onGoBack}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Summary rows — no Card wrapper */}
+      <div className="rounded-lg border divide-y">
+        <SummaryRow
+          icon={<CalendarDays className="w-4 h-4" />}
+          label="Termindato"
+          value={format(dueDate, 'd. MMMM yyyy', { locale: nb })}
+          step={1}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Users className="w-4 h-4" />}
+          label="Rettigheter"
+          value={rightsLabel}
+          step={2}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Percent className="w-4 h-4" />}
+          label="Dekningsgrad"
+          value={`${coverage}% - ${config.total} uker`}
+          step={3}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Users className="w-4 h-4" />}
+          label="Fordeling"
+          value={distributionLabel}
+          step={4}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Baby className="w-4 h-4" />}
+          label="Barnehagestart"
+          value={
+            daycareEnabled && daycareDate
+              ? format(daycareDate, 'd. MMMM yyyy', { locale: nb })
+              : 'Ikke angitt'
+          }
+          step={5}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Briefcase className="w-4 h-4" />}
+          label="Jobbinnstillinger"
+          value={jobLabel}
+          step={6}
+          onEdit={onGoBack}
+        />
+        <SummaryRow
+          icon={<Wallet className="w-4 h-4" />}
+          label="Økonomi"
+          value={economyLabel}
+          step={7}
+          onEdit={onGoBack}
+        />
+      </div>
 
-      {/* Gap warning */}
+      {/* Gap warning — compact */}
       {gapWeeks > 0 && (
-        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-amber-800 dark:text-amber-200">
-                Gap på {gapWeeks} uker
-              </h4>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Du kan legge til ferie eller ulønnet permisjon i kalenderen for å dekke dette.
-              </p>
-            </div>
-          </div>
+        <div className="px-3 py-2.5 bg-[var(--color-warning-bg)] border border-[var(--color-warning-bg)] rounded-lg flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-[var(--color-warning-fg)] shrink-0" />
+          <p className="text-sm text-[var(--color-warning-fg)]">
+            <span className="font-medium">{gapWeeks} {gapWeeks === 1 ? 'uke' : 'uker'}</span> mellom permisjonsslutt og barnehagestart
+          </p>
         </div>
       )}
 
-      {/* Economy comparison */}
+      {/* Recommendation based on economy data */}
       {economyResult && (
-        <Card className="border-2 border-green-200 dark:border-green-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Økonomisk sammenligning
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-4">
-              <p className="text-sm text-muted-foreground">
-                Differanse mellom 100% og 80%
-              </p>
-              <p className={cn(
-                "text-3xl font-bold",
-                economyResult.difference >= 0 ? "text-green-600" : "text-red-600"
-              )}>
-                {economyResult.difference >= 0 ? '+' : ''}
-                {formatCurrency(economyResult.difference)}
-              </p>
-              <p className="text-sm font-medium mt-1">
-                {economyResult.recommendation}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-medium">100% dekning</p>
-                <p className="text-muted-foreground">
-                  Totalt: {formatCurrency(economyResult.scenario100.total)}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium">80% dekning</p>
-                <p className="text-muted-foreground">
-                  Totalt: {formatCurrency(economyResult.scenario80.total)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RecommendationBox
+          economyResult={economyResult}
+          gap80Weeks={leaveResult80.gap.weeks}
+          gap100Weeks={leaveResult100.gap.weeks}
+        />
       )}
-
-      {/* Leave period summary */}
-      <div className="grid grid-cols-2 gap-4">
-        {rights !== 'father-only' && (
-          <Card className={cn(
-            'border-2',
-            rights === 'both' ? 'border-pink-200 dark:border-pink-800' : ''
-          )}>
-            <CardContent className="pt-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Mor</p>
-                <p className="text-lg font-bold text-pink-600 dark:text-pink-400">
-                  {format(leaveResult.mother.start, 'd. MMM', { locale: nb })} -{' '}
-                  {format(leaveResult.mother.end, 'd. MMM yyyy', { locale: nb })}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {leaveResult.mother.weeks} uker
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {rights !== 'mother-only' && (
-          <Card className={cn(
-            'border-2',
-            rights === 'both' ? 'border-blue-200 dark:border-blue-800' : '',
-            rights === 'father-only' ? 'col-span-2' : ''
-          )}>
-            <CardContent className="pt-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Far</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  {format(leaveResult.father.start, 'd. MMM', { locale: nb })} -{' '}
-                  {format(leaveResult.father.end, 'd. MMM yyyy', { locale: nb })}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {leaveResult.father.weeks} uker
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
 
       {/* Complete button */}
       <Button onClick={onComplete} size="lg" className="w-full">

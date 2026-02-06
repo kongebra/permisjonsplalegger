@@ -3,6 +3,7 @@
  * Uses useShallow for proper React 19 SSR compatibility
  */
 
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
 import type { LeaveResult } from '@/lib/types';
@@ -151,7 +152,9 @@ export function usePersistence() {
 }
 
 /**
- * Hook for calculated leave result based on current wizard state
+ * Hook for calculated leave result based on current wizard state.
+ * Memoized to avoid recalculating on every render — only recalculates
+ * when the underlying wizard inputs change.
  */
 export function useCalculatedLeave(): LeaveResult {
   const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
@@ -166,22 +169,27 @@ export function useCalculatedLeave(): LeaveResult {
       }))
     );
 
-  // Use daycare date or a far-future date if disabled
-  const effectiveDaycareDate =
-    daycareEnabled && daycareStartDate
-      ? daycareStartDate
-      : new Date(dueDate.getFullYear() + 3, 7, 1);
+  const dueDateMs = dueDate.getTime();
+  const daycareDateMs = daycareStartDate?.getTime() ?? 0;
 
-  return calculateLeave(
-    dueDate,
-    coverage,
-    rights,
-    sharedWeeksToMother,
-    0, // overlapWeeks
-    effectiveDaycareDate,
-    [], // vacationWeeks
-    undefined // vacation
-  );
+  return useMemo(() => {
+    const effectiveDaycareDate =
+      daycareEnabled && daycareStartDate
+        ? daycareStartDate
+        : new Date(dueDate.getFullYear() + 3, 7, 1);
+
+    return calculateLeave(
+      dueDate,
+      coverage,
+      rights,
+      sharedWeeksToMother,
+      0,
+      effectiveDaycareDate,
+      [],
+      undefined
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled]);
 }
 
 /**

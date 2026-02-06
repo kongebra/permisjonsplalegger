@@ -45,14 +45,16 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
           Velg <GlossaryTerm term="dekningsgrad">dekningsgrad</GlossaryTerm>
         </h2>
         <p className="text-muted-foreground">
-          Du får samme totalsum uansett valg, men fordelt ulikt over tid
+          Samme totalsum uansett valg, men fordelt ulikt over tid
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label="Velg dekningsgrad">
         {coverageOptions.map((option) => (
           <button
             key={option.value}
+            role="radio"
+            aria-checked={value === option.value}
             onClick={() => onChange(option.value)}
             className={cn(
               "w-full p-4 rounded-lg border-2 text-left transition-all",
@@ -130,14 +132,42 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
         ))}
       </div>
 
-      {/* Kommentar: Dette skal vi ikke legge oss borti, dette kan vi evt komme med som tips når vi har en økonomi-feature som funker og er testet */}
-      {/* <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
-        <p className="text-blue-800 dark:text-blue-200">
-          <strong>Tips:</strong> De fleste sparer penger på 100% fordi{" "}
-          <GlossaryTerm term="gap">gapet</GlossaryTerm> mellom permisjon og
-          barnehage ofte blir dyrt å dekke.
-        </p>
-      </div> */}
+      {/* Visual timeline comparison */}
+      <div className="rounded-lg border p-3 space-y-3">
+        <p className="text-xs font-medium text-muted-foreground text-center">Tidslinje-sammenligning</p>
+        {/* 100% bar */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 h-6">
+            <div
+              className={cn(
+                "h-full rounded-l-sm text-[10px] font-medium flex items-center justify-center text-white",
+                value === 100 ? "bg-primary" : "bg-muted-foreground/40"
+              )}
+              style={{ width: `${(LEAVE_CONFIG[100].total / LEAVE_CONFIG[80].total) * 100}%` }}
+            >
+              {LEAVE_CONFIG[100].total} uker
+            </div>
+            <div className="h-full flex-1 rounded-r-sm bg-[var(--color-warning-bg)] border border-dashed border-[var(--color-warning-fg)]/30 text-[10px] flex items-center justify-center text-[var(--color-warning-fg)]">
+              Gap
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground">100% dekning</p>
+        </div>
+        {/* 80% bar */}
+        <div className="space-y-1">
+          <div className="flex items-center h-6">
+            <div
+              className={cn(
+                "h-full rounded-sm w-full text-[10px] font-medium flex items-center justify-center text-white",
+                value === 80 ? "bg-primary" : "bg-muted-foreground/40"
+              )}
+            >
+              {LEAVE_CONFIG[80].total} uker
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground">80% dekning</p>
+        </div>
+      </div>
     </div>
   );
 }

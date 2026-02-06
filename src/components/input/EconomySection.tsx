@@ -18,6 +18,7 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { ParentEconomy, ParentRights } from '@/lib/types';
 import { G } from '@/lib/constants';
+import { formatCurrency } from '@/lib/format';
 
 interface EconomySectionProps {
   rights: ParentRights;
@@ -25,14 +26,6 @@ interface EconomySectionProps {
   fatherEconomy: ParentEconomy;
   onMotherEconomyChange: (economy: ParentEconomy) => void;
   onFatherEconomyChange: (economy: ParentEconomy) => void;
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 interface ParentEconomyInputProps {

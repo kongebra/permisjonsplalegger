@@ -37,3 +37,17 @@ export const FERIEPENGER_RATE = 0.102;
 
 // Ukedager i en arbeidsuke (NAV bruker 5-dagers uke)
 export const WORK_DAYS_PER_WEEK = 5;
+
+// Wizard steg-konfigurasjon (single source of truth)
+export const WIZARD_STEPS = [
+  { key: 'dueDate', label: 'Termin' },
+  { key: 'rights', label: 'Rettigheter' },
+  { key: 'coverage', label: 'Dekning' },
+  { key: 'distribution', label: 'Fordeling' },
+  { key: 'daycare', label: 'Barnehage' },
+  { key: 'jobSettings', label: 'Jobb' },
+  { key: 'economy', label: 'Økonomi' },
+  { key: 'summary', label: 'Oppsummering' },
+] as const;
+
+export const TOTAL_WIZARD_STEPS = WIZARD_STEPS.length;

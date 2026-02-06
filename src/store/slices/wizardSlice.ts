@@ -5,7 +5,7 @@
 import type { StateCreator } from 'zustand';
 import type { Coverage, ParentRights } from '@/lib/types';
 import { getDefaultDaycareStart, getDefaultSharedWeeksToMother } from '@/lib/calculator';
-import { LEAVE_CONFIG } from '@/lib/constants';
+import { LEAVE_CONFIG, TOTAL_WIZARD_STEPS } from '@/lib/constants';
 
 export interface WizardSlice {
   // Wizard state
@@ -35,7 +35,7 @@ export interface WizardSlice {
   setDaycareEnabled: (enabled: boolean) => void;
 }
 
-const TOTAL_STEPS = 7; // Including summary
+const TOTAL_STEPS = TOTAL_WIZARD_STEPS;
 
 export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> = (
   set,

@@ -13,9 +13,15 @@ export interface UiSlice {
   selectionEndDate: Date | null;
   isSelecting: boolean;
 
+  // Drag selection state
+  isDragging: boolean;
+  dragStartDate: Date | null;
+  dragCurrentDate: Date | null;
+
   // Calendar navigation
   activeMonth: Date;
   showMonthOverview: boolean;
+  showYearOverview: boolean;
 
   // Modal state
   editingPeriodId: string | null;
@@ -28,9 +34,16 @@ export interface UiSlice {
   setSelectionEnd: (date: Date) => void;
   clearSelection: () => void;
 
+  // Drag actions
+  startDrag: (date: Date) => void;
+  updateDrag: (date: Date) => void;
+  endDrag: () => void;
+  cancelDrag: () => void;
+
   setActiveMonth: (month: Date) => void;
   navigateMonth: (delta: number) => void;
   setShowMonthOverview: (show: boolean) => void;
+  setShowYearOverview: (show: boolean) => void;
 
   openPeriodModal: (periodId?: string) => void;
   closePeriodModal: () => void;
@@ -46,8 +59,14 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
   selectionEndDate: null,
   isSelecting: false,
 
+  // Drag state
+  isDragging: false,
+  dragStartDate: null,
+  dragCurrentDate: null,
+
   activeMonth: new Date(),
   showMonthOverview: false,
+  showYearOverview: false,
 
   editingPeriodId: null,
   showPeriodModal: false,
@@ -85,6 +104,47 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
 
   setShowMonthOverview: (show) => set({ showMonthOverview: show }),
 
+  setShowYearOverview: (show) => set({ showYearOverview: show }),
+
+  // Drag actions
+  startDrag: (date) =>
+    set({
+      isDragging: true,
+      dragStartDate: date,
+      dragCurrentDate: date,
+      selectionStartDate: date,
+      selectionEndDate: null,
+      isSelecting: true,
+    }),
+
+  updateDrag: (date) => {
+    const { isDragging, dragStartDate } = get();
+    if (!isDragging || !dragStartDate) return;
+    set({
+      dragCurrentDate: date,
+      selectionEndDate: date,
+    });
+  },
+
+  endDrag: () => {
+    const { dragStartDate, dragCurrentDate } = get();
+    set({
+      isDragging: false,
+      selectionStartDate: dragStartDate,
+      selectionEndDate: dragCurrentDate,
+    });
+  },
+
+  cancelDrag: () =>
+    set({
+      isDragging: false,
+      dragStartDate: null,
+      dragCurrentDate: null,
+      selectionStartDate: null,
+      selectionEndDate: null,
+      isSelecting: false,
+    }),
+
   // Modal actions
   openPeriodModal: (periodId) =>
     set({
@@ -105,8 +165,12 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
       selectionStartDate: null,
       selectionEndDate: null,
       isSelecting: false,
+      isDragging: false,
+      dragStartDate: null,
+      dragCurrentDate: null,
       activeMonth: new Date(),
       showMonthOverview: false,
+      showYearOverview: false,
       editingPeriodId: null,
       showPeriodModal: false,
     }),

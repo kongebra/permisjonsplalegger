@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { JobSettings, ParentRights, JobType } from '@/lib/types';
-import { Briefcase, Calendar, Building2 } from 'lucide-react';
+import { Briefcase, Calendar } from 'lucide-react';
+import { InfoBox } from '@/components/ui/info-box';
 
 interface JobSettingsStepProps {
   rights: ParentRights;
@@ -20,12 +20,12 @@ const jobTypeOptions: { value: JobType; label: string; description: string }[] =
   {
     value: 'office',
     label: 'Kontorjobb',
-    description: 'Helligdager trekkes fra feriedager',
+    description: 'Helligdager trekkes fra',
   },
   {
     value: 'shift',
     label: 'Turnus/skift',
-    description: 'Helligdager trekkes ikke fra',
+    description: 'Helligdager trekkes ikke',
   },
 ];
 
@@ -37,15 +37,17 @@ interface ParentJobSettingsProps {
 }
 
 function ParentJobSettings({ parent, label, settings, onChange }: ParentJobSettingsProps) {
-  const [isExpanded, setIsExpanded] = useState(settings !== null);
+  const isExpanded = settings !== null;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
     if (isExpanded) {
       onChange(null);
-      setIsExpanded(false);
     } else {
       onChange({ jobType: 'office', vacationDays: 25 });
-      setIsExpanded(true);
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
     }
   };
 
@@ -57,94 +59,92 @@ function ParentJobSettings({ parent, label, settings, onChange }: ParentJobSetti
     onChange({ ...settings!, vacationDays: Math.max(0, Math.min(50, days)) });
   };
 
-  const color = parent === 'mother' ? 'pink' : 'blue';
+  const colorClass = parent === 'mother' ? 'text-[var(--color-mother)]' : 'text-[var(--color-father)]';
+  const borderClass = parent === 'mother'
+    ? 'border-[var(--color-mother-muted)]'
+    : 'border-[var(--color-father-muted)]';
 
   return (
-    <Card className={cn(
-      'border-2 transition-colors',
-      isExpanded
-        ? `border-${color}-200 dark:border-${color}-800`
-        : 'border-muted'
-    )}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Building2 className={cn(
-              'w-5 h-5',
-              parent === 'mother' ? 'text-pink-500' : 'text-blue-500'
-            )} />
-            {label}
-          </CardTitle>
-          <button
-            onClick={handleToggle}
-            className={cn(
-              'text-sm px-3 py-1 rounded-full transition-colors',
-              isExpanded
-                ? 'bg-muted text-muted-foreground hover:bg-muted/80'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            )}
-          >
-            {isExpanded ? 'Fjern' : 'Legg til'}
-          </button>
-        </div>
-        <CardDescription>
-          {isExpanded ? 'Jobbinnstillinger for ferieberegning' : 'Valgfritt - for ferieberegning'}
-        </CardDescription>
-      </CardHeader>
+    <div
+      ref={containerRef}
+      className={cn(
+        'rounded-lg border-2 p-3 transition-colors',
+        isExpanded ? cn(borderClass, 'space-y-3') : 'border-muted'
+      )}
+    >
+      {/* Header with toggle */}
+      <div className="flex items-center justify-between">
+        <p className={cn('font-semibold', colorClass)}>{label}</p>
+        <button
+          onClick={handleToggle}
+          className={cn(
+            'text-xs px-2.5 py-1 rounded-full transition-colors',
+            isExpanded
+              ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          )}
+        >
+          {isExpanded ? 'Fjern' : 'Legg til'}
+        </button>
+      </div>
 
       {isExpanded && settings && (
-        <CardContent className="space-y-4">
-          {/* Job type selection */}
-          <div className="space-y-2">
-            <Label>Jobbtype</Label>
-            <div className="grid grid-cols-2 gap-2">
+        <>
+          {/* Job type — compact */}
+          <div className="space-y-1.5">
+            <Label className="text-sm">Jobbtype</Label>
+            <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Jobbtype">
               {jobTypeOptions.map((option) => (
                 <button
                   key={option.value}
+                  role="radio"
+                  aria-checked={settings.jobType === option.value}
                   onClick={() => handleJobTypeChange(option.value)}
                   className={cn(
-                    'p-3 rounded-lg border-2 text-left transition-all',
+                    'p-2 rounded-md border text-left transition-all',
                     'hover:border-primary/50 focus:outline-none',
                     settings.jobType === option.value
                       ? 'border-primary bg-primary/5'
                       : 'border-muted'
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Briefcase className={cn(
-                      'w-4 h-4',
+                      'w-3.5 h-3.5 shrink-0',
                       settings.jobType === option.value ? 'text-primary' : 'text-muted-foreground'
                     )} />
                     <span className="font-medium text-sm">{option.label}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{option.description}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Vacation days */}
-          <div className="space-y-2">
-            <Label htmlFor={`${parent}-vacation`} className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
+          {/* Vacation days — inline */}
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor={`${parent}-vacation`} className="text-sm flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
               Feriedager per år
             </Label>
             <Input
               id={`${parent}-vacation`}
-              type="number"
-              min={0}
-              max={50}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              enterKeyHint="done"
               value={settings.vacationDays}
-              onChange={(e) => handleVacationDaysChange(parseInt(e.target.value) || 0)}
-              className="w-24"
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                handleVacationDaysChange(parseInt(val) || 0);
+              }}
+              onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
+              className="w-16 h-8 text-center"
             />
-            <p className="text-xs text-muted-foreground">
-              Standard er 25 dager (5 uker)
-            </p>
           </div>
-        </CardContent>
+        </>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -159,26 +159,23 @@ export function JobSettingsStep({
   const showFather = rights !== 'mother-only';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Jobbinnstillinger</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold mb-1">Jobbinnstillinger</h2>
+        <p className="text-sm text-muted-foreground">
           Valgfritt - brukes for å beregne feriedager
         </p>
       </div>
 
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
-        <p className="text-blue-800 dark:text-blue-200">
-          <strong>Tips:</strong> Du kan hoppe over dette steget og legge til feriedager
-          manuelt i kalenderen etterpå.
-        </p>
-      </div>
+      <InfoBox variant="tip">
+        <p>Kan hoppes over. Feriedager kan legges til i kalenderen etterpå.</p>
+      </InfoBox>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {showMother && (
           <ParentJobSettings
             parent="mother"
-            label="Mors jobb"
+            label="Mor"
             settings={motherSettings}
             onChange={onMotherChange}
           />
@@ -187,7 +184,7 @@ export function JobSettingsStep({
         {showFather && (
           <ParentJobSettings
             parent="father"
-            label="Fars jobb"
+            label="Far / Medmor"
             settings={fatherSettings}
             onChange={onFatherChange}
           />

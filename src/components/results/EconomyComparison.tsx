@@ -2,17 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EconomyResult } from '@/lib/types';
+import { formatCurrency } from '@/lib/format';
 
 interface EconomyComparisonProps {
   result: EconomyResult;
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 export function EconomyComparison({ result }: EconomyComparisonProps) {

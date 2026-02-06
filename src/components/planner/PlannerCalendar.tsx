@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useEffect } from 'react';
-import { startOfMonth, addDays, isSameMonth } from 'date-fns';
+import { startOfMonth, addDays, isSameMonth, endOfMonth, isBefore, isAfter, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MonthView } from './MonthView';
-import { MonthOverview } from './MonthOverview';
+import { YearOverview } from './YearOverview';
 import { PeriodToolbar } from './PeriodToolbar';
 import { PeriodModal } from './PeriodModal';
 import { StatsBar } from './StatsBar';
@@ -24,7 +24,7 @@ export function PlannerCalendar() {
     showMonthOverview,
     selectionStartDate,
     selectionEndDate,
-    isSelecting,
+    isDragging,
     selectedPeriodType,
     selectedParent,
     editingPeriodId,
@@ -32,8 +32,10 @@ export function PlannerCalendar() {
     setActiveMonth,
     navigateMonth,
     setShowMonthOverview,
-    startSelection,
-    setSelectionEnd,
+    startDrag,
+    updateDrag,
+    endDrag,
+    cancelDrag,
     clearSelection,
     setSelectedPeriodType,
     setSelectedParent,
@@ -67,43 +69,82 @@ export function PlannerCalendar() {
     return locked;
   }, [dueDate, coverage, rights]);
 
-  // Handle day click for tap-tap selection
-  const handleDayClick = useCallback(
+  // Handle pointer down - start drag selection
+  const handlePointerDown = useCallback(
     (date: Date) => {
-      if (!isSelecting) {
-        // First tap - start selection
-        startSelection(date);
-      } else if (selectionStartDate) {
-        // Second tap - complete selection
-        setSelectionEnd(date);
+      startDrag(date);
+    },
+    [startDrag]
+  );
 
-        // Create the period with selected type and parent
-        const start = selectionStartDate < date ? selectionStartDate : date;
-        const end = selectionStartDate < date ? addDays(date, 1) : addDays(selectionStartDate, 1);
+  // Track last auto-navigate time to throttle
+  const lastAutoNavigate = useRef<number>(0);
 
-        addPeriod({
-          type: selectedPeriodType,
-          parent: selectedParent,
-          startDate: start,
-          endDate: end,
-        });
+  // Handle pointer enter during drag - update selection and auto-navigate if needed
+  const handlePointerEnter = useCallback(
+    (date: Date) => {
+      if (!isDragging) return;
 
-        // Clear selection after creating period
-        setTimeout(() => {
-          clearSelection();
-        }, 100);
+      updateDrag(date);
+
+      // Auto-navigate if dragging to a date outside current month
+      const now = Date.now();
+      if (now - lastAutoNavigate.current < 300) return; // Throttle to 300ms
+
+      const monthStart = startOfMonth(activeMonth);
+      const monthEnd = endOfMonth(activeMonth);
+
+      if (isBefore(date, monthStart)) {
+        // Date is in previous month
+        lastAutoNavigate.current = now;
+        setActiveMonth(subMonths(activeMonth, 1));
+      } else if (isAfter(date, monthEnd)) {
+        // Date is in next month
+        lastAutoNavigate.current = now;
+        setActiveMonth(addMonths(activeMonth, 1));
       }
     },
-    [
-      isSelecting,
-      selectionStartDate,
-      selectedPeriodType,
-      selectedParent,
-      startSelection,
-      setSelectionEnd,
-      addPeriod,
-      clearSelection,
-    ]
+    [isDragging, updateDrag, activeMonth, setActiveMonth]
+  );
+
+  // Handle pointer up - end drag and create period
+  const handlePointerUp = useCallback(() => {
+    if (isDragging && selectionStartDate) {
+      endDrag();
+
+      // Create the period with selected type and parent
+      const endDate = selectionEndDate || selectionStartDate;
+      const start = selectionStartDate < endDate ? selectionStartDate : endDate;
+      const end = selectionStartDate < endDate ? addDays(endDate, 1) : addDays(selectionStartDate, 1);
+
+      addPeriod({
+        type: selectedPeriodType,
+        parent: selectedParent,
+        startDate: start,
+        endDate: end,
+      });
+
+      // Clear selection immediately (no timeout - fixes double-click bug)
+      clearSelection();
+    }
+  }, [
+    isDragging,
+    selectionStartDate,
+    selectionEndDate,
+    selectedPeriodType,
+    selectedParent,
+    endDrag,
+    addPeriod,
+    clearSelection,
+  ]);
+
+  // Handle day click (fallback for non-drag clicks)
+  const handleDayClick = useCallback(
+    () => {
+      // Click is handled by pointer events now
+      // This is kept for accessibility
+    },
+    []
   );
 
   // Handle period save from modal
@@ -167,6 +208,30 @@ export function PlannerCalendar() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Global pointer up handler for drag selection
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (isDragging) {
+        handlePointerUp();
+      }
+    };
+
+    // Also handle pointer cancel (e.g., scrolling on touch devices)
+    const handleGlobalPointerCancel = () => {
+      if (isDragging) {
+        cancelDrag();
+      }
+    };
+
+    document.addEventListener('pointerup', handleGlobalPointerUp);
+    document.addEventListener('pointercancel', handleGlobalPointerCancel);
+
+    return () => {
+      document.removeEventListener('pointerup', handleGlobalPointerUp);
+      document.removeEventListener('pointercancel', handleGlobalPointerCancel);
+    };
+  }, [isDragging, handlePointerUp, cancelDrag]);
+
   // Calculate date range for overview
   const dateRange = useMemo(() => {
     return {
@@ -214,7 +279,7 @@ export function PlannerCalendar() {
           ref={containerRef}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className="touch-pan-y"
+          className={isDragging ? 'touch-none' : 'touch-pan-y'}
         >
           <MonthView
             month={activeMonth}
@@ -224,7 +289,10 @@ export function PlannerCalendar() {
             lockedDates={lockedDates}
             selectionStart={selectionStartDate}
             selectionEnd={selectionEndDate}
+            isDragging={isDragging}
             onDayClick={handleDayClick}
+            onDayPointerDown={handlePointerDown}
+            onDayPointerEnter={handlePointerEnter}
           />
         </div>
 
@@ -238,25 +306,25 @@ export function PlannerCalendar() {
           daycareDate={daycareStartDate}
         />
 
-        {/* Selection hint */}
-        {isSelecting && selectionStartDate && !selectionEndDate && (
+        {/* Drag hint */}
+        {isDragging && (
           <div className="text-center text-sm text-muted-foreground">
-            Trykk på sluttdato for å fullføre
+            Dra for å velge periode, slipp for å bekrefte
           </div>
         )}
 
-        {/* Clear selection button */}
-        {isSelecting && (
+        {/* Cancel drag button */}
+        {isDragging && (
           <div className="text-center">
-            <Button variant="ghost" size="sm" onClick={clearSelection}>
+            <Button variant="ghost" size="sm" onClick={cancelDrag}>
               Avbryt valg
             </Button>
           </div>
         )}
 
-        {/* Month overview modal */}
+        {/* Year overview modal */}
         {showMonthOverview && (
-          <MonthOverview
+          <YearOverview
             startDate={dateRange.start}
             endDate={dateRange.end}
             activeMonth={activeMonth}

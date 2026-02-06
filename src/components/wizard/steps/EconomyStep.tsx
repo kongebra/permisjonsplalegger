@@ -1,16 +1,16 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Toggle } from '@/components/ui/toggle';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { HelpCircle, Lightbulb } from 'lucide-react';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { HelpCircle } from 'lucide-react';
+import { InfoBox } from '@/components/ui/info-box';
+import { formatCurrency } from '@/lib/format';
 import type { ParentEconomy, ParentRights } from '@/lib/types';
 import { G } from '@/lib/constants';
 
@@ -22,15 +22,22 @@ interface EconomyStepProps {
   onFatherChange: (economy: ParentEconomy) => void;
 }
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('nb-NO', {
-    style: 'currency',
-    currency: 'NOK',
-    maximumFractionDigits: 0,
-  }).format(value);
+function HelpButton({ children }: { children: React.ReactNode }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button">
+          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="max-w-xs text-sm">
+        {children}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
-function ParentEconomyCard({
+function ParentEconomySection({
   label,
   economy,
   onChange,
@@ -44,119 +51,105 @@ function ParentEconomyCard({
   const sixG = 6 * G;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className={`text-lg ${colorClass}`}>{label}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Maanedslonn */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label>Maanedslonn (brutto)</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>Din faste maanedslonn for skatt. Ikke inkluder bonus eller overtid.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Input
-            type="number"
-            min={0}
-            value={economy.monthlySalary || ''}
-            onChange={(e) =>
-              onChange({ ...economy, monthlySalary: Math.max(0, Number(e.target.value)) })
+    <div className="rounded-lg border p-3 space-y-3">
+      <p className={`font-semibold ${colorClass}`}>{label}</p>
+
+      {/* Månedslønn */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Månedslønn (brutto)</Label>
+          <HelpButton>
+            <p>Fast månedslønn før skatt. Ikke inkluder bonus eller overtid.</p>
+          </HelpButton>
+        </div>
+        <Input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          enterKeyHint="done"
+          value={economy.monthlySalary || ''}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            onChange({ ...economy, monthlySalary: Math.max(0, Number(val)) });
+          }}
+          onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
+          placeholder="50 000"
+        />
+      </div>
+
+      {/* Dekker over 6G — inline toggle */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <Label className="text-sm">Dekker jobb lønn over 6G?</Label>
+          <HelpButton>
+            <p>
+              NAV dekker maks 6G ({formatCurrency(sixG)}/år, ca. {formatCurrency(Math.round(sixG / 12))}/mnd).
+              Tjener man mer enn dette, dekker noen arbeidsgivere differansen.
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              1G = {formatCurrency(G)} (per 1. mai 2025)
+            </p>
+          </HelpButton>
+        </div>
+        <div className="flex gap-1 shrink-0">
+          <Toggle
+            size="sm"
+            pressed={economy.employerCoversAbove6G}
+            onPressedChange={(pressed) =>
+              onChange({ ...economy, employerCoversAbove6G: pressed })
             }
-            placeholder="50000"
-          />
+            className="data-[state=on]:bg-green-600 data-[state=on]:text-white h-7 px-2.5 text-xs"
+          >
+            Ja
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={!economy.employerCoversAbove6G}
+            onPressedChange={(pressed) =>
+              onChange({ ...economy, employerCoversAbove6G: !pressed })
+            }
+            className="data-[state=on]:bg-muted h-7 px-2.5 text-xs"
+          >
+            Nei
+          </Toggle>
         </div>
+      </div>
 
-        {/* Dekker over 6G */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm">Dekker arbeidsgiver lonn over 6G?</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>
-                    NAV dekker maks 6G ({formatCurrency(sixG)}/ar = {formatCurrency(sixG / 12)}
-                    /mnd). Noen arbeidsgivere dekker differansen for ansatte som tjener mer.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="flex gap-2">
-            <Toggle
-              pressed={economy.employerCoversAbove6G}
-              onPressedChange={(pressed) =>
-                onChange({ ...economy, employerCoversAbove6G: pressed })
-              }
-              className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
-            >
-              Ja
-            </Toggle>
-            <Toggle
-              pressed={!economy.employerCoversAbove6G}
-              onPressedChange={(pressed) =>
-                onChange({ ...economy, employerCoversAbove6G: !pressed })
-              }
-              className="data-[state=on]:bg-muted"
-            >
-              Nei
-            </Toggle>
-          </div>
+      {/* Feriepenger — inline toggle */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <Label className="text-sm">Feriepenger fra arbeidsgiver?</Label>
+          <HelpButton>
+            <p>
+              Hvis arbeidsgiver betaler lønn under permisjon, gis ofte full
+              feriepengeopptjening. Ellers kun for de første 12-15 ukene.
+            </p>
+          </HelpButton>
         </div>
-
-        {/* Feriepenger */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm">Feriepenger fra arbeidsgiver?</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>
-                    Hvis arbeidsgiver betaler lonn under permisjon, far du ofte full
-                    feriepengeopptjening. Hvis NAV betaler direkte, far du kun feriepenger for de
-                    forste 12-15 ukene.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="flex gap-2">
-            <Toggle
-              pressed={economy.employerPaysFeriepenger}
-              onPressedChange={(pressed) =>
-                onChange({ ...economy, employerPaysFeriepenger: pressed })
-              }
-              className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
-            >
-              Ja
-            </Toggle>
-            <Toggle
-              pressed={!economy.employerPaysFeriepenger}
-              onPressedChange={(pressed) =>
-                onChange({ ...economy, employerPaysFeriepenger: !pressed })
-              }
-              className="data-[state=on]:bg-muted"
-            >
-              Nei (NAV)
-            </Toggle>
-          </div>
+        <div className="flex gap-1 shrink-0">
+          <Toggle
+            size="sm"
+            pressed={economy.employerPaysFeriepenger}
+            onPressedChange={(pressed) =>
+              onChange({ ...economy, employerPaysFeriepenger: pressed })
+            }
+            className="data-[state=on]:bg-green-600 data-[state=on]:text-white h-7 px-2.5 text-xs"
+          >
+            Ja
+          </Toggle>
+          <Toggle
+            size="sm"
+            pressed={!economy.employerPaysFeriepenger}
+            onPressedChange={(pressed) =>
+              onChange({ ...economy, employerPaysFeriepenger: !pressed })
+            }
+            className="data-[state=on]:bg-muted h-7 px-2.5 text-xs"
+          >
+            Nei
+          </Toggle>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -171,50 +164,38 @@ export function EconomyStep({
   const showFather = rights !== 'mother-only';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Okonomisk informasjon</h2>
-        <p className="text-muted-foreground">
-          Valgfritt - for a beregne hva du faktisk far utbetalt
+        <h2 className="text-2xl font-bold mb-1">Økonomisk informasjon</h2>
+        <p className="text-sm text-muted-foreground">
+          Valgfritt - for å beregne faktisk utbetaling
         </p>
       </div>
 
-      {/* Tips */}
-      <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4 flex gap-3">
-        <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-800 dark:text-blue-200">
-          <p className="font-medium">Hvorfor spor vi om dette?</p>
-          <p className="mt-1">
-            Med lonnsinformasjon kan vi vise deg hvor mye du faktisk far utbetalt per maned, og
-            beregne den reelle forskjellen mellom 80% og 100% dekning for din situasjon.
-          </p>
-        </div>
-      </div>
+      {/* Tips — compact */}
+      <InfoBox variant="tip">
+        <p>Med lønnsinformasjon kan vi beregne den reelle forskjellen mellom 80% og 100% dekning for deres situasjon.</p>
+      </InfoBox>
 
       {/* Parent inputs */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         {showMother && (
-          <ParentEconomyCard
+          <ParentEconomySection
             label="Mor"
             economy={motherEconomy}
             onChange={onMotherChange}
-            colorClass="text-pink-600 dark:text-pink-400"
+            colorClass="text-[var(--color-mother)]"
           />
         )}
         {showFather && (
-          <ParentEconomyCard
+          <ParentEconomySection
             label="Far / Medmor"
             economy={fatherEconomy}
             onChange={onFatherChange}
-            colorClass="text-blue-600 dark:text-blue-400"
+            colorClass="text-[var(--color-father)]"
           />
         )}
       </div>
-
-      {/* Skip hint */}
-      <p className="text-center text-sm text-muted-foreground">
-        Du kan hoppe over dette steget og legge til okonomisk informasjon senere.
-      </p>
     </div>
   );
 }
