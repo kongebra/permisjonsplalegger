@@ -23,6 +23,10 @@ export interface UiSlice {
   showMonthOverview: boolean;
   showYearOverview: boolean;
 
+  // Day detail state
+  selectedDate: Date | null;
+  showDayDetail: boolean;
+
   // Modal state
   editingPeriodId: string | null;
   showPeriodModal: boolean;
@@ -45,8 +49,15 @@ export interface UiSlice {
   setShowMonthOverview: (show: boolean) => void;
   setShowYearOverview: (show: boolean) => void;
 
+  selectDate: (date: Date) => void;
+  clearSelectedDate: () => void;
+
   openPeriodModal: (periodId?: string) => void;
   closePeriodModal: () => void;
+
+  // Settings sheet
+  showSettings: boolean;
+  setShowSettings: (show: boolean) => void;
 
   resetUi: () => void;
 }
@@ -68,8 +79,13 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
   showMonthOverview: false,
   showYearOverview: false,
 
+  selectedDate: null,
+  showDayDetail: false,
+
   editingPeriodId: null,
   showPeriodModal: false,
+
+  showSettings: false,
 
   // Period selection actions
   setSelectedPeriodType: (type) => set({ selectedPeriodType: type }),
@@ -145,6 +161,19 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
       isSelecting: false,
     }),
 
+  // Day detail actions
+  selectDate: (date) =>
+    set({
+      selectedDate: date,
+      showDayDetail: true,
+    }),
+
+  clearSelectedDate: () =>
+    set({
+      selectedDate: null,
+      showDayDetail: false,
+    }),
+
   // Modal actions
   openPeriodModal: (periodId) =>
     set({
@@ -157,6 +186,9 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
       editingPeriodId: null,
       showPeriodModal: false,
     }),
+
+  // Settings sheet
+  setShowSettings: (show) => set({ showSettings: show }),
 
   resetUi: () =>
     set({
@@ -171,7 +203,10 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set, get) 
       activeMonth: new Date(),
       showMonthOverview: false,
       showYearOverview: false,
+      selectedDate: null,
+      showDayDetail: false,
       editingPeriodId: null,
       showPeriodModal: false,
+      showSettings: false,
     }),
 });

@@ -8,6 +8,7 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
+  isSameDay,
   format,
   startOfDay,
 } from 'date-fns';
@@ -17,6 +18,8 @@ import type { CustomPeriod, LeaveSegment, Parent } from '@/lib/types';
 
 interface MiniMonthProps {
   month: Date;
+  dueDate?: Date;
+  daycareStart?: Date;
   segments: LeaveSegment[];
   customPeriods: CustomPeriod[];
   isActive: boolean;
@@ -53,6 +56,8 @@ function hasDayLeave(
 
 export function MiniMonth({
   month,
+  dueDate,
+  daycareStart,
   segments,
   customPeriods,
   isActive,
@@ -86,6 +91,8 @@ export function MiniMonth({
       <div className="grid grid-cols-7 gap-px">
         {days.map((day) => {
           const isCurrentMonth = isSameMonth(day, month);
+          const isDue = dueDate && isSameDay(day, dueDate);
+          const isDaycare = daycareStart && isSameDay(day, daycareStart);
           const hasMother = hasDayLeave(day, segments, customPeriods, 'mother');
           const hasFather = hasDayLeave(day, segments, customPeriods, 'father');
           const isSunday = day.getDay() === 0;
@@ -96,10 +103,20 @@ export function MiniMonth({
               className={cn(
                 'w-2 h-2 rounded-full',
                 !isCurrentMonth && 'opacity-20',
-                hasMother && hasFather && 'bg-gradient-to-r from-pink-400 to-blue-400',
-                hasMother && !hasFather && 'bg-pink-400',
-                hasFather && !hasMother && 'bg-blue-400',
-                !hasMother && !hasFather && (isSunday ? 'bg-red-200' : 'bg-muted')
+                // Due date and daycare start trump leave colors
+                isDue
+                  ? 'bg-violet-500 ring-1 ring-violet-300'
+                  : isDaycare
+                    ? 'bg-emerald-500 ring-1 ring-emerald-300'
+                    : hasMother && hasFather
+                      ? 'bg-gradient-to-r from-pink-400 to-blue-400'
+                      : hasMother
+                        ? 'bg-pink-400'
+                        : hasFather
+                          ? 'bg-blue-400'
+                          : isSunday
+                            ? 'bg-red-200'
+                            : 'bg-muted',
               )}
             />
           );

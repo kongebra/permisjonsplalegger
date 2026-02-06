@@ -6,8 +6,9 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
-import type { LeaveResult } from '@/lib/types';
+import type { LeaveResult, EconomyResult } from '@/lib/types';
 import { calculateLeave } from '@/lib/calculator';
+import { compareScenarios } from '@/lib/calculator/economy';
 
 /**
  * Hook for wizard state and actions
@@ -71,6 +72,7 @@ export function usePeriods() {
       getPeriodsByParent: state.getPeriodsByParent,
       getPeriodsByType: state.getPeriodsByType,
       getPeriodsInRange: state.getPeriodsInRange,
+      initializeFromLeave: state.initializeFromLeave,
     }))
   );
 }
@@ -93,8 +95,11 @@ export function useUi() {
       activeMonth: state.activeMonth,
       showMonthOverview: state.showMonthOverview,
       showYearOverview: state.showYearOverview,
+      selectedDate: state.selectedDate,
+      showDayDetail: state.showDayDetail,
       editingPeriodId: state.editingPeriodId,
       showPeriodModal: state.showPeriodModal,
+      showSettings: state.showSettings,
       setSelectedPeriodType: state.setSelectedPeriodType,
       setSelectedParent: state.setSelectedParent,
       startSelection: state.startSelection,
@@ -109,8 +114,11 @@ export function useUi() {
       navigateMonth: state.navigateMonth,
       setShowMonthOverview: state.setShowMonthOverview,
       setShowYearOverview: state.setShowYearOverview,
+      selectDate: state.selectDate,
+      clearSelectedDate: state.clearSelectedDate,
       openPeriodModal: state.openPeriodModal,
       closePeriodModal: state.closePeriodModal,
+      setShowSettings: state.setShowSettings,
       resetUi: state.resetUi,
     }))
   );
@@ -216,4 +224,52 @@ export function useCanProceed(): boolean {
     default:
       return true;
   }
+}
+
+/**
+ * Hook for economy comparison between 80% and 100% scenarios.
+ * Returns null if no salary data is available.
+ */
+export function useEconomyComparison(): EconomyResult | null {
+  const { dueDate, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
+    usePlannerStore(
+      useShallow((state) => ({
+        dueDate: state.dueDate,
+        rights: state.rights,
+        sharedWeeksToMother: state.sharedWeeksToMother,
+        daycareStartDate: state.daycareStartDate,
+        daycareEnabled: state.daycareEnabled,
+      }))
+    );
+
+  const { motherEconomy, fatherEconomy } = usePlannerStore(
+    useShallow((state) => ({
+      motherEconomy: state.motherEconomy,
+      fatherEconomy: state.fatherEconomy,
+    }))
+  );
+
+  const dueDateMs = dueDate.getTime();
+  const daycareDateMs = daycareStartDate?.getTime() ?? 0;
+
+  return useMemo(() => {
+    if (motherEconomy.monthlySalary <= 0) return null;
+
+    const effectiveDaycare =
+      daycareEnabled && daycareStartDate
+        ? daycareStartDate
+        : new Date(dueDate.getFullYear() + 3, 7, 1);
+
+    const leave80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, effectiveDaycare);
+    const leave100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycare);
+
+    return compareScenarios(
+      motherEconomy,
+      rights !== 'mother-only' ? fatherEconomy : undefined,
+      sharedWeeksToMother,
+      leave80.gap,
+      leave100.gap,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dueDateMs, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);
 }

@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useEffect } from 'react';
-import { startOfMonth, addDays, isSameMonth, endOfMonth, isBefore, isAfter, addMonths, subMonths } from 'date-fns';
+import { startOfMonth, addDays, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MonthView } from './MonthView';
 import { YearOverview } from './YearOverview';
-import { PeriodToolbar } from './PeriodToolbar';
+import { AddPeriodFab } from './AddPeriodFab';
 import { PeriodModal } from './PeriodModal';
+import { DayDetailPanel } from './DayDetailPanel';
 import { StatsBar } from './StatsBar';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
@@ -18,27 +19,20 @@ export function PlannerCalendar() {
 
   // Store state
   const { dueDate, coverage, rights, daycareStartDate, daycareEnabled } = useWizard();
-  const { periods, addPeriod, updatePeriod, deletePeriod } = usePeriods();
+  const { periods, addPeriod, updatePeriod, deletePeriod, initializeFromLeave } = usePeriods();
   const {
     activeMonth,
     showMonthOverview,
-    selectionStartDate,
-    selectionEndDate,
-    isDragging,
-    selectedPeriodType,
-    selectedParent,
+    selectedDate,
+    showDayDetail,
     editingPeriodId,
     showPeriodModal,
     setActiveMonth,
     navigateMonth,
     setShowMonthOverview,
-    startDrag,
-    updateDrag,
-    endDrag,
-    cancelDrag,
-    clearSelection,
-    setSelectedPeriodType,
-    setSelectedParent,
+    selectDate,
+    clearSelectedDate,
+    openPeriodModal,
     closePeriodModal,
   } = useUi();
 
@@ -57,11 +51,9 @@ export function PlannerCalendar() {
     const config = LEAVE_CONFIG[coverage];
 
     if (rights !== 'father-only') {
-      // 3 weeks before due date
       const preBirthStart = addDays(dueDate, -config.preBirth * 7);
       locked.push({ start: preBirthStart, end: dueDate });
 
-      // 6 weeks after birth (mandatory for mother)
       const mandatoryEnd = addDays(dueDate, config.motherMandatoryPostBirth * 7);
       locked.push({ start: dueDate, end: mandatoryEnd });
     }
@@ -69,82 +61,31 @@ export function PlannerCalendar() {
     return locked;
   }, [dueDate, coverage, rights]);
 
-  // Handle pointer down - start drag selection
-  const handlePointerDown = useCallback(
+  // Handle day click — open detail panel
+  const handleDateSelect = useCallback(
     (date: Date) => {
-      startDrag(date);
+      selectDate(date);
     },
-    [startDrag]
+    [selectDate],
   );
 
-  // Track last auto-navigate time to throttle
-  const lastAutoNavigate = useRef<number>(0);
-
-  // Handle pointer enter during drag - update selection and auto-navigate if needed
-  const handlePointerEnter = useCallback(
-    (date: Date) => {
-      if (!isDragging) return;
-
-      updateDrag(date);
-
-      // Auto-navigate if dragging to a date outside current month
-      const now = Date.now();
-      if (now - lastAutoNavigate.current < 300) return; // Throttle to 300ms
-
-      const monthStart = startOfMonth(activeMonth);
-      const monthEnd = endOfMonth(activeMonth);
-
-      if (isBefore(date, monthStart)) {
-        // Date is in previous month
-        lastAutoNavigate.current = now;
-        setActiveMonth(subMonths(activeMonth, 1));
-      } else if (isAfter(date, monthEnd)) {
-        // Date is in next month
-        lastAutoNavigate.current = now;
-        setActiveMonth(addMonths(activeMonth, 1));
-      }
+  // Handle editing a period from the day detail panel
+  const handleEditFromDetail = useCallback(
+    (periodId: string) => {
+      clearSelectedDate();
+      openPeriodModal(periodId);
     },
-    [isDragging, updateDrag, activeMonth, setActiveMonth]
+    [clearSelectedDate, openPeriodModal],
   );
 
-  // Handle pointer up - end drag and create period
-  const handlePointerUp = useCallback(() => {
-    if (isDragging && selectionStartDate) {
-      endDrag();
-
-      // Create the period with selected type and parent
-      const endDate = selectionEndDate || selectionStartDate;
-      const start = selectionStartDate < endDate ? selectionStartDate : endDate;
-      const end = selectionStartDate < endDate ? addDays(endDate, 1) : addDays(selectionStartDate, 1);
-
-      addPeriod({
-        type: selectedPeriodType,
-        parent: selectedParent,
-        startDate: start,
-        endDate: end,
-      });
-
-      // Clear selection immediately (no timeout - fixes double-click bug)
-      clearSelection();
-    }
-  }, [
-    isDragging,
-    selectionStartDate,
-    selectionEndDate,
-    selectedPeriodType,
-    selectedParent,
-    endDrag,
-    addPeriod,
-    clearSelection,
-  ]);
-
-  // Handle day click (fallback for non-drag clicks)
-  const handleDayClick = useCallback(
-    () => {
-      // Click is handled by pointer events now
-      // This is kept for accessibility
+  // Handle period band click — open modal for editing
+  const handlePeriodSelect = useCallback(
+    (periodId: string) => {
+      const period = periods.find((p) => p.id === periodId);
+      if (period?.isLocked) return;
+      openPeriodModal(periodId);
     },
-    []
+    [periods, openPeriodModal],
   );
 
   // Handle period save from modal
@@ -152,7 +93,7 @@ export function PlannerCalendar() {
     (periodData: Omit<CustomPeriod, 'id'>) => {
       addPeriod(periodData);
     },
-    [addPeriod]
+    [addPeriod],
   );
 
   // Handle period update from modal
@@ -160,7 +101,7 @@ export function PlannerCalendar() {
     (id: string, updates: Partial<CustomPeriod>) => {
       updatePeriod(id, updates);
     },
-    [updatePeriod]
+    [updatePeriod],
   );
 
   // Handle period delete from modal
@@ -168,7 +109,7 @@ export function PlannerCalendar() {
     (id: string) => {
       deletePeriod(id);
     },
-    [deletePeriod]
+    [deletePeriod],
   );
 
   // Swipe handling for mobile navigation
@@ -188,49 +129,24 @@ export function PlannerCalendar() {
 
       if (Math.abs(diff) > threshold) {
         if (diff > 0) {
-          // Swipe left - go to next month
           navigateMonth(1);
         } else {
-          // Swipe right - go to previous month
           navigateMonth(-1);
         }
       }
 
       touchStartX.current = null;
     },
-    [navigateMonth]
+    [navigateMonth],
   );
 
-  // Set active month to first month of leave on mount
+  // Set active month to first month of leave on mount + initialize periods
   useEffect(() => {
     if (leaveResult.mother.start && !isSameMonth(activeMonth, leaveResult.mother.start)) {
       setActiveMonth(startOfMonth(leaveResult.mother.start));
     }
+    initializeFromLeave(leaveResult);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Global pointer up handler for drag selection
-  useEffect(() => {
-    const handleGlobalPointerUp = () => {
-      if (isDragging) {
-        handlePointerUp();
-      }
-    };
-
-    // Also handle pointer cancel (e.g., scrolling on touch devices)
-    const handleGlobalPointerCancel = () => {
-      if (isDragging) {
-        cancelDrag();
-      }
-    };
-
-    document.addEventListener('pointerup', handleGlobalPointerUp);
-    document.addEventListener('pointercancel', handleGlobalPointerCancel);
-
-    return () => {
-      document.removeEventListener('pointerup', handleGlobalPointerUp);
-      document.removeEventListener('pointercancel', handleGlobalPointerCancel);
-    };
-  }, [isDragging, handlePointerUp, cancelDrag]);
 
   // Calculate date range for overview
   const dateRange = useMemo(() => {
@@ -241,7 +157,7 @@ export function PlannerCalendar() {
   }, [leaveResult]);
 
   return (
-    <div className="pb-36"> {/* Bottom padding for toolbar */}
+    <div>
       <div className="space-y-4">
         {/* Navigation header */}
         <div className="flex items-center justify-between">
@@ -279,7 +195,7 @@ export function PlannerCalendar() {
           ref={containerRef}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className={isDragging ? 'touch-none' : 'touch-pan-y'}
+          className="touch-pan-y"
         >
           <MonthView
             month={activeMonth}
@@ -287,12 +203,8 @@ export function PlannerCalendar() {
             segments={leaveResult.segments}
             customPeriods={periods}
             lockedDates={lockedDates}
-            selectionStart={selectionStartDate}
-            selectionEnd={selectionEndDate}
-            isDragging={isDragging}
-            onDayClick={handleDayClick}
-            onDayPointerDown={handlePointerDown}
-            onDayPointerEnter={handlePointerEnter}
+            onPeriodSelect={handlePeriodSelect}
+            onDateSelect={handleDateSelect}
           />
         </div>
 
@@ -306,27 +218,13 @@ export function PlannerCalendar() {
           daycareDate={daycareStartDate}
         />
 
-        {/* Drag hint */}
-        {isDragging && (
-          <div className="text-center text-sm text-muted-foreground">
-            Dra for å velge periode, slipp for å bekrefte
-          </div>
-        )}
-
-        {/* Cancel drag button */}
-        {isDragging && (
-          <div className="text-center">
-            <Button variant="ghost" size="sm" onClick={cancelDrag}>
-              Avbryt valg
-            </Button>
-          </div>
-        )}
-
         {/* Year overview modal */}
         {showMonthOverview && (
           <YearOverview
             startDate={dateRange.start}
             endDate={dateRange.end}
+            dueDate={dueDate}
+            daycareStart={daycareEnabled ? daycareStartDate ?? undefined : undefined}
             activeMonth={activeMonth}
             segments={leaveResult.segments}
             customPeriods={periods}
@@ -336,20 +234,28 @@ export function PlannerCalendar() {
         )}
       </div>
 
-      {/* Period toolbar (fixed at bottom) */}
-      <PeriodToolbar
-        selectedType={selectedPeriodType}
-        selectedParent={selectedParent}
-        rights={rights}
-        onTypeChange={setSelectedPeriodType}
-        onParentChange={setSelectedParent}
-      />
+      {/* Day detail panel */}
+      {showDayDetail && selectedDate && (
+        <DayDetailPanel
+          date={selectedDate}
+          customPeriods={periods}
+          leaveResult={leaveResult}
+          dueDate={dueDate}
+          daycareStart={daycareEnabled ? daycareStartDate : null}
+          onEditPeriod={handleEditFromDetail}
+          onClose={clearSelectedDate}
+        />
+      )}
+
+      {/* FAB for adding new periods */}
+      {!showDayDetail && <AddPeriodFab onClick={() => openPeriodModal()} />}
 
       {/* Period edit modal */}
       <PeriodModal
         open={showPeriodModal}
         period={editingPeriod}
         rights={rights}
+        leaveResult={leaveResult}
         onClose={closePeriodModal}
         onSave={handlePeriodSave}
         onUpdate={handlePeriodUpdate}

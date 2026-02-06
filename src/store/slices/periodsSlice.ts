@@ -3,7 +3,8 @@
  */
 
 import type { StateCreator } from 'zustand';
-import type { CustomPeriod, Parent, PlannerPeriodType, UndoAction } from '@/lib/types';
+import type { CustomPeriod, LeaveResult, Parent, PlannerPeriodType, UndoAction } from '@/lib/types';
+import { initializePeriodsFromLeave } from '@/lib/planner/initialize-periods';
 
 export interface PeriodsSlice {
   periods: CustomPeriod[];
@@ -16,6 +17,7 @@ export interface PeriodsSlice {
   undo: () => void;
   clearPeriods: () => void;
   setPeriods: (periods: CustomPeriod[]) => void;
+  initializeFromLeave: (result: LeaveResult) => void;
 
   // Helpers
   getPeriodsByParent: (parent: Parent) => CustomPeriod[];
@@ -119,6 +121,15 @@ export const createPeriodsSlice: StateCreator<PeriodsSlice, [], [], PeriodsSlice
   clearPeriods: () => set({ periods: [], undoStack: [] }),
 
   setPeriods: (periods) => set({ periods, undoStack: [] }),
+
+  initializeFromLeave: (result) => {
+    const { periods } = get();
+    // Only initialize if no periods exist yet (don't overwrite user edits)
+    if (periods.length > 0) return;
+
+    const initialPeriods = initializePeriodsFromLeave(result);
+    set({ periods: initialPeriods, undoStack: [] });
+  },
 
   // Helper methods (these are computed, not stored)
   getPeriodsByParent: (parent) => {

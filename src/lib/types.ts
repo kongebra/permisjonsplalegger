@@ -184,6 +184,9 @@ export interface CustomPeriod {
   endDate: Date; // Exclusive (day after last day)
   label?: string; // For 'annet' type
   color?: string; // Custom color for 'annet' type
+  isFromWizard?: boolean; // true = auto-generated from wizard result
+  isLocked?: boolean; // true = mandatory period, cannot be edited/deleted
+  segmentType?: string; // Original LeaveSegmentType for display purposes
 }
 
 /**
@@ -235,6 +238,9 @@ export interface SavedPlan {
     endDate: string;
     label?: string;
     color?: string;
+    isFromWizard?: boolean;
+    isLocked?: boolean;
+    segmentType?: string;
   }>;
   autoSaveEnabled: boolean;
 }

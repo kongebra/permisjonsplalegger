@@ -17,7 +17,9 @@ import {
   serializePeriods,
   type PersistenceSlice,
 } from './slices/persistenceSlice';
-import type { SavedPlan } from '@/lib/types';
+import type { SavedPlan, Coverage, ParentRights, ParentEconomy } from '@/lib/types';
+import { calculateLeave } from '@/lib/calculator';
+import { reinitializePreservingUserPeriods } from '@/lib/planner/initialize-periods';
 
 // Combined store type
 export type PlannerStore = WizardSlice &
@@ -30,6 +32,16 @@ export type PlannerStore = WizardSlice &
     savePlan: () => void;
     loadPlan: () => boolean;
     resetAll: () => void;
+    recalculateFromSettings: (settings: {
+      dueDate: Date;
+      rights: ParentRights;
+      coverage: Coverage;
+      sharedWeeksToMother: number;
+      daycareStartDate: Date | null;
+      daycareEnabled: boolean;
+      motherEconomy: ParentEconomy;
+      fatherEconomy: ParentEconomy;
+    }) => void;
   };
 
 export const usePlannerStore = create<PlannerStore>()(
@@ -117,6 +129,47 @@ export const usePlannerStore = create<PlannerStore>()(
       state.markAsSaved();
 
       return true;
+    },
+
+    // Recalculate wizard periods from new settings, preserving user periods
+    recalculateFromSettings: (settings) => {
+      const state = usePlannerStore.getState();
+
+      // Update wizard state
+      state.setDueDate(settings.dueDate);
+      state.setRights(settings.rights);
+      state.setCoverage(settings.coverage);
+      state.setSharedWeeksToMother(settings.sharedWeeksToMother);
+      state.setDaycareEnabled(settings.daycareEnabled);
+      if (settings.daycareStartDate) {
+        state.setDaycareStartDate(settings.daycareStartDate);
+      }
+
+      // Update economy state
+      state.setMotherEconomy(settings.motherEconomy);
+      state.setFatherEconomy(settings.fatherEconomy);
+
+      // Recalculate leave with new settings
+      const effectiveDaycareDate =
+        settings.daycareEnabled && settings.daycareStartDate
+          ? settings.daycareStartDate
+          : new Date(settings.dueDate.getFullYear() + 3, 7, 1);
+
+      const newLeaveResult = calculateLeave(
+        settings.dueDate,
+        settings.coverage,
+        settings.rights,
+        settings.sharedWeeksToMother,
+        0,
+        effectiveDaycareDate,
+      );
+
+      // Reinitialize: replace wizard periods, keep user periods
+      const newPeriods = reinitializePreservingUserPeriods(
+        state.periods,
+        newLeaveResult,
+      );
+      state.setPeriods(newPeriods);
     },
 
     // Reset everything

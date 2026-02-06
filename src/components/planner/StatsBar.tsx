@@ -22,6 +22,12 @@ interface QuotaInfo {
   used: number;
   total: number;
   color: string;
+  sharedMother?: number;
+  sharedFather?: number;
+}
+
+function daysToWeeks(days: number) {
+  return Math.ceil(days / 7);
 }
 
 export function StatsBar({
@@ -34,22 +40,36 @@ export function StatsBar({
 }: StatsBarProps) {
   const config = LEAVE_CONFIG[coverage];
 
-  // Calculate quota usage
+  // Calculate quota usage using segmentType metadata when available
   const quotas = useMemo((): QuotaInfo[] => {
     const result: QuotaInfo[] = [];
+    const permisjonPeriods = customPeriods.filter((p) => p.type === 'permisjon');
+
+    // Categorize periods by segmentType (wizard periods) or parent (user-added)
+    let motherQuotaWeeks = 0;
+    let fatherQuotaWeeks = 0;
+    let sharedWeeksMother = 0;
+    let sharedWeeksFather = 0;
+
+    for (const p of permisjonPeriods) {
+      const weeks = daysToWeeks(differenceInDays(p.endDate, p.startDate));
+
+      if (p.segmentType === 'quota' || p.segmentType === 'preBirth' || p.segmentType === 'mandatory') {
+        // Known quota periods from wizard
+        if (p.parent === 'mother') motherQuotaWeeks += weeks;
+        else fatherQuotaWeeks += weeks;
+      } else if (p.segmentType === 'shared' || p.segmentType === 'overlap' || !p.segmentType) {
+        // Shared/overlap periods from wizard, or user-added permisjon
+        if (p.parent === 'mother') sharedWeeksMother += weeks;
+        else sharedWeeksFather += weeks;
+      }
+    }
 
     // Mother's quota
     if (rights !== 'father-only') {
-      const motherPeriods = customPeriods.filter(
-        (p) => p.parent === 'mother' && p.type === 'permisjon'
-      );
-      const motherWeeksUsed = motherPeriods.reduce((sum, p) => {
-        return sum + Math.ceil(differenceInDays(p.endDate, p.startDate) / 7);
-      }, 0);
-
       result.push({
         label: 'Mors kvote',
-        used: Math.min(motherWeeksUsed, config.mother),
+        used: Math.min(motherQuotaWeeks, config.mother),
         total: config.mother,
         color: 'bg-pink-400',
       });
@@ -57,41 +77,28 @@ export function StatsBar({
 
     // Father's quota
     if (rights !== 'mother-only') {
-      const fatherPeriods = customPeriods.filter(
-        (p) => p.parent === 'father' && p.type === 'permisjon'
-      );
-      const fatherWeeksUsed = fatherPeriods.reduce((sum, p) => {
-        return sum + Math.ceil(differenceInDays(p.endDate, p.startDate) / 7);
-      }, 0);
-
       result.push({
         label: 'Fars kvote',
-        used: Math.min(fatherWeeksUsed, config.father),
+        used: Math.min(fatherQuotaWeeks, config.father),
         total: config.father,
         color: 'bg-blue-400',
       });
     }
 
-    // Shared quota (only if both parents)
+    // Shared quota (only if both parents) — split by parent
     if (rights === 'both') {
-      const allPermisjonPeriods = customPeriods.filter((p) => p.type === 'permisjon');
-      const totalWeeksUsed = allPermisjonPeriods.reduce((sum, p) => {
-        return sum + Math.ceil(differenceInDays(p.endDate, p.startDate) / 7);
-      }, 0);
-
-      // Shared weeks = total used - individual quotas
-      const sharedUsed = Math.max(0, totalWeeksUsed - config.mother - config.father);
-
       result.push({
         label: 'Fellesperiode',
-        used: Math.min(sharedUsed, config.shared),
+        used: Math.min(sharedWeeksMother + sharedWeeksFather, config.shared),
         total: config.shared,
         color: 'bg-purple-400',
+        sharedMother: sharedWeeksMother,
+        sharedFather: sharedWeeksFather,
       });
     }
 
     return result;
-  }, [coverage, rights, customPeriods, config]);
+  }, [rights, customPeriods, config]);
 
   // Calculate gap info
   const gapInfo = useMemo(() => {
@@ -143,15 +150,30 @@ export function StatsBar({
                 {quota.label === 'Fellesperiode' && <GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm>}
               </span>
               <span className="font-medium">
-                {quota.used}/{quota.total} uker
+                {quota.sharedMother !== undefined
+                  ? `Mor ${quota.sharedMother} + Far ${quota.sharedFather} / ${quota.total} uker`
+                  : `${quota.used}/${quota.total} uker`}
               </span>
             </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={cn('h-full rounded-full transition-all', quota.color)}
-                style={{ width: `${Math.min(100, (quota.used / quota.total) * 100)}%` }}
-              />
-            </div>
+            {quota.sharedMother !== undefined ? (
+              <div className="h-2 bg-muted rounded-full overflow-hidden flex">
+                <div
+                  className="h-full bg-pink-400 transition-all"
+                  style={{ width: `${Math.min(100, (quota.sharedMother / quota.total) * 100)}%` }}
+                />
+                <div
+                  className="h-full bg-blue-400 transition-all"
+                  style={{ width: `${Math.min(100 - (quota.sharedMother / quota.total) * 100, (quota.sharedFather! / quota.total) * 100)}%` }}
+                />
+              </div>
+            ) : (
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={cn('h-full rounded-full transition-all', quota.color)}
+                  style={{ width: `${Math.min(100, (quota.used / quota.total) * 100)}%` }}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>

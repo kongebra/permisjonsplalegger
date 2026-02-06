@@ -9,6 +9,8 @@ import type { CustomPeriod, LeaveSegment } from '@/lib/types';
 interface YearOverviewProps {
   startDate: Date;
   endDate: Date;
+  dueDate?: Date;
+  daycareStart?: Date;
   activeMonth: Date;
   segments: LeaveSegment[];
   customPeriods: CustomPeriod[];
@@ -19,6 +21,8 @@ interface YearOverviewProps {
 export function YearOverview({
   startDate,
   endDate,
+  dueDate,
+  daycareStart,
   activeMonth,
   segments,
   customPeriods,
@@ -58,6 +62,8 @@ export function YearOverview({
             <MiniMonth
               key={month.toISOString()}
               month={month}
+              dueDate={dueDate}
+              daycareStart={daycareStart}
               segments={segments}
               customPeriods={customPeriods}
               isActive={isSameMonth(month, activeMonth)}
@@ -81,6 +87,18 @@ export function YearOverview({
           <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-400 to-blue-400" />
           <span>Overlapp</span>
         </div>
+        {dueDate && (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-violet-500 ring-1 ring-violet-300" />
+            <span>Termin</span>
+          </div>
+        )}
+        {daycareStart && (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-emerald-500 ring-1 ring-emerald-300" />
+            <span>Barnehagestart</span>
+          </div>
+        )}
       </div>
     </div>
   );

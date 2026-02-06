@@ -6,8 +6,11 @@ import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding } from '@/components/planner';
+import { PlannerEconomy } from '@/components/planner/PlannerEconomy';
+import { SettingsSheet } from '@/components/planner/SettingsSheet';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Save, Undo2 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ChevronLeft, Save, Undo2, Settings } from 'lucide-react';
 
 export default function KalenderPage() {
   const router = useRouter();
@@ -24,6 +27,8 @@ export default function KalenderPage() {
     setAutoSaveEnabled,
     undoStack,
     undo,
+    showSettings,
+    setShowSettings,
   } = usePlannerStore(
     useShallow((state) => ({
       wizardCompleted: state.wizardCompleted,
@@ -35,6 +40,8 @@ export default function KalenderPage() {
       setAutoSaveEnabled: state.setAutoSaveEnabled,
       undoStack: state.undoStack,
       undo: state.undo,
+      showSettings: state.showSettings,
+      setShowSettings: state.setShowSettings,
     }))
   );
 
@@ -120,6 +127,16 @@ export default function KalenderPage() {
               </Button>
             )}
 
+            {/* Settings button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettings(true)}
+              aria-label="Innstillinger"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+
             {/* Save button */}
             <Button
               variant="outline"
@@ -136,7 +153,18 @@ export default function KalenderPage() {
 
       {/* Main content */}
       <main className="flex-1 container mx-auto px-4 py-4">
-        <PlannerCalendar />
+        <Tabs defaultValue="kalender">
+          <TabsList className="w-full mb-4">
+            <TabsTrigger value="kalender" className="flex-1">Kalender</TabsTrigger>
+            <TabsTrigger value="okonomi" className="flex-1">Økonomi</TabsTrigger>
+          </TabsList>
+          <TabsContent value="kalender">
+            <PlannerCalendar />
+          </TabsContent>
+          <TabsContent value="okonomi">
+            <PlannerEconomy />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Footer with auto-save indicator */}
@@ -145,6 +173,9 @@ export default function KalenderPage() {
           Autolagring aktivert
         </footer>
       )}
+
+      {/* Settings sheet */}
+      <SettingsSheet open={showSettings} onOpenChange={setShowSettings} />
 
       {/* Onboarding overlay for first-time users */}
       <CalendarOnboarding />

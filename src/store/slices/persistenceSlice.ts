@@ -39,6 +39,9 @@ function serializePeriods(periods: CustomPeriod[]): SavedPlan['periods'] {
     endDate: p.endDate.toISOString(),
     label: p.label,
     color: p.color,
+    isFromWizard: p.isFromWizard,
+    isLocked: p.isLocked,
+    segmentType: p.segmentType,
   }));
 }
 
@@ -52,6 +55,9 @@ function deserializePeriods(periods: SavedPlan['periods']): CustomPeriod[] {
     endDate: new Date(p.endDate),
     label: p.label,
     color: p.color,
+    isFromWizard: p.isFromWizard,
+    isLocked: p.isLocked,
+    segmentType: p.segmentType,
   }));
 }
 
