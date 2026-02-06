@@ -168,7 +168,7 @@ export function JobSettingsStep({
       </div>
 
       <InfoBox variant="tip">
-        <p>Kan hoppes over. Feriedager kan legges til i kalenderen etterpå.</p>
+        <p>Valgfritt: Brukes kun for å plassere feriedager i kalenderen. Påvirker ikke den økonomiske beregningen.</p>
       </InfoBox>
 
       <div className="space-y-3">

@@ -5,6 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Info } from 'lucide-react';
 
 const GLOSSARY: Record<string, string> = {
   foreldrepenger:
@@ -36,9 +37,10 @@ export function GlossaryTerm({ term, children }: GlossaryTermProps) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="underline decoration-dotted decoration-muted-foreground cursor-help inline"
+          className="underline decoration-dotted decoration-muted-foreground/50 underline-offset-2 cursor-help inline-flex items-center gap-0.5"
         >
           {children}
+          <Info className="w-3 h-3 text-muted-foreground/50 inline shrink-0" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="max-w-xs text-sm">

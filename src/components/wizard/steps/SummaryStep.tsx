@@ -35,10 +35,12 @@ interface SummaryRowProps {
   onEdit: (step: number) => void;
 }
 
-function ExplanationPanel({ result, gap80Weeks, gap100Weeks }: {
+function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
   result: EconomyResult;
   gap80Weeks: number;
   gap100Weeks: number;
+  motherVacationDays: number;
+  fatherVacationDays: number;
 }) {
   const { scenario80, scenario100, difference } = result;
   const favors100 = difference > 0;
@@ -129,6 +131,58 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks }: {
         </div>
       )}
 
+      {/* Gap-anbefaling */}
+      {(() => {
+        // Use the gap from the winning scenario (or 100% as default)
+        const gapWeeks = favors100 ? gap100Weeks : gap80Weeks;
+        if (gapWeeks <= 0) return null;
+
+        // Convert vacation days to weeks (5 workdays = 1 week)
+        const totalVacationWeeks = Math.floor((motherVacationDays + fatherVacationDays) / 5);
+        const bothParentsHaveVacation = motherVacationDays > 0 && fatherVacationDays > 0;
+        const gapTakenBy = result.scenario100.breakdown.gapTakenBy;
+
+        let recommendation: string;
+
+        if (totalVacationWeeks >= gapWeeks) {
+          // Vacation can cover the entire gap
+          if (gapWeeks <= 4) {
+            recommendation = `Gapet er på ${gapWeeks} ${gapWeeks === 1 ? 'uke' : 'uker'} — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
+          } else if (bothParentsHaveVacation) {
+            recommendation = `Gapet er på ${gapWeeks} uker. Fordel ferien mellom begge foreldre (ikke ta den samtidig) for å dekke hele perioden.`;
+          } else {
+            recommendation = `Gapet er på ${gapWeeks} uker — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
+          }
+        } else if (totalVacationWeeks > 0) {
+          // Vacation covers some, but not all
+          const unpaidWeeks = gapWeeks - totalVacationWeeks;
+          const unpaidLabel = `${unpaidWeeks} ${unpaidWeeks === 1 ? 'uke' : 'uker'}`;
+          if (gapTakenBy) {
+            const lowestEarner = gapTakenBy === 'mother' ? 'Mor' : 'Far';
+            recommendation = `Gapet er på ${gapWeeks} uker. Bruk ferie til å dekke ${totalVacationWeeks} uker, og la ${lowestEarner} (lavest dagsats) ta ${unpaidLabel} ulønnet permisjon.`;
+          } else {
+            recommendation = `Gapet er på ${gapWeeks} uker. Bruk ferie til å dekke ${totalVacationWeeks} uker. De resterende ${unpaidLabel} må dekkes med ulønnet permisjon.`;
+          }
+        } else if (gapTakenBy) {
+          // No vacation data — recommend based on lowest earner
+          const lowestEarner = gapTakenBy === 'mother' ? 'Mor' : 'Far';
+          recommendation = `${lowestEarner} bør ta den ubetalte perioden (lavest dagsats = minst tapt inntekt). Vurder å bruke feriedager for å dekke deler av gapet.`;
+        } else {
+          // No vacation data, no earner comparison
+          recommendation = `Gapet er på ${gapWeeks} uker. Vurder å bruke feriedager for å dekke deler av eller hele perioden.`;
+        }
+
+        return (
+          <div className="flex items-start gap-2 p-2 bg-muted/40 rounded-md">
+            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-xs">
+              <strong>Anbefaling:</strong> {recommendation}
+              <span className="text-muted-foreground"> Basert på oppgitt informasjon i veiviseren.</span>
+            </p>
+          </div>
+        );
+      })()}
+
       <p className="text-[11px] text-[var(--color-info-fg)]/60">
         Beregningen er et estimat basert på oppgitt lønn. Se full tidslinje og detaljer i kalenderen.
       </p>
@@ -136,10 +190,12 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks }: {
   );
 }
 
-function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks }: {
+function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
   economyResult: EconomyResult;
   gap80Weeks: number;
   gap100Weeks: number;
+  motherVacationDays: number;
+  fatherVacationDays: number;
 }) {
   const [showExplanation, setShowExplanation] = useState(false);
 
@@ -178,6 +234,8 @@ function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks }: {
           result={economyResult}
           gap80Weeks={gap80Weeks}
           gap100Weeks={gap100Weeks}
+          motherVacationDays={motherVacationDays}
+          fatherVacationDays={fatherVacationDays}
         />
       )}
     </div>
@@ -355,6 +413,8 @@ export function SummaryStep({
           economyResult={economyResult}
           gap80Weeks={leaveResult80.gap.weeks}
           gap100Weeks={leaveResult100.gap.weeks}
+          motherVacationDays={motherJobSettings?.vacationDays ?? 0}
+          fatherVacationDays={fatherJobSettings?.vacationDays ?? 0}
         />
       )}
 

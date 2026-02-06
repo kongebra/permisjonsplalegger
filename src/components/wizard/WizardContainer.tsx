@@ -22,7 +22,7 @@ import {
   usePersistence,
   useCanProceed,
 } from "@/store/hooks";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
 
 export function WizardContainer() {
@@ -199,6 +199,7 @@ export function WizardContainer() {
         return (
           <EconomyStep
             rights={rights}
+            coverage={coverage}
             motherEconomy={motherEconomy}
             fatherEconomy={fatherEconomy}
             onMotherChange={setMotherEconomy}
@@ -277,9 +278,12 @@ export function WizardContainer() {
         <div className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
             {!canProceed && (
-              <p className="text-xs text-amber-600 text-center">
-                {stepHints[currentStep] || 'Fyll ut informasjonen over for å fortsette'}
-              </p>
+              <div className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg" role="alert">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  {stepHints[currentStep] || 'Fyll ut informasjonen over for å fortsette'}
+                </p>
+              </div>
             )}
             {cameFromSummary && (
               <Button

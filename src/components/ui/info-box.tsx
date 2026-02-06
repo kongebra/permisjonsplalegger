@@ -28,7 +28,7 @@ export function InfoBox({ variant = 'info', children, className }: InfoBoxProps)
   return (
     <div className={cn('rounded-lg px-3 py-2.5 flex gap-2.5', container, className)}>
       <Icon className="w-4 h-4 shrink-0 mt-0.5" />
-      <div className="text-xs">{children}</div>
+      <div className="text-sm leading-relaxed">{children}</div>
     </div>
   );
 }
