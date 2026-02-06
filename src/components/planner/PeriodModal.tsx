@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { format, differenceInDays, differenceInBusinessDays, addDays } from 'date-fns';
+import { format, differenceInDays, differenceInBusinessDays, addDays, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import {
   Dialog,
@@ -14,11 +14,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { LeaveIndicatorCalendar } from '@/components/planner/LeaveIndicatorCalendar';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, PlannerPeriodType, Parent, ParentRights, LeaveResult } from '@/lib/types';
-import { CalendarDays, Trash2 } from 'lucide-react';
+import { CalendarDays, Trash2, X } from 'lucide-react';
 
 interface PeriodModalProps {
   open: boolean;
@@ -55,6 +54,89 @@ const ANNET_PALETTE = [
 
 type Placement = 'after-mother' | 'before-father' | 'overlap-father' | 'custom';
 
+// --- Fullscreen date picker overlay (rendered inside Dialog, covers it via fixed positioning) ---
+
+interface DatePickerOverlayProps {
+  segments: import('@/lib/types').LeaveSegment[];
+  initialStart: Date;
+  initialEnd: Date; // exclusive
+  onConfirm: (start: Date, end: Date) => void;
+  onClose: () => void;
+}
+
+function DatePickerOverlay({
+  segments,
+  initialStart,
+  initialEnd,
+  onConfirm,
+  onClose,
+}: DatePickerOverlayProps) {
+  // Local range state — allows react-day-picker's natural 2-click flow
+  // (click 1 = from, click 2 = to) without resetting on every click.
+  const [range, setRange] = useState<{ from: Date; to?: Date }>({
+    from: initialStart,
+    to: subDays(initialEnd, 1), // inclusive for display
+  });
+
+  // Derived display values
+  const localEnd = range.to ? addDays(range.to, 1) : addDays(range.from, 1);
+  const days = differenceInDays(localEnd, range.from);
+  const workDays = days > 0 ? differenceInBusinessDays(localEnd, range.from) : 0;
+
+  const handleConfirm = () => {
+    onConfirm(range.from, localEnd);
+    onClose();
+  };
+
+  return (
+    // fixed inset-0 inside a transformed parent = covers the Dialog entirely
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
+        <h3 className="font-semibold text-base">Velg periode</h3>
+        <button
+          onClick={onClose}
+          className="rounded-full p-1.5 hover:bg-muted transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Calendar */}
+      <div className="flex-1 overflow-y-auto flex justify-center p-4">
+        <LeaveIndicatorCalendar
+          segments={segments}
+          mode="range"
+          selected={range}
+          onSelect={(newRange) => {
+            if (newRange?.from) {
+              setRange({ from: newRange.from, to: newRange.to });
+            }
+          }}
+          numberOfMonths={2}
+          locale={nb}
+          defaultMonth={range.from}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t space-y-3 shrink-0">
+        {days > 0 && (
+          <p className="text-sm text-muted-foreground text-center">
+            {format(range.from, 'EEE d. MMM', { locale: nb })} —{' '}
+            {format(range.to ?? range.from, 'EEE d. MMM', { locale: nb })}
+            {' · '}
+            {days} kalenderdager ({workDays} virkedager)
+          </p>
+        )}
+        <Button className="w-full" onClick={handleConfirm}>
+          Bekreft
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function PeriodModalContent({
   period,
   rights,
@@ -84,6 +166,7 @@ function PeriodModalContent({
   const [label, setLabel] = useState(period?.label ?? '');
   const [color, setColor] = useState(period?.color ?? '#9333ea');
   const [placement, setPlacement] = useState<Placement>(isEditing ? 'custom' : 'after-mother');
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Apply placement presets
   const applyPlacement = (p: Placement) => {
@@ -298,63 +381,29 @@ function PeriodModalContent({
         {/* Dates */}
         {!isLocked && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            {/* Fra / Til buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
                 <Label>Fra</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {format(startDate, 'd. MMM yyyy', { locale: nb })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      defaultMonth={startDate}
-                      onSelect={(d) => {
-                        if (d) {
-                          setStartDate(d);
-                          setPlacement('custom');
-                        }
-                      }}
-                      locale={nb}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  onClick={() => setCalendarOpen(true)}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
+                  {format(startDate, 'd. MMM yyyy', { locale: nb })}
+                </Button>
               </div>
-
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Til</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {format(addDays(endDate, -1), 'd. MMM yyyy', { locale: nb })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={addDays(endDate, -1)}
-                      defaultMonth={addDays(endDate, -1)}
-                      onSelect={(d) => {
-                        if (d) {
-                          setEndDate(addDays(d, 1));
-                          setPlacement('custom');
-                        }
-                      }}
-                      locale={nb}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  onClick={() => setCalendarOpen(true)}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
+                  {format(subDays(endDate, 1), 'd. MMM yyyy', { locale: nb })}
+                </Button>
               </div>
             </div>
 
@@ -363,6 +412,21 @@ function PeriodModalContent({
               <p className="text-xs text-muted-foreground text-center">
                 {calendarDays} kalenderdager ({workDays} virkedager)
               </p>
+            )}
+
+            {/* Fullscreen calendar overlay (rendered inside Dialog to stay within Radix focus trap) */}
+            {calendarOpen && (
+              <DatePickerOverlay
+                segments={leaveResult?.segments ?? []}
+                initialStart={startDate}
+                initialEnd={endDate}
+                onConfirm={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                  setPlacement('custom');
+                }}
+                onClose={() => setCalendarOpen(false)}
+              />
             )}
           </div>
         )}
@@ -444,7 +508,7 @@ export function PeriodModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md md:max-w-fit max-h-[90vh] overflow-y-auto">
         <PeriodModalContent
           key={contentKey}
           period={period}

@@ -185,3 +185,48 @@
 .animate-slide-in-left {
   animation: slide-in-from-left 0.25s ease-out;
 }
+
+/* Calendar month slide animations */
+@keyframes month-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes month-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-month-slide-right {
+  animation: month-slide-in-right 0.2s ease-out;
+}
+
+.animate-month-slide-left {
+  animation: month-slide-in-left 0.2s ease-out;
+}
+
+/* Page fade-in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}

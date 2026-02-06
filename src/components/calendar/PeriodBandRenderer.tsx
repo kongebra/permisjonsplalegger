@@ -27,7 +27,7 @@ function renderBand(
     <div
       key={band.id}
       className={cn(
-        'absolute h-1/2',
+        'absolute h-1/2 flex items-center overflow-hidden',
         isTop ? 'top-0' : 'bottom-0',
         band.color,
         band.isStart && 'rounded-l-sm',
@@ -42,7 +42,13 @@ function renderBand(
       }}
       onClick={handleClick}
       title={band.label}
-    />
+    >
+      {band.showLabel && (
+        <span className="pl-1 text-[11px] leading-none font-medium text-foreground/70 whitespace-nowrap truncate">
+          {band.label}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -56,7 +62,7 @@ export function PeriodBandRenderer({
   }
 
   return (
-    <div className="absolute inset-x-0 bottom-0 h-2 pointer-events-none">
+    <div className="relative h-7 pointer-events-none -mt-0.5">
       {motherBands.map((band) => renderBand(band, true, onPeriodSelect))}
       {fatherBands.map((band) => renderBand(band, false, onPeriodSelect))}
     </div>

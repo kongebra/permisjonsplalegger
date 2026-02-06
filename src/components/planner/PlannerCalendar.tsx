@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { startOfMonth, addDays, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,25 @@ export function PlannerCalendar() {
     openPeriodModal,
     closePeriodModal,
   } = useUi();
+
+  // Month slide direction tracking — set from event handlers, not effects
+  const [monthDirection, setMonthDirection] = useState<'forward' | 'backward' | null>(null);
+
+  const navigateMonthWithDirection = useCallback(
+    (delta: number) => {
+      setMonthDirection(delta > 0 ? 'forward' : 'backward');
+      navigateMonth(delta);
+    },
+    [navigateMonth],
+  );
+
+  const setActiveMonthWithDirection = useCallback(
+    (month: Date) => {
+      setMonthDirection(month > activeMonth ? 'forward' : 'backward');
+      setActiveMonth(month);
+    },
+    [activeMonth, setActiveMonth],
+  );
 
   // Calculated leave result
   const leaveResult = useCalculatedLeave();
@@ -129,15 +148,15 @@ export function PlannerCalendar() {
 
       if (Math.abs(diff) > threshold) {
         if (diff > 0) {
-          navigateMonth(1);
+          navigateMonthWithDirection(1);
         } else {
-          navigateMonth(-1);
+          navigateMonthWithDirection(-1);
         }
       }
 
       touchStartX.current = null;
     },
-    [navigateMonth],
+    [navigateMonthWithDirection],
   );
 
   // Set active month to first month of leave on mount + initialize periods
@@ -164,7 +183,7 @@ export function PlannerCalendar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigateMonth(-1)}
+            onClick={() => navigateMonthWithDirection(-1)}
             aria-label="Forrige måned"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -183,11 +202,41 @@ export function PlannerCalendar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigateMonth(1)}
+            onClick={() => navigateMonthWithDirection(1)}
             aria-label="Neste måned"
           >
             <ChevronRight className="w-5 h-5" />
           </Button>
+        </div>
+
+        {/* Color legend */}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-pink-300" />
+            <span>Mor</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-blue-300" />
+            <span>Far</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm border border-dashed border-red-400 bg-red-200" />
+            <span>Gap</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-gray-200" />
+            <span>Ulønnet</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full ring-2 ring-violet-500" />
+            <span>Termin</span>
+          </div>
+          {daycareEnabled && (
+            <div className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full ring-2 ring-emerald-500" />
+              <span>Barnehagestart</span>
+            </div>
+          )}
         </div>
 
         {/* Calendar */}
@@ -195,23 +244,33 @@ export function PlannerCalendar() {
           ref={containerRef}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className="touch-pan-y"
+          className="touch-pan-y overflow-hidden"
         >
-          <MonthView
-            month={activeMonth}
-            dueDate={dueDate}
-            segments={leaveResult.segments}
-            customPeriods={periods}
-            lockedDates={lockedDates}
-            onPeriodSelect={handlePeriodSelect}
-            onDateSelect={handleDateSelect}
-          />
+          <div
+            key={activeMonth.toISOString()}
+            className={
+              monthDirection === 'forward'
+                ? 'animate-month-slide-right'
+                : monthDirection === 'backward'
+                  ? 'animate-month-slide-left'
+                  : undefined
+            }
+          >
+            <MonthView
+              month={activeMonth}
+              dueDate={dueDate}
+              daycareStart={daycareEnabled ? daycareStartDate ?? undefined : undefined}
+              segments={leaveResult.segments}
+              customPeriods={periods}
+              lockedDates={lockedDates}
+              onPeriodSelect={handlePeriodSelect}
+              onDateSelect={handleDateSelect}
+            />
+          </div>
         </div>
 
-        {/* Stats bar */}
+        {/* Gap indicator */}
         <StatsBar
-          coverage={coverage}
-          rights={rights}
           leaveResult={leaveResult}
           customPeriods={periods}
           daycareEnabled={daycareEnabled}
@@ -228,7 +287,7 @@ export function PlannerCalendar() {
             activeMonth={activeMonth}
             segments={leaveResult.segments}
             customPeriods={periods}
-            onMonthSelect={setActiveMonth}
+            onMonthSelect={setActiveMonthWithDirection}
             onClose={() => setShowMonthOverview(false)}
           />
         )}

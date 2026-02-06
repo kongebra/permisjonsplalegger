@@ -9,3 +9,4 @@ export { StatsBar } from './StatsBar';
 export { SaveControls } from './SaveControls';
 export { CalendarOnboarding } from './CalendarOnboarding';
 export { PlannerEconomy } from './PlannerEconomy';
+export { CalendarSkeleton } from './CalendarSkeleton';

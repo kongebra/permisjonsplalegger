@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { WizardProgress } from "./WizardProgress";
 import { WelcomeIntro } from "./WelcomeIntro";
+import { SetupLoader, SETUP_LOADER_DURATION } from "./SetupLoader";
 import { DueDateStep } from "./steps/DueDateStep";
 import { RightsStep } from "./steps/RightsStep";
 import { CoverageStep } from "./steps/CoverageStep";
@@ -27,6 +28,7 @@ import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
 export function WizardContainer() {
   const router = useRouter();
   const [showIntro, setShowIntro] = useState(true);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const [cameFromSummary, setCameFromSummary] = useState(false);
   const stepContentRef = useRef<HTMLDivElement>(null);
   const prevStepRef = useRef<number>(1);
@@ -138,12 +140,21 @@ export function WizardContainer() {
     }
   }, [currentStep]);
 
-  // Handle wizard completion
+  // Handle wizard completion — show branded loader, then navigate
   const handleComplete = () => {
-    completeWizard();
     savePlan();
-    router.push("/planlegger/kalender");
+    setIsSettingUp(true);
   };
+
+  // Complete wizard and navigate after loader display time
+  useEffect(() => {
+    if (!isSettingUp) return;
+    const timer = setTimeout(() => {
+      completeWizard();
+      router.push("/planlegger/kalender");
+    }, SETUP_LOADER_DURATION);
+    return () => clearTimeout(timer);
+  }, [isSettingUp, completeWizard, router]);
 
   // Render current step
   const renderStep = () => {
@@ -226,6 +237,11 @@ export function WizardContainer() {
     2: 'Velg hvem som har rett til foreldrepenger',
     3: 'Velg dekningsgrad',
   };
+
+  // Show branded setup loader after wizard completion
+  if (isSettingUp) {
+    return <SetupLoader />;
+  }
 
   // Show welcome intro for first-time users
   if (showIntro) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
-import { PlannerCalendar, CalendarOnboarding } from '@/components/planner';
+import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
 import { PlannerEconomy } from '@/components/planner/PlannerEconomy';
 import { SettingsSheet } from '@/components/planner/SettingsSheet';
 import { Button } from '@/components/ui/button';
@@ -82,26 +82,18 @@ export default function KalenderPage() {
     }
   }, [savePlan, autoSaveEnabled, setAutoSaveEnabled]);
 
-  // Show loading during SSR and initialization
+  // Show skeleton during SSR and initialization
   if (!isHydrated || !isInitialized) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Laster...</div>
-      </div>
-    );
+    return <CalendarSkeleton />;
   }
 
-  // Show loading while redirecting
+  // Show skeleton while redirecting
   if (!wizardCompleted && !hasSavedPlan) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Laster...</div>
-      </div>
-    );
+    return <CalendarSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background z-40">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">

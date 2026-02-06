@@ -21,6 +21,7 @@ import type { CustomPeriod, LeaveSegment } from '@/lib/types';
 interface MonthViewProps {
   month: Date;
   dueDate: Date;
+  daycareStart?: Date;
   segments: LeaveSegment[];
   customPeriods: CustomPeriod[];
   lockedDates: { start: Date; end: Date }[];
@@ -31,6 +32,7 @@ interface MonthViewProps {
 export function MonthView({
   month,
   dueDate,
+  daycareStart,
   segments,
   customPeriods,
   lockedDates,
@@ -67,7 +69,7 @@ export function MonthView({
         segments,
         gap: dummyGap,
         dueDate,
-        daycareStart: new Date(0),
+        daycareStart: daycareStart ?? new Date(0),
         holidayMap,
         month,
         today,
@@ -75,7 +77,7 @@ export function MonthView({
         lockedDates,
       }),
     );
-  }, [calendarRange, segments, dummyGap, dueDate, holidayMap, month, today, customPeriods, lockedDates]);
+  }, [calendarRange, segments, dummyGap, dueDate, daycareStart, holidayMap, month, today, customPeriods, lockedDates]);
 
   // Week bands
   const weekBands = useMemo(() => {

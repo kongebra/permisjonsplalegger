@@ -41,6 +41,7 @@ export interface PeriodBandData {
   color: string; // Tailwind class
   pattern: 'solid' | 'dashed' | 'hatched';
   label: string;
+  showLabel: boolean;
   periodId?: string; // For onPeriodSelect
 }
 

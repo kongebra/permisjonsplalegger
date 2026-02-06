@@ -10,33 +10,39 @@ interface EconomyComparisonProps {
 
 export function EconomyComparison({ result }: EconomyComparisonProps) {
   const { scenario80, scenario100, difference, recommendation } = result;
-  const isPositive = difference > 0;
-  const winner = isPositive ? '100%' : '80%';
+  const best = difference >= 0 ? '100%' : '80%';
+  const absDiff = Math.abs(difference);
 
   return (
     <div className="space-y-6">
       {/* Det store tallet */}
       <Card
         className={`${
-          isPositive
-            ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+          absDiff <= 10000
+            ? 'border-muted bg-muted/30'
             : 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
         }`}
       >
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Anbefalt valg: {winner}</CardTitle>
+          <CardTitle className="text-lg">
+            {absDiff <= 10000
+              ? 'Liten forskjell mellom 80% og 100%'
+              : `${best} dekning gir mest utbetalt`}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div
             className={`text-4xl font-bold ${
-              isPositive
-                ? 'text-green-600 dark:text-green-400'
+              absDiff <= 10000
+                ? 'text-muted-foreground'
                 : 'text-orange-600 dark:text-orange-400'
             }`}
           >
-            {isPositive ? '+' : ''}
-            {formatCurrency(difference)}
+            {formatCurrency(absDiff)}
           </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            mer med {best} dekning
+          </p>
           <p className="mt-2 text-sm text-muted-foreground">{recommendation}</p>
         </CardContent>
       </Card>
@@ -66,16 +72,8 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
             {scenario100.breakdown.gapCost > 0 && (
               <div className="flex justify-between">
                 <span>
-                  Gap-kostnad
-                  {scenario100.breakdown.gapTakenBy && (
-                    <span className="text-muted-foreground">
-                      {' '}
-                      ({scenario100.breakdown.gapTakenBy === 'mother'
-                        ? 'mor'
-                        : 'far'}{' '}
-                      tar gapet)
-                    </span>
-                  )}
+                  Udekket gap
+                  <span className="text-muted-foreground text-xs"> (tapt inntekt)</span>
                 </span>
                 <span className="text-red-600">
                   -{formatCurrency(scenario100.breakdown.gapCost)}
@@ -120,16 +118,8 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
             {scenario80.breakdown.gapCost > 0 && (
               <div className="flex justify-between">
                 <span>
-                  Gap-kostnad
-                  {scenario80.breakdown.gapTakenBy && (
-                    <span className="text-muted-foreground">
-                      {' '}
-                      ({scenario80.breakdown.gapTakenBy === 'mother'
-                        ? 'mor'
-                        : 'far'}{' '}
-                      tar gapet)
-                    </span>
-                  )}
+                  Udekket gap
+                  <span className="text-muted-foreground text-xs"> (tapt inntekt)</span>
                 </span>
                 <span className="text-red-600">
                   -{formatCurrency(scenario80.breakdown.gapCost)}
@@ -151,6 +141,14 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Fotnote */}
+      {(scenario100.breakdown.gapCost > 0 || scenario80.breakdown.gapCost > 0) && (
+        <p className="text-xs text-muted-foreground">
+          Gap-kostnaden antar at én forelder er hjemme uten lønn i hele gapet.
+          I praksis kan ferie, fleksibel jobb eller annen hjelp redusere dette.
+        </p>
+      )}
     </div>
   );
 }
