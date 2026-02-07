@@ -321,6 +321,9 @@ export function PlannerCalendar() {
         period={editingPeriod}
         rights={rights}
         leaveResult={leaveResult}
+        customPeriods={periods}
+        dueDate={dueDate}
+        daycareStart={daycareEnabled ? daycareStartDate : null}
         onClose={closePeriodModal}
         onSave={handlePeriodSave}
         onUpdate={handlePeriodUpdate}

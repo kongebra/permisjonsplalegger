@@ -39,6 +39,7 @@ export interface PeriodBandData {
   isStart: boolean;
   isEnd: boolean;
   color: string; // Tailwind class
+  inlineStyle?: React.CSSProperties;
   pattern: 'solid' | 'dashed' | 'hatched';
   label: string;
   showLabel: boolean;

@@ -39,6 +39,7 @@ function renderBand(
       style={{
         left: `${leftPercent}%`,
         width: `${widthPercent}%`,
+        ...band.inlineStyle,
       }}
       onClick={handleClick}
       title={band.label}

@@ -7,6 +7,7 @@ import { buildDayTooltip, buildDayAriaLabel } from './resolve-day';
 interface DayCellProps {
   day: CalendarDayData;
   interactive?: boolean;
+  pickerMode?: boolean;
   className?: string;
   statusClassName?: string;
   inlineStyle?: React.CSSProperties;
@@ -19,6 +20,7 @@ interface DayCellProps {
 export function DayCell({
   day,
   interactive = false,
+  pickerMode = false,
   className,
   statusClassName,
   inlineStyle,
@@ -52,6 +54,87 @@ export function DayCell({
     'touch-manipulation',
     className,
   );
+
+  // Picker mode: Momondo-style cells with layered visual hierarchy
+  if (pickerMode) {
+    const hasMother = day.periods.some((p) => p.parent === 'mother');
+    const hasFather = day.periods.some((p) => p.parent === 'father');
+    const hasStrip = hasMother || hasFather || day.isGapDay;
+
+    return (
+      <button
+        onClick={handleClick}
+        aria-label={ariaLabel}
+        role="gridcell"
+        className={cn(
+          'relative h-[44px] w-full flex items-center justify-center text-sm',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset',
+          !day.isCurrentMonth && 'opacity-30',
+          // Range fill — semi-transparent, edge-to-edge
+          day.isInSelection && !day.isSelected && 'bg-violet-500/12',
+          // Range rounding (pill shape)
+          day.isSelectionStart && !day.isSelectionEnd && 'rounded-l-full',
+          day.isSelectionEnd && !day.isSelectionStart && 'rounded-r-full',
+          day.isSelectionStart && day.isSelectionEnd && 'rounded-full',
+          // Subtle hover only when not selected
+          !day.isSelected && !day.isInSelection && 'hover:bg-muted/40',
+        )}
+      >
+        {/* Selected date circle (start/end handles) */}
+        {day.isSelected && (
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-foreground" />
+        )}
+
+        {/* Range tint behind circle for start/end cells */}
+        {day.isSelected && day.isInSelection && (
+          <span
+            className={cn(
+              'absolute inset-0 bg-violet-500/12',
+              day.isSelectionStart && !day.isSelectionEnd && 'rounded-l-full',
+              day.isSelectionEnd && !day.isSelectionStart && 'rounded-r-full',
+            )}
+          />
+        )}
+
+        {/* Dot markers for dueDate and daycareStart */}
+        {day.isDueDate && !day.isSelected && (
+          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-violet-500 z-10" />
+        )}
+        {day.isDaycareStart && !day.isDueDate && !day.isSelected && (
+          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10" />
+        )}
+
+        {/* Day number — centered */}
+        <span
+          className={cn(
+            'relative z-10 text-[13px] leading-none',
+            // Selected: white on dark circle
+            day.isSelected && 'text-background font-bold',
+            // Not selected: color hierarchy
+            !day.isSelected && day.isSaturday && !day.isHoliday && 'text-muted-foreground/70',
+            !day.isSelected && (day.isSunday || day.isHoliday) && 'text-red-400',
+            !day.isSelected && day.isDueDate && 'text-violet-600 font-semibold',
+            !day.isSelected && day.isDaycareStart && !day.isDueDate && 'text-emerald-600 font-semibold',
+          )}
+        >
+          {day.dayOfMonth}
+        </span>
+
+        {/* Period strip at bottom — thin colored bar */}
+        {hasStrip && (
+          <span
+            className={cn(
+              'absolute bottom-0 left-0 right-0 h-[3px]',
+              day.isGapDay && 'bg-orange-300/50 border-t border-dashed border-orange-400/40',
+              !day.isGapDay && hasMother && !hasFather && 'bg-pink-300/50',
+              !day.isGapDay && hasFather && !hasMother && 'bg-blue-300/50',
+              !day.isGapDay && hasMother && hasFather && 'bg-gradient-to-r from-pink-300/50 to-blue-300/50',
+            )}
+          />
+        )}
+      </button>
+    );
+  }
 
   // Non-interactive mode (CalendarTimeline): colored cell with day number
   if (!interactive) {

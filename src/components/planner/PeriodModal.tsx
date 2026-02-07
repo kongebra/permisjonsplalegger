@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format, differenceInDays, differenceInBusinessDays, addDays, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import {
@@ -14,10 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LeaveIndicatorCalendar } from '@/components/planner/LeaveIndicatorCalendar';
+import { SmartPeriodPicker, buildPickerEvents, buildIconMarkers } from '@/components/picker';
+import { getHolidayMap } from '@/lib/holidays';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, PlannerPeriodType, Parent, ParentRights, LeaveResult } from '@/lib/types';
-import { CalendarDays, Trash2, X } from 'lucide-react';
+import { CalendarDays, Trash2 } from 'lucide-react';
 import posthog from 'posthog-js';
 
 interface PeriodModalProps {
@@ -25,6 +26,9 @@ interface PeriodModalProps {
   period: CustomPeriod | null;
   rights: ParentRights;
   leaveResult?: LeaveResult;
+  customPeriods?: CustomPeriod[];
+  dueDate?: Date;
+  daycareStart?: Date | null;
   onClose: () => void;
   onSave: (period: Omit<CustomPeriod, 'id'>) => void;
   onUpdate: (id: string, updates: Partial<CustomPeriod>) => void;
@@ -55,93 +59,13 @@ const ANNET_PALETTE = [
 
 type Placement = 'after-mother' | 'before-father' | 'overlap-father' | 'custom';
 
-// --- Fullscreen date picker overlay (rendered inside Dialog, covers it via fixed positioning) ---
-
-interface DatePickerOverlayProps {
-  segments: import('@/lib/types').LeaveSegment[];
-  initialStart: Date;
-  initialEnd: Date; // exclusive
-  onConfirm: (start: Date, end: Date) => void;
-  onClose: () => void;
-}
-
-function DatePickerOverlay({
-  segments,
-  initialStart,
-  initialEnd,
-  onConfirm,
-  onClose,
-}: DatePickerOverlayProps) {
-  // Local range state — allows react-day-picker's natural 2-click flow
-  // (click 1 = from, click 2 = to) without resetting on every click.
-  const [range, setRange] = useState<{ from: Date; to?: Date }>({
-    from: initialStart,
-    to: subDays(initialEnd, 1), // inclusive for display
-  });
-
-  // Derived display values
-  const localEnd = range.to ? addDays(range.to, 1) : addDays(range.from, 1);
-  const days = differenceInDays(localEnd, range.from);
-  const workDays = days > 0 ? differenceInBusinessDays(localEnd, range.from) : 0;
-
-  const handleConfirm = () => {
-    onConfirm(range.from, localEnd);
-    onClose();
-  };
-
-  return (
-    // fixed inset-0 inside a transformed parent = covers the Dialog entirely
-    <div className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-        <h3 className="font-semibold text-base">Velg periode</h3>
-        <button
-          onClick={onClose}
-          className="rounded-full p-1.5 hover:bg-muted transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* Calendar */}
-      <div className="flex-1 overflow-y-auto flex justify-center p-4">
-        <LeaveIndicatorCalendar
-          segments={segments}
-          mode="range"
-          selected={range}
-          onSelect={(newRange) => {
-            if (newRange?.from) {
-              setRange({ from: newRange.from, to: newRange.to });
-            }
-          }}
-          numberOfMonths={2}
-          locale={nb}
-          defaultMonth={range.from}
-        />
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t space-y-3 shrink-0">
-        {days > 0 && (
-          <p className="text-sm text-muted-foreground text-center">
-            {format(range.from, 'EEE d. MMM', { locale: nb })} —{' '}
-            {format(range.to ?? range.from, 'EEE d. MMM', { locale: nb })}
-            {' · '}
-            {days} kalenderdager ({workDays} virkedager)
-          </p>
-        )}
-        <Button className="w-full" onClick={handleConfirm}>
-          Bekreft
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 function PeriodModalContent({
   period,
   rights,
   leaveResult,
+  customPeriods: allPeriods,
+  dueDate: dueDateProp,
+  daycareStart: daycareStartProp,
   onClose,
   onSave,
   onUpdate,
@@ -168,6 +92,26 @@ function PeriodModalContent({
   const [color, setColor] = useState(period?.color ?? '#9333ea');
   const [placement, setPlacement] = useState<Placement>(isEditing ? 'custom' : 'after-mother');
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Build SmartPeriodPicker data
+  const pickerEvents = useMemo(() => {
+    const segments = leaveResult?.segments ?? [];
+    const periods = allPeriods ?? [];
+    return buildPickerEvents(segments, periods, isEditing ? period?.id : undefined);
+  }, [leaveResult, allPeriods, isEditing, period?.id]);
+
+  const iconMarkers = useMemo(() => {
+    if (!dueDateProp) return undefined;
+    return buildIconMarkers(dueDateProp, daycareStartProp ?? undefined);
+  }, [dueDateProp, daycareStartProp]);
+
+  const holidayMap = useMemo(() => {
+    // Build holiday map spanning a wide range around the relevant dates
+    const earliest = dueDateProp ?? new Date();
+    const rangeStart = new Date(earliest.getFullYear() - 3, 0, 1);
+    const rangeEnd = new Date(earliest.getFullYear() + 4, 11, 31);
+    return getHolidayMap(rangeStart, rangeEnd);
+  }, [dueDateProp]);
 
   // Apply placement presets
   const applyPlacement = (p: Placement) => {
@@ -430,18 +374,23 @@ function PeriodModalContent({
               </p>
             )}
 
-            {/* Fullscreen calendar overlay (rendered inside Dialog to stay within Radix focus trap) */}
+            {/* Smart period picker (replaces DatePickerOverlay) */}
             {calendarOpen && (
-              <DatePickerOverlay
-                segments={leaveResult?.segments ?? []}
-                initialStart={startDate}
-                initialEnd={endDate}
+              <SmartPeriodPicker
+                startDate={startDate}
+                endDate={endDate}
+                onSelectionChange={() => {}}
                 onConfirm={(start, end) => {
                   setStartDate(start);
                   setEndDate(end);
                   setPlacement('custom');
+                  setCalendarOpen(false);
                 }}
                 onClose={() => setCalendarOpen(false)}
+                events={pickerEvents}
+                iconMarkers={iconMarkers}
+                holidayMap={holidayMap}
+                initialScrollDate={startDate}
               />
             )}
           </div>
@@ -515,6 +464,9 @@ export function PeriodModal({
   period,
   rights,
   leaveResult,
+  customPeriods,
+  dueDate,
+  daycareStart,
   onClose,
   onSave,
   onUpdate,
@@ -530,6 +482,9 @@ export function PeriodModal({
           period={period}
           rights={rights}
           leaveResult={leaveResult}
+          customPeriods={customPeriods}
+          dueDate={dueDate}
+          daycareStart={daycareStart}
           onClose={onClose}
           onSave={onSave}
           onUpdate={onUpdate}
