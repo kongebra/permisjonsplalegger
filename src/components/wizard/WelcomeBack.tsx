@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarHeart, ArrowRight, RotateCcw } from "lucide-react";
+import posthog from "posthog-js";
 
 interface WelcomeBackProps {
   onContinue: () => void;
@@ -27,7 +28,10 @@ export function WelcomeBack({ onContinue, onStartNew }: WelcomeBackProps) {
 
         {/* Choice cards */}
         <div className="grid gap-3">
-          <button className="text-left w-full" onClick={onContinue}>
+          <button className="text-left w-full" onClick={() => {
+            posthog.capture('returning_user_decision', { choice: 'continue' });
+            onContinue();
+          }}>
             <Card className="transition-colors hover:border-primary/50 cursor-pointer">
               <CardContent className="flex items-center gap-4 py-5">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -43,7 +47,10 @@ export function WelcomeBack({ onContinue, onStartNew }: WelcomeBackProps) {
             </Card>
           </button>
 
-          <button className="text-left w-full" onClick={onStartNew}>
+          <button className="text-left w-full" onClick={() => {
+            posthog.capture('returning_user_decision', { choice: 'start_new' });
+            onStartNew();
+          }}>
             <Card className="transition-colors hover:border-muted-foreground/30 cursor-pointer">
               <CardContent className="flex items-center gap-4 py-5">
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">

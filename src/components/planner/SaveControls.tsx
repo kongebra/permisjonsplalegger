@@ -16,6 +16,7 @@ import { usePersistence } from '@/store/hooks';
 import { Save, Trash2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
+import posthog from 'posthog-js';
 
 export function SaveControls() {
   const {
@@ -30,6 +31,9 @@ export function SaveControls() {
   const [showResetDialog, setShowResetDialog] = useState(false);
 
   const handleSave = () => {
+    posthog.capture('plan_saved', {
+      is_first_save: !hasSavedPlan,
+    });
     savePlan();
     if (!autoSaveEnabled) {
       setAutoSaveEnabled(true);
@@ -37,6 +41,7 @@ export function SaveControls() {
   };
 
   const handleReset = () => {
+    posthog.capture('plan_reset');
     resetAll();
     setShowResetDialog(false);
   };

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Toggle } from '@/components/ui/toggle';
@@ -13,6 +14,7 @@ import { InfoBox } from '@/components/ui/info-box';
 import { formatCurrency } from '@/lib/format';
 import type { ParentEconomy, ParentRights, Coverage } from '@/lib/types';
 import { G } from '@/lib/constants';
+import posthog from 'posthog-js';
 
 interface EconomyStepProps {
   rights: ParentRights;
@@ -44,14 +46,17 @@ function ParentEconomySection({
   onChange,
   colorClass,
   coverage,
+  onSalaryEntered,
 }: {
   label: string;
   economy: ParentEconomy;
   onChange: (economy: ParentEconomy) => void;
   colorClass: string;
   coverage: Coverage;
+  onSalaryEntered: (parent: string) => void;
 }) {
   const sixG = 6 * G;
+  const hasTrackedSalary = useRef(false);
 
   return (
     <div className="rounded-lg border p-3 space-y-3">
@@ -73,7 +78,13 @@ function ParentEconomySection({
           value={economy.monthlySalary || ''}
           onChange={(e) => {
             const val = e.target.value.replace(/\D/g, '');
-            onChange({ ...economy, monthlySalary: Math.max(0, Number(val)) });
+            const salary = Math.max(0, Number(val));
+            onChange({ ...economy, monthlySalary: salary });
+            // Track first salary entry per parent
+            if (salary > 0 && !hasTrackedSalary.current) {
+              hasTrackedSalary.current = true;
+              onSalaryEntered(label);
+            }
           }}
           onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
           placeholder="50 000"
@@ -247,6 +258,12 @@ export function EconomyStep({
   const showMother = rights !== 'father-only';
   const showFather = rights !== 'mother-only';
 
+  const handleSalaryEntered = (parent: string) => {
+    posthog.capture('economy_data_entered', {
+      parent: parent.toLowerCase(),
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -270,6 +287,7 @@ export function EconomyStep({
             onChange={onMotherChange}
             colorClass="text-[var(--color-mother)]"
             coverage={coverage}
+            onSalaryEntered={handleSalaryEntered}
           />
         )}
         {showFather && (
@@ -279,6 +297,7 @@ export function EconomyStep({
             onChange={onFatherChange}
             colorClass="text-[var(--color-father)]"
             coverage={coverage}
+            onSalaryEntered={handleSalaryEntered}
           />
         )}
       </div>

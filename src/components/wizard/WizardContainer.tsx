@@ -24,6 +24,7 @@ import {
 import { usePlannerStore } from "@/store";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
+import posthog from "posthog-js";
 
 interface WizardContainerProps {
   skipIntro?: boolean;
@@ -159,6 +160,12 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
 
   // Handle wizard completion — show branded loader, then navigate
   const handleComplete = () => {
+    posthog.capture("wizard_completed", {
+      coverage,
+      rights,
+      has_economy_data: !!(motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary),
+      daycare_enabled: daycareEnabled,
+    });
     savePlan();
     setIsSettingUp(true);
   };
@@ -258,6 +265,27 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
     3: "Velg dekningsgrad",
   };
 
+  // Step names for analytics
+  const stepNames: Record<number, string> = {
+    1: "due_date",
+    2: "rights",
+    3: "coverage",
+    4: "distribution",
+    5: "daycare",
+    6: "job_settings",
+    7: "economy",
+    8: "summary",
+  };
+
+  // Track step completion and proceed
+  const handleNextStep = () => {
+    posthog.capture("wizard_step_completed", {
+      step_number: currentStep,
+      step_name: stepNames[currentStep],
+    });
+    nextStep();
+  };
+
   // Show branded setup loader after wizard completion
   if (isSettingUp) {
     return <SetupLoader />;
@@ -340,7 +368,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
               </Button>
 
               <Button
-                onClick={nextStep}
+                onClick={handleNextStep}
                 disabled={!canProceed}
                 className="flex items-center justify-center gap-2 min-h-11 flex-1"
               >

@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import type { Coverage, ParentRights, ParentEconomy } from '@/lib/types';
 import { useWizard, useEconomy } from '@/store/hooks';
 import { usePlannerStore } from '@/store';
+import posthog from 'posthog-js';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -98,7 +99,21 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     JSON.stringify(motherEconomy) !== JSON.stringify(economy.motherEconomy) ||
     JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy);
 
+  // Derive changed fields for analytics (no sensitive data)
+  const changedFields = [
+    dueDate.getTime() !== wizard.dueDate.getTime() && 'due_date',
+    coverage !== wizard.coverage && 'coverage',
+    rights !== wizard.rights && 'rights',
+    sharedWeeksToMother !== wizard.sharedWeeksToMother && 'distribution',
+    daycareEnabled !== wizard.daycareEnabled && 'daycare',
+    JSON.stringify(motherEconomy) !== JSON.stringify(economy.motherEconomy) && 'economy',
+    JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy) && 'economy',
+  ].filter(Boolean) as string[];
+
   const doApply = useCallback(() => {
+    posthog.capture('settings_changed', {
+      changed_fields: [...new Set(changedFields)],
+    });
     recalculateFromSettings({
       dueDate,
       rights,
@@ -112,7 +127,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     setShowConfirmDialog(false);
     onOpenChange(false);
   }, [
-    dueDate, rights, coverage, sharedWeeksToMother,
+    changedFields, dueDate, rights, coverage, sharedWeeksToMother,
     daycareStartDate, daycareEnabled, motherEconomy, fatherEconomy,
     recalculateFromSettings, onOpenChange,
   ]);

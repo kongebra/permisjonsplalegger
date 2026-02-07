@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Clock, Calculator } from "lucide-react";
+import posthog from "posthog-js";
 
 interface WelcomeIntroProps {
   onStart: () => void;
@@ -27,8 +28,8 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
             <div>
               <h3 className="font-semibold">Trygt og privat</h3>
               <p className="text-sm text-muted-foreground">
-                All informasjon lagres kun lokalt. Ingen data sendes til
-                servere.
+                Personlig informasjon lagres kun lokalt. Anonym
+                bruksstatistikk samles inn for å forbedre tjenesten.
               </p>
             </div>
           </CardContent>
@@ -59,7 +60,14 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
         </Card>
       </div>
 
-      <Button onClick={onStart} size="lg" className="w-full min-h-[48px] text-base">
+      <Button
+        onClick={() => {
+          posthog.capture("wizard_started");
+          onStart();
+        }}
+        size="lg"
+        className="w-full min-h-[48px] text-base"
+      >
         Start planleggingen
       </Button>
 

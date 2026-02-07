@@ -18,6 +18,7 @@ import { LeaveIndicatorCalendar } from '@/components/planner/LeaveIndicatorCalen
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, PlannerPeriodType, Parent, ParentRights, LeaveResult } from '@/lib/types';
 import { CalendarDays, Trash2, X } from 'lucide-react';
+import posthog from 'posthog-js';
 
 interface PeriodModalProps {
   open: boolean;
@@ -212,8 +213,19 @@ function PeriodModalContent({
     };
 
     if (isEditing && period) {
+      posthog.capture('period_updated', {
+        period_type: type,
+        parent,
+        duration_days: calendarDays,
+      });
       onUpdate(period.id, periodData);
     } else {
+      posthog.capture('period_created', {
+        period_type: type,
+        parent,
+        duration_days: calendarDays,
+        placement,
+      });
       onSave(periodData);
     }
     onClose();
@@ -221,6 +233,10 @@ function PeriodModalContent({
 
   const handleDelete = () => {
     if (period) {
+      posthog.capture('period_deleted', {
+        period_type: period.type,
+        parent: period.parent,
+      });
       onDelete(period.id);
       onClose();
     }

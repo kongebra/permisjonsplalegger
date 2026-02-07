@@ -10,6 +10,7 @@ import { AddPeriodFab } from './AddPeriodFab';
 import { PeriodModal } from './PeriodModal';
 import { DayDetailPanel } from './DayDetailPanel';
 import { StatsBar } from './StatsBar';
+import posthog from 'posthog-js';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import type { CustomPeriod } from '@/lib/types';
@@ -194,7 +195,10 @@ export function PlannerCalendar() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowMonthOverview(true)}
+            onClick={() => {
+              posthog.capture('year_overview_opened');
+              setShowMonthOverview(true);
+            }}
             className="flex items-center gap-2"
           >
             <Grid3X3 className="w-4 h-4" />

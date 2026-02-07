@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useCallback, useSyncExternalStore } from 'react';
+import { useEffect, useCallback, useSyncExternalStore, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
 import dynamic from 'next/dynamic';
+import posthog from 'posthog-js';
 
 const PlannerEconomy = dynamic(
   () => import('@/components/planner/PlannerEconomy').then(m => ({ default: m.PlannerEconomy }))
@@ -22,6 +23,14 @@ const emptySubscribe = () => () => {};
 export default function KalenderPage() {
   const router = useRouter();
   const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const hasTrackedEconomyView = useRef(false);
+
+  const handleTabChange = (value: string) => {
+    if (value === 'okonomi' && !hasTrackedEconomyView.current) {
+      hasTrackedEconomyView.current = true;
+      posthog.capture('economy_comparison_viewed');
+    }
+  };
 
   const {
     wizardCompleted,
@@ -121,7 +130,7 @@ export default function KalenderPage() {
 
       {/* Main content */}
       <main id="main" className="flex-1 container mx-auto px-4 py-4">
-        <Tabs defaultValue="kalender">
+        <Tabs defaultValue="kalender" onValueChange={handleTabChange}>
           <TabsList className="w-full mb-4">
             <TabsTrigger value="kalender" className="flex-1">Kalender</TabsTrigger>
             <TabsTrigger value="okonomi" className="flex-1">Økonomi</TabsTrigger>

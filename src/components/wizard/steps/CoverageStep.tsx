@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/format";
 import type { Coverage } from "@/lib/types";
 import { Percent, Clock } from "lucide-react";
 import { GlossaryTerm } from "@/components/ui/glossary-term";
+import posthog from "posthog-js";
 
 interface CoverageStepProps {
   value: Coverage;
@@ -39,6 +40,14 @@ const coverageOptions: {
 ];
 
 export function CoverageStep({ value, onChange }: CoverageStepProps) {
+  const handleCoverageSelect = (newValue: Coverage) => {
+    posthog.capture("coverage_selected", {
+      coverage: newValue,
+      weeks: LEAVE_CONFIG[newValue].total,
+    });
+    onChange(newValue);
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -61,7 +70,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
             key={option.value}
             role="radio"
             aria-checked={value === option.value}
-            onClick={() => onChange(option.value)}
+            onClick={() => handleCoverageSelect(option.value)}
             className={cn(
               "w-full p-4 rounded-lg border-2 text-left transition-all",
               "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",

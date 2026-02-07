@@ -10,6 +10,7 @@ import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, E
 import { format, differenceInWeeks } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { CalendarDays, Users, Percent, Baby, Briefcase, AlertCircle, ChevronRight, ChevronDown, Wallet, Lightbulb, ArrowRight } from 'lucide-react';
+import posthog from 'posthog-js';
 
 interface SummaryStepProps {
   dueDate: Date;
@@ -199,11 +200,22 @@ function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks, motherVacat
 }) {
   const [showExplanation, setShowExplanation] = useState(false);
 
-  const recommendationText = economyResult.difference > 5000
+  const recommendedCoverage = economyResult.difference > 5000 ? 100 : economyResult.difference < -5000 ? 80 : null;
+  const recommendationText = recommendedCoverage === 100
     ? '100% dekning kan lønne seg for deres situasjon'
-    : economyResult.difference < -5000
+    : recommendedCoverage === 80
     ? '80% dekning kan lønne seg for deres situasjon'
     : 'Forskjellen mellom 80% og 100% er liten for deres situasjon';
+
+  const handleToggleExplanation = () => {
+    const newShowExplanation = !showExplanation;
+    setShowExplanation(newShowExplanation);
+    if (newShowExplanation) {
+      posthog.capture('recommendation_expanded', {
+        recommended_coverage: recommendedCoverage,
+      });
+    }
+  };
 
   return (
     <div className="rounded-lg bg-[var(--color-info-bg)] p-3 space-y-2">
@@ -219,7 +231,7 @@ function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks, motherVacat
               Detaljert tidslinje i kalenderen
             </p>
             <button
-              onClick={() => setShowExplanation(!showExplanation)}
+              onClick={handleToggleExplanation}
               className="text-xs text-[var(--color-info-fg)] font-medium flex items-center gap-0.5 hover:underline shrink-0"
             >
               Hvorfor?
