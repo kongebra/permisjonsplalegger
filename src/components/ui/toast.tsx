@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, use, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
@@ -23,7 +23,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function useToast() {
-  const context = useContext(ToastContext);
+  const context = use(ToastContext);
   if (!context) {
     throw new Error('useToast must be used within a ToastProvider');
   }

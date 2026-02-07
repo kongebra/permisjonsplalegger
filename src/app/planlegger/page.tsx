@@ -14,13 +14,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from "next/link";
 
 // Check localStorage on client side only
 function checkLocalStorage(): boolean {
   if (typeof window === "undefined") return false;
-  const saved = localStorage.getItem("permisjonsplan-v1");
-  return saved !== null;
+  try {
+    const saved = localStorage.getItem("permisjonsplan-v1");
+    return saved !== null;
+  } catch {
+    return false;
+  }
 }
 
 export default function PlanleggerPage() {
@@ -90,7 +93,7 @@ export default function PlanleggerPage() {
         </div>
       </header> */}
 
-      <main className="container mx-auto px-4 py-4">
+      <main id="main" className="container mx-auto px-4 py-4">
         <WizardContainer />
       </main>
 

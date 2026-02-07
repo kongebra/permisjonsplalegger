@@ -46,11 +46,16 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
           Velg <GlossaryTerm term="dekningsgrad">dekningsgrad</GlossaryTerm>
         </h2>
         <p className="text-muted-foreground">
-          NAV utbetaler det samme totalt — men gapet og feriepenger gjør at én kan lønne seg
+          NAV utbetaler det samme totalt — men gapet og feriepenger gjør at én
+          kan lønne seg
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label="Velg dekningsgrad">
+      <div
+        className="grid gap-4 sm:grid-cols-2"
+        role="radiogroup"
+        aria-label="Velg dekningsgrad"
+      >
         {coverageOptions.map((option) => (
           <button
             key={option.value}
@@ -102,12 +107,12 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
               </div>
 
               {/* Description */}
-              <p className="text-sm text-muted-foreground">
+              {/* <p className="text-sm text-muted-foreground">
                 {option.description}
-              </p>
+              </p> */}
 
               {/* Pros/Cons */}
-              <div className="space-y-2 pt-2 border-t">
+              {/* <div className="space-y-2 pt-2 border-t">
                 <div className="space-y-1">
                   {option.pros.map((pro, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
@@ -127,7 +132,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
           </button>
         ))}
@@ -135,21 +140,25 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
 
       {/* Visual timeline comparison */}
       <div className="rounded-lg border p-3 space-y-3">
-        <p className="text-xs font-medium text-muted-foreground text-center">Tidslinje-sammenligning</p>
+        <p className="text-xs font-medium text-muted-foreground text-center">
+          Tidslinje-sammenligning
+        </p>
         {/* 100% bar */}
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 h-6">
             <div
               className={cn(
                 "h-full rounded-l-sm text-[10px] font-medium flex items-center justify-center text-white",
-                value === 100 ? "bg-primary" : "bg-muted-foreground/40"
+                value === 100 ? "bg-primary" : "bg-muted-foreground/40",
               )}
-              style={{ width: `${(LEAVE_CONFIG[100].total / LEAVE_CONFIG[80].total) * 100}%` }}
+              style={{
+                width: `${(LEAVE_CONFIG[100].total / LEAVE_CONFIG[80].total) * 100}%`,
+              }}
             >
               {LEAVE_CONFIG[100].total} uker
             </div>
-            <div className="h-full flex-1 rounded-r-sm bg-[var(--color-warning-bg)] border border-dashed border-[var(--color-warning-fg)]/30 text-[10px] flex items-center justify-center text-[var(--color-warning-fg)]">
-              Gap
+            <div className="h-full flex-1 rounded-r-sm bg-warning-bg border border-dashed border-warning-fg/30 text-[10px] flex items-center justify-center text-warning-fg">
+              <GlossaryTerm term="gap">Gap</GlossaryTerm>
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground">100% dekning</p>
@@ -160,7 +169,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
             <div
               className={cn(
                 "h-full rounded-sm w-full text-[10px] font-medium flex items-center justify-center text-white",
-                value === 80 ? "bg-primary" : "bg-muted-foreground/40"
+                value === 80 ? "bg-primary" : "bg-muted-foreground/40",
               )}
             >
               {LEAVE_CONFIG[80].total} uker

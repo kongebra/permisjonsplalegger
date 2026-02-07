@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, use, useMemo } from 'react';
 import { addDays, format } from 'date-fns';
 import { DayPicker, type DayButton } from 'react-day-picker';
 
@@ -98,7 +98,7 @@ function LeaveIndicatorDayButton({
   modifiers,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
-  const indicatorMap = useContext(LeaveIndicatorContext);
+  const indicatorMap = use(LeaveIndicatorContext);
   const key = toKey(day.date);
   const indicators = indicatorMap.get(key);
   const isOutside = modifiers.outside;

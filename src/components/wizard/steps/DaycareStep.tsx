@@ -72,52 +72,56 @@ export function DaycareStep({
               startMonth={dueDate}
               endMonth={new Date(dueDate.getFullYear() + 3, 11)}
               disabled={(date) => date < dueDate}
-              className="rounded-md border"
+              className="rounded-md border w-full"
             />
           </div>
 
           {/* Summary with gap indicator */}
-          {daycareDate && (() => {
-            const gapWeeks = Math.max(0, differenceInWeeks(daycareDate, leaveEndDate));
-            return (
-              <div className="space-y-3">
-                {/* Visual gap indicator */}
-                <div className="flex items-center gap-1 h-7">
-                  <div className="h-full flex-1 rounded-l-sm bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-                    Permisjon
-                  </div>
-                  {gapWeeks > 0 ? (
-                    <div className="h-full px-2 bg-[var(--color-warning-bg)] border border-dashed border-[var(--color-warning-fg)]/30 text-[10px] font-medium text-[var(--color-warning-fg)] flex items-center justify-center whitespace-nowrap">
-                      {gapWeeks} {gapWeeks === 1 ? 'uke' : 'uker'}
+          {daycareDate &&
+            (() => {
+              const gapWeeks = Math.max(
+                0,
+                differenceInWeeks(daycareDate, leaveEndDate),
+              );
+              return (
+                <div className="space-y-3">
+                  {/* Visual gap indicator */}
+                  <div className="flex items-center gap-1 h-7">
+                    <div className="h-full flex-1 rounded-l-sm bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                      Permisjon
                     </div>
-                  ) : null}
-                  <div className="h-full flex-1 rounded-r-sm bg-[var(--color-success-bg)] text-[10px] font-medium text-[var(--color-success-fg)] flex items-center justify-center">
-                    Barnehage
+                    {gapWeeks > 0 ? (
+                      <div className="h-full px-2 bg-warning-bg border border-dashed border-warning-fg/30 text-[10px] font-medium text-warning-fg flex items-center justify-center whitespace-nowrap">
+                        {gapWeeks} {gapWeeks === 1 ? "uke" : "uker"}
+                      </div>
+                    ) : null}
+                    <div className="h-full flex-1 rounded-r-sm bg-success-bg text-[10px] font-medium text-success-fg flex items-center justify-center">
+                      Barnehage
+                    </div>
                   </div>
-                </div>
 
-                {/* Date labels */}
-                <div className="grid grid-cols-2 gap-3 text-center">
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground">
-                      Permisjon slutter
-                    </p>
-                    <p className="font-semibold text-sm">
-                      {format(leaveEndDate, "d. MMM yyyy", { locale: nb })}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-xs text-muted-foreground">
-                      Barnehage starter
-                    </p>
-                    <p className="font-semibold text-sm">
-                      {format(daycareDate, "d. MMM yyyy", { locale: nb })}
-                    </p>
+                  {/* Date labels */}
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-xs text-muted-foreground">
+                        Permisjon slutter
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {format(leaveEndDate, "d. MMM yyyy", { locale: nb })}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-xs text-muted-foreground">
+                        Barnehage starter
+                      </p>
+                      <p className="font-semibold text-sm">
+                        {format(daycareDate, "d. MMM yyyy", { locale: nb })}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
         </>
       )}
     </div>

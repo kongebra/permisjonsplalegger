@@ -1,27 +1,32 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
-import { PlannerEconomy } from '@/components/planner/PlannerEconomy';
-import { SettingsSheet } from '@/components/planner/SettingsSheet';
+import dynamic from 'next/dynamic';
+
+const PlannerEconomy = dynamic(
+  () => import('@/components/planner/PlannerEconomy').then(m => ({ default: m.PlannerEconomy }))
+);
+const SettingsSheet = dynamic(
+  () => import('@/components/planner/SettingsSheet').then(m => ({ default: m.SettingsSheet }))
+);
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChevronLeft, Save, Undo2, Settings } from 'lucide-react';
 
+const emptySubscribe = () => () => {};
+
 export default function KalenderPage() {
   const router = useRouter();
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const {
     wizardCompleted,
-    hasSavedPlan,
     checkForSavedPlan,
-    loadPlan,
     savePlan,
     autoSaveEnabled,
     setAutoSaveEnabled,
@@ -32,9 +37,7 @@ export default function KalenderPage() {
   } = usePlannerStore(
     useShallow((state) => ({
       wizardCompleted: state.wizardCompleted,
-      hasSavedPlan: state.hasSavedPlan,
       checkForSavedPlan: state.checkForSavedPlan,
-      loadPlan: state.loadPlan,
       savePlan: state.savePlan,
       autoSaveEnabled: state.autoSaveEnabled,
       setAutoSaveEnabled: state.setAutoSaveEnabled,
@@ -45,35 +48,21 @@ export default function KalenderPage() {
     }))
   );
 
-  // Mark as hydrated after first render (client-side only)
+  // Initialize: check localStorage, then redirect or load saved plan
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  // Initialize store state and handle loading/redirect after hydration
-  useEffect(() => {
-    if (!isHydrated || isInitialized) return;
-
-    // Check for saved plan in localStorage
     checkForSavedPlan();
-    setIsInitialized(true);
-  }, [isHydrated, isInitialized, checkForSavedPlan]);
 
-  // Handle redirect and loading after initialization
-  useEffect(() => {
-    if (!isInitialized) return;
+    const { wizardCompleted: wc, hasSavedPlan: hsp } = usePlannerStore.getState();
 
-    // Redirect if wizard not completed and no saved plan
-    if (!wizardCompleted && !hasSavedPlan) {
+    if (!wc && !hsp) {
       router.push('/planlegger');
       return;
     }
 
-    // Load saved plan if wizard not completed but plan exists
-    if (!wizardCompleted && hasSavedPlan) {
-      loadPlan();
+    if (!wc && hsp) {
+      usePlannerStore.getState().loadPlan();
     }
-  }, [isInitialized, wizardCompleted, hasSavedPlan, loadPlan, router]);
+  }, [checkForSavedPlan, router]);
 
   const handleSave = useCallback(() => {
     savePlan();
@@ -82,13 +71,8 @@ export default function KalenderPage() {
     }
   }, [savePlan, autoSaveEnabled, setAutoSaveEnabled]);
 
-  // Show skeleton during SSR and initialization
-  if (!isHydrated || !isInitialized) {
-    return <CalendarSkeleton />;
-  }
-
-  // Show skeleton while redirecting
-  if (!wizardCompleted && !hasSavedPlan) {
+  // Show skeleton during SSR or before initialization completes
+  if (!isClient || !wizardCompleted) {
     return <CalendarSkeleton />;
   }
 
@@ -144,7 +128,7 @@ export default function KalenderPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 container mx-auto px-4 py-4">
+      <main id="main" className="flex-1 container mx-auto px-4 py-4">
         <Tabs defaultValue="kalender">
           <TabsList className="w-full mb-4">
             <TabsTrigger value="kalender" className="flex-1">Kalender</TabsTrigger>

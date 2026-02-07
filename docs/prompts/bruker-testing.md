@@ -2,7 +2,7 @@ Kjør brukertesting med 5 tilfeldige personas fra docs/personas/.
 
 **Oppsett:**
 
-- App kjører på localhost:3000
+- App kjører på localhost:3001
 - Bruk Playwright MCP for interaksjon
 
 **Testflyt:**

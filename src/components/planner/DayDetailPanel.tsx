@@ -83,7 +83,7 @@ export function DayDetailPanel({
         <h3 className="text-base font-semibold capitalize">
           {format(date, 'EEEE d. MMMM yyyy', { locale: nb })}
         </h3>
-        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 -mr-2">
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 -mr-2" aria-label="Lukk">
           <X className="w-4 h-4" />
         </Button>
       </div>
@@ -148,6 +148,7 @@ export function DayDetailPanel({
                   size="icon"
                   className="shrink-0"
                   onClick={() => onEditPeriod(period.id)}
+                  aria-label="Rediger periode"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>

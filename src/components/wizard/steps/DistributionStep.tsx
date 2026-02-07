@@ -102,11 +102,11 @@ export function DistributionStep({
           {/* Visual distribution */}
           <div className="flex gap-2 h-4 rounded-full overflow-hidden outline-4 outline-black/10">
             <div
-              className="bg-[var(--color-mother)] transition-all"
+              className="bg-mother transition-all"
               style={{ width: `${(sharedWeeksToMother / maxShared) * 100}%` }}
             />
             <div
-              className="bg-[var(--color-father)] transition-all"
+              className="bg-father transition-all"
               style={{ width: `${(sharedWeeksToFather / maxShared) * 100}%` }}
             />
           </div>
@@ -114,12 +114,12 @@ export function DistributionStep({
           {/* Labels */}
           <div className="flex justify-between text-sm">
             <div className="text-center">
-              <div className="text-[var(--color-mother)] font-semibold">
+              <div className="text-mother font-semibold">
                 Mor: {sharedWeeksToMother} uker
               </div>
             </div>
             <div className="text-center">
-              <div className="text-[var(--color-father)] font-semibold">
+              <div className="text-father font-semibold">
                 Far: {sharedWeeksToFather} uker
               </div>
             </div>
@@ -129,11 +129,11 @@ export function DistributionStep({
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-4">
-        <Card className="border-[var(--color-mother-muted)]">
+        <Card className="border-mother-muted">
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Mor totalt</p>
-              <p className="text-2xl font-bold text-[var(--color-mother)]">
+              <p className="text-2xl font-bold text-mother">
                 {motherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -146,11 +146,11 @@ export function DistributionStep({
           </CardContent>
         </Card>
 
-        <Card className="border-[var(--color-father-muted)]">
+        <Card className="border-father-muted">
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Far totalt</p>
-              <p className="text-2xl font-bold text-[var(--color-father)]">
+              <p className="text-2xl font-bold text-father">
                 {fatherTotal} uker
               </p>
               <p className="text-xs text-muted-foreground mt-1">

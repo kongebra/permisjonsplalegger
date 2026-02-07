@@ -16,8 +16,8 @@ This file provides guidance to AI coding agents (Claude Code, Cursor, Copilot, W
 
 ```
 docs/KRAVSPEC.md             # Full requirements specification (Norwegian) - READ for detailed acceptance criteria
-docs/PROGRESS.md             # Current progress, decisions, and context for new developers
-docs/IMPLEMENTATION_PLAN.md  # Original implementation plan (may be outdated)
+docs/PROGRESS.md             # Current progress, architecture, decisions, and context for new developers
+docs/IMPLEMENTATION_PLAN.md  # Original implementation plan (ARCHIVED - kept for historical reference)
 ```
 
 ---
@@ -45,11 +45,13 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 | Framework | Next.js (App Router) | 16.x | React Compiler enabled |
 | UI | React | 19.x | Use hooks, not class components |
 | Styling | Tailwind CSS | 4.x | CSS variables in globals.css |
-| Components | Shadcn/UI | (to add) | Headless, accessible |
-| Charts | Recharts | (to add) | For liquidity visualization |
-| State | React Context / Local | - | Zustand if complexity grows |
+| Components | Shadcn/UI | Installed | 19 komponenter (button, dialog, sheet, toast, etc.) |
+| Calendar | react-day-picker | 9.x | Datepickers og LeaveIndicatorCalendar |
+| Charts | Recharts | 3.x | MonthlyIncomeOverview (stablede barer) |
+| State | Zustand | 5.x | Sliced store (wizard, periods, economy, persistence, ui) |
+| Dates | date-fns | 4.x | All date manipulation and formatting |
 
-**Privacy:** Strictly client-side. No database, no localStorage, no cookies.
+**Privacy:** Client-side only. No database, no cookies, no server-side storage. localStorage brukes KUN for lagring/lasting av planer (`permisjonsplan-v1`) — ingen tracking eller analytics.
 
 ---
 
@@ -105,7 +107,7 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 
 ### DO
 
-- Separate logic (`src/lib/calculator.ts`) from UI (`src/components/`)
+- Separate logic (`src/lib/`) from UI (`src/components/`) and state (`src/store/`)
 - Use English for code variables (`grossSalary`, `gapWeeks`)
 - Use Norwegian for UI text (`Månedslønn`, `Uker i gapet`)
 - Validate all numeric inputs are non-negative
@@ -113,11 +115,13 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 
 ### DO NOT
 
-- Do not store any user data (localStorage, cookies, server) - strictly client-side
+- Do not send any data to a server - all calculations happen client-side
+- Do not use localStorage for anything other than plan persistence (`permisjonsplan-v1`)
 - Do not assume parental leave rules from other countries apply
 - Do not use Pages Router - use App Router only
 - Do not add backend/API routes - all calculations happen client-side
 - Do not round intermediate calculations - only round final display values
+- Do not create new state outside the Zustand store — use existing slices or add new ones
 
 ### Testing Scenarios (Mental Check)
 
@@ -142,35 +146,63 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 ```
 src/
 ├── app/
-│   ├── layout.tsx           # Root layout with Geist fonts
-│   ├── page.tsx             # Main calculator page (all state lives here)
-│   └── globals.css          # Tailwind CSS v4 + CSS variables
+│   ├── layout.tsx                    # Root layout (Geist fonts, Providers)
+│   ├── page.tsx                      # Redirect → /planlegger
+│   ├── globals.css                   # Tailwind CSS v4 + CSS variables
+│   ├── planlegger/
+│   │   ├── page.tsx                  # Wizard page (entry point)
+│   │   └── kalender/
+│   │       └── page.tsx              # Calendar + economy (post-wizard)
+│   └── gammel/
+│       └── page.tsx                  # Legacy calculator (kept for reference)
+├── store/
+│   ├── index.ts                      # Zustand store (combined slices)
+│   ├── hooks.ts                      # Custom hooks (computed values)
+│   └── slices/                       # wizardSlice, periodsSlice, economySlice,
+│       └── ...                       # jobSettingsSlice, persistenceSlice, uiSlice
 ├── lib/
 │   ├── calculator/
-│   │   ├── index.ts         # Main exports, helper functions
-│   │   ├── dates.ts         # Date calculations (periods, gap, segments)
-│   │   └── economy.ts       # Economic comparison 80% vs 100%
-│   ├── constants.ts         # G value, leave configuration
-│   ├── types.ts             # TypeScript interfaces
-│   └── utils.ts             # cn() helper for Tailwind
+│   │   ├── index.ts                  # Main exports, calculate(), defaults
+│   │   ├── dates.ts                  # Date calculations, periods, gap, segments
+│   │   └── economy.ts               # Economic comparison 80% vs 100%
+│   ├── planner/
+│   │   └── initialize-periods.ts     # Wizard result → editable CustomPeriods
+│   ├── constants.ts                  # G value, leave config, wizard steps
+│   ├── types.ts                      # TypeScript interfaces
+│   ├── format.ts                     # formatCurrency() (Norwegian locale)
+│   ├── holidays.ts                   # Norwegian holidays + Easter calculation
+│   └── utils.ts                      # cn() helper for Tailwind
 ├── components/
-│   ├── input/               # All input components
-│   │   ├── DueDateInput.tsx
-│   │   ├── RightsSelector.tsx
-│   │   ├── CoverageToggle.tsx
-│   │   ├── DistributionSliders.tsx
-│   │   ├── DaycareInput.tsx
-│   │   └── EconomySection.tsx
+│   ├── providers.tsx                 # Root provider (ToastProvider)
+│   ├── calendar/                     # Shared calendar primitives
+│   │   ├── DayCell.tsx, MonthGrid.tsx, PeriodBandRenderer.tsx
+│   │   ├── CalendarLegend.tsx, colors.ts, types.ts
+│   │   └── resolve-bands.ts, resolve-day.ts
+│   ├── wizard/                       # 8-step onboarding wizard
+│   │   ├── WizardContainer.tsx, WizardProgress.tsx
+│   │   ├── WelcomeIntro.tsx, SetupLoader.tsx
+│   │   └── steps/                    # DueDate, Rights, Coverage, Distribution,
+│   │       └── ...                   # Daycare, JobSettings, Economy, Summary
+│   ├── planner/                      # Interactive planner calendar
+│   │   ├── PlannerCalendar.tsx       # Main calendar with touch/swipe
+│   │   ├── PeriodModal.tsx           # Create/edit periods
+│   │   ├── SettingsSheet.tsx         # Plan settings side-sheet
+│   │   ├── PlannerEconomy.tsx        # Economy tab
+│   │   ├── MonthlyIncomeOverview.tsx # Stacked bar per month
+│   │   └── ...                       # StatsBar, DayDetail, YearOverview, etc.
+│   ├── input/                        # Input components (legacy + reused)
+│   │   └── ...                       # DueDate, Rights, Coverage, Distribution,
+│   │                                 # Daycare, Vacation, Economy, PeriodInput
 │   ├── timeline/
-│   │   └── CalendarTimeline.tsx  # Calendar visualization
+│   │   └── CalendarTimeline.tsx      # Calendar visualization (uses calendar/)
 │   ├── results/
-│   │   ├── DateSummary.tsx       # Leave period table
-│   │   └── EconomyComparison.tsx # 80% vs 100% comparison
-│   └── ui/                  # shadcn/ui components
+│   │   ├── DateSummary.tsx           # Leave period table
+│   │   └── EconomyComparison.tsx     # 80% vs 100% comparison
+│   └── ui/                           # shadcn/ui (19 components)
 docs/
-├── KRAVSPEC.md              # Full requirements specification (Norwegian)
-├── IMPLEMENTATION_PLAN.md   # Original implementation plan
-└── PROGRESS.md              # Current progress and context for new developers
+├── KRAVSPEC.md                       # Requirements specification (Norwegian)
+├── IMPLEMENTATION_PLAN.md            # Original plan (ARCHIVED)
+└── PROGRESS.md                       # Current progress and full file listing
 ```
 
 **Path alias:** `@/*` maps to `./src/*`
@@ -257,6 +289,8 @@ return new Date(year + 1, 7, 1); // Born before Aug → daycare 1 year later
 - **Don't use `"use client"` unnecessarily** - Server Components are the default
 - **Don't fetch data client-side** - This is a calculator, all logic runs in browser
 - **Don't use `useEffect` for calculations** - Derive values directly from state
+- **Use `useShallow` with Zustand selectors** - Prevents unnecessary re-renders
+- **Wizard and Planner are separate pages** - Don't mix their concerns; state flows via Zustand store
 
 ---
 

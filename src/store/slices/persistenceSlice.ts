@@ -73,10 +73,14 @@ export const createPersistenceSlice: StateCreator<
 
   checkForSavedPlan: () => {
     if (typeof window === 'undefined') return false;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const hasSaved = saved !== null;
-    set({ hasSavedPlan: hasSaved });
-    return hasSaved;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const hasSaved = saved !== null;
+      set({ hasSavedPlan: hasSaved });
+      return hasSaved;
+    } catch {
+      return false;
+    }
   },
 
   setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
@@ -85,7 +89,7 @@ export const createPersistenceSlice: StateCreator<
 
   clearSavedPlan: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEY);
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* private browsing */ }
     }
     set({ hasSavedPlan: false, autoSaveEnabled: false, lastSavedAt: null });
   },
@@ -94,15 +98,16 @@ export const createPersistenceSlice: StateCreator<
 // Standalone functions for save/load (used by store actions)
 export function savePlanToStorage(plan: SavedPlan): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+  } catch { /* quota exceeded or private browsing */ }
 }
 
 export function loadPlanFromStorage(): SavedPlan | null {
   if (typeof window === 'undefined') return null;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return null;
-
   try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
     return JSON.parse(saved) as SavedPlan;
   } catch {
     return null;

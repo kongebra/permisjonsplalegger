@@ -31,7 +31,6 @@ export function WizardContainer() {
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [cameFromSummary, setCameFromSummary] = useState(false);
   const stepContentRef = useRef<HTMLDivElement>(null);
-  const prevStepRef = useRef<number>(1);
 
   // Wizard state
   const {
@@ -54,6 +53,12 @@ export function WizardContainer() {
     completeWizard,
   } = useWizard();
 
+  // Animation direction tracking (must be after useWizard)
+  const [animState, setAnimState] = useState({
+    prevStep: currentStep,
+    dir: "forward" as "forward" | "backward",
+  });
+
   // Job settings
   const {
     motherJobSettings,
@@ -69,22 +74,25 @@ export function WizardContainer() {
   // Persistence
   const { savePlan, hasSavedPlan } = usePersistence();
 
-  // Skip intro if user has saved plan or is past step 1
-  useEffect(() => {
-    if (hasSavedPlan || currentStep > 1) {
-      setShowIntro(false);
-    }
-  }, [hasSavedPlan, currentStep]);
+  // Skip intro if user has saved plan or is past step 1 (state-during-render)
+  if (showIntro && (hasSavedPlan || currentStep > 1)) {
+    setShowIntro(false);
+  }
 
-  // Derive animation direction from step change
-  const direction = currentStep >= prevStepRef.current ? 'forward' : 'backward';
+  // Derive animation direction from step change (state-during-render pattern)
+  if (animState.prevStep !== currentStep) {
+    setAnimState({
+      prevStep: currentStep,
+      dir: currentStep >= animState.prevStep ? "forward" : "backward",
+    });
+  }
+  const direction = animState.dir;
 
-  // Focus step content and track direction on step change (a11y)
+  // Focus step content on step change (a11y)
   useEffect(() => {
-    prevStepRef.current = currentStep;
     if (stepContentRef.current) {
       stepContentRef.current.focus();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [currentStep]);
 
@@ -97,22 +105,30 @@ export function WizardContainer() {
       isPopstateRef.current = false;
       return;
     }
-    window.history.pushState({ wizardStep: currentStep }, '', `#steg-${currentStep}`);
+    window.history.pushState(
+      { wizardStep: currentStep },
+      "",
+      `#steg-${currentStep}`,
+    );
   }, [currentStep]);
 
   useEffect(() => {
     const handlePopstate = (e: PopStateEvent) => {
       const step = e.state?.wizardStep;
-      if (typeof step === 'number' && step >= 1 && step <= TOTAL_WIZARD_STEPS) {
+      if (typeof step === "number" && step >= 1 && step <= TOTAL_WIZARD_STEPS) {
         isPopstateRef.current = true;
         setCurrentStep(step);
       }
     };
 
     // Set initial history state
-    window.history.replaceState({ wizardStep: currentStep }, '', `#steg-${currentStep}`);
-    window.addEventListener('popstate', handlePopstate);
-    return () => window.removeEventListener('popstate', handlePopstate);
+    window.history.replaceState(
+      { wizardStep: currentStep },
+      "",
+      `#steg-${currentStep}`,
+    );
+    window.addEventListener("popstate", handlePopstate);
+    return () => window.removeEventListener("popstate", handlePopstate);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate leave result
@@ -133,12 +149,10 @@ export function WizardContainer() {
     setCurrentStep(TOTAL_WIZARD_STEPS);
   };
 
-  // Clear flag when arriving at summary normally
-  useEffect(() => {
-    if (currentStep === TOTAL_WIZARD_STEPS) {
-      setCameFromSummary(false);
-    }
-  }, [currentStep]);
+  // Clear flag when arriving at summary normally (state-during-render)
+  if (cameFromSummary && currentStep === TOTAL_WIZARD_STEPS) {
+    setCameFromSummary(false);
+  }
 
   // Handle wizard completion — show branded loader, then navigate
   const handleComplete = () => {
@@ -234,9 +248,9 @@ export function WizardContainer() {
 
   // Step-specific validation hints
   const stepHints: Record<number, string> = {
-    1: 'Velg termindato for å gå videre',
-    2: 'Velg hvem som har rett til foreldrepenger',
-    3: 'Velg dekningsgrad',
+    1: "Velg termindato for å gå videre",
+    2: "Velg hvem som har rett til foreldrepenger",
+    3: "Velg dekningsgrad",
   };
 
   // Show branded setup loader after wizard completion
@@ -254,9 +268,16 @@ export function WizardContainer() {
   }
 
   return (
-    <div className="max-w-lg mx-auto" role="region" aria-label="Permisjonsplanlegger">
+    <div
+      className="max-w-lg mx-auto"
+      role="region"
+      aria-label="Permisjonsplanlegger"
+    >
       {/* Progress indicator */}
-      <WizardProgress currentStep={currentStep} totalSteps={TOTAL_WIZARD_STEPS} />
+      <WizardProgress
+        currentStep={currentStep}
+        totalSteps={TOTAL_WIZARD_STEPS}
+      />
 
       {/* Step content */}
       <div
@@ -267,7 +288,11 @@ export function WizardContainer() {
       >
         <div
           key={currentStep}
-          className={direction === 'forward' ? 'animate-slide-in-right' : 'animate-slide-in-left'}
+          className={
+            direction === "forward"
+              ? "animate-slide-in-right"
+              : "animate-slide-in-left"
+          }
         >
           {renderStep()}
         </div>
@@ -278,10 +303,14 @@ export function WizardContainer() {
         <div className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
             {!canProceed && (
-              <div className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg" role="alert">
+              <div
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
+                role="alert"
+              >
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                 <p className="text-sm text-amber-700 dark:text-amber-400">
-                  {stepHints[currentStep] || 'Fyll ut informasjonen over for å fortsette'}
+                  {stepHints[currentStep] ||
+                    "Fyll ut informasjonen over for å fortsette"}
                 </p>
               </div>
             )}
@@ -289,7 +318,7 @@ export function WizardContainer() {
               <Button
                 variant="secondary"
                 onClick={handleReturnToSummary}
-                className="w-full min-h-[36px] text-sm"
+                className="w-full min-h-9 text-sm"
               >
                 Tilbake til oppsummering
               </Button>
@@ -299,7 +328,7 @@ export function WizardContainer() {
                 variant="outline"
                 onClick={prevStep}
                 disabled={isFirstStep}
-                className="flex items-center gap-2 min-h-[44px]"
+                className="flex items-center gap-2 min-h-11"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Tilbake
@@ -308,7 +337,7 @@ export function WizardContainer() {
               <Button
                 onClick={nextStep}
                 disabled={!canProceed}
-                className="flex items-center justify-center gap-2 min-h-[44px] flex-1"
+                className="flex items-center justify-center gap-2 min-h-11 flex-1"
               >
                 Neste
                 <ChevronRight className="w-4 h-4" />

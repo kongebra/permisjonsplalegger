@@ -88,7 +88,7 @@ Applikasjonen skal ta inn følgende data for hver av foreldrene (Mor og Far/Medm
 
 ### 4.3 Nøyaktighet
 
-- **Grunnbeløpet (G):** Skal bruke oppdatert G-verdi (p.t. 124 028 kr), men ha mulighet for enkel oppdatering i koden.
+- **Grunnbeløpet (G):** Skal bruke oppdatert G-verdi (p.t. 130 160 kr per 1. mai 2025), men ha mulighet for enkel oppdatering i koden.
 - **Virkedager:** Beregninger skal ta utgangspunkt i gjennomsnittlig 21.7 arbeidsdager i måneden for nøyaktighet.
 
 ---

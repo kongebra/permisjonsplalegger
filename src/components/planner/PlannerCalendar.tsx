@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { startOfMonth, addDays, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -159,13 +159,15 @@ export function PlannerCalendar() {
     [navigateMonthWithDirection],
   );
 
-  // Set active month to first month of leave on mount + initialize periods
-  useEffect(() => {
+  // Initialize periods and set active month on mount
+  const hasInitialized = useRef<boolean | null>(null);
+  if (hasInitialized.current == null) {
+    hasInitialized.current = true;
+    initializeFromLeave(leaveResult);
     if (leaveResult.mother.start && !isSameMonth(activeMonth, leaveResult.mother.start)) {
       setActiveMonth(startOfMonth(leaveResult.mother.start));
     }
-    initializeFromLeave(leaveResult);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   // Calculate date range for overview
   const dateRange = useMemo(() => {

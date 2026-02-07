@@ -1,5 +1,7 @@
 # Permisjonsøkonomi-kalkulator: Implementeringsplan
 
+> **ARKIVERT:** Dette er den opprinnelige implementeringsplanen fra prosjektoppstart. Arkitekturen har utviklet seg betydelig — se `PROGRESS.md` for nåværende status og `CLAUDE.md` for gjeldende arkitektur. Beholdt for historisk referanse.
+
 ## Sammendrag
 
 Bygge en **samlet permisjons- og økonomikalkulator** for norske foreldre med:

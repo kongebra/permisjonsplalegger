@@ -1,35 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Hand, Palette, Eye } from 'lucide-react';
 
 const ONBOARDING_KEY = 'calendar-onboarding-seen';
+const emptySubscribe = () => () => {};
 
 export function CalendarOnboarding() {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    const seen = localStorage.getItem(ONBOARDING_KEY);
-    if (!seen) {
-      setShow(true);
-    }
-  }, []);
+  const shouldShow = useSyncExternalStore(
+    emptySubscribe,
+    () => { try { return !localStorage.getItem(ONBOARDING_KEY); } catch { return false; } },
+    () => false
+  );
+  const [dismissed, setDismissed] = useState(false);
 
   const dismiss = () => {
-    localStorage.setItem(ONBOARDING_KEY, 'true');
-    setShow(false);
+    try { localStorage.setItem(ONBOARDING_KEY, 'true'); } catch { /* private browsing */ }
+    setDismissed(true);
   };
 
-  if (!show) return null;
+  if (!shouldShow || dismissed) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Slik bruker du kalenderen</CardTitle>
-          <Button variant="ghost" size="icon" onClick={dismiss}>
+          <Button variant="ghost" size="icon" onClick={dismiss} aria-label="Lukk">
             <X className="w-4 h-4" />
           </Button>
         </CardHeader>
@@ -59,7 +58,7 @@ export function CalendarOnboarding() {
             <div>
               <p className="font-medium">Se hele året</p>
               <p className="text-sm text-muted-foreground">
-                Trykk "Oversikt" for å se hele permisjonsperioden i et årskalender-format.
+                Trykk &ldquo;Oversikt&rdquo; for å se hele permisjonsperioden i et årskalender-format.
               </p>
             </div>
           </div>

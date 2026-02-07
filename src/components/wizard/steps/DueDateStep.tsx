@@ -1,13 +1,6 @@
 "use client";
 
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 
@@ -26,24 +19,16 @@ export function DueDateStep({ value, onChange }: DueDateStepProps) {
         </p>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Termindato</CardTitle>
-          <CardDescription>Velg forventet fødselsdato</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Calendar
-            mode="single"
-            selected={value}
-            onSelect={(date) => date && onChange(date)}
-            locale={nb}
-            captionLayout="dropdown"
-            startMonth={new Date(new Date().getFullYear(), 0)}
-            endMonth={new Date(new Date().getFullYear() + 2, 11)}
-            className="rounded-md border w-full"
-          />
-        </CardContent>
-      </Card>
+      <Calendar
+        mode="single"
+        selected={value}
+        onSelect={(date) => date && onChange(date)}
+        locale={nb}
+        captionLayout="dropdown"
+        startMonth={new Date(new Date().getFullYear(), 0)}
+        endMonth={new Date(new Date().getFullYear() + 2, 11)}
+        className="rounded-md border w-full"
+      />
 
       {value && (
         <div className="text-center p-4 bg-muted rounded-lg">

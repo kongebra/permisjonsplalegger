@@ -682,8 +682,6 @@ export function validatePeriods(
 export function buildSegmentsFromPeriods(
   motherConfig: ParentPeriodConfig,
   fatherConfig: ParentPeriodConfig,
-  _dueDate: Date,
-  _daycareDate: Date
 ): LeaveSegment[] {
   const segments: LeaveSegment[] = [];
 
