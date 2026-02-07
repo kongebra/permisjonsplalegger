@@ -29,6 +29,7 @@ export interface ParentEconomy {
   monthlyCommissionLoss: number;
   employerCoversAbove6G: boolean;
   employerPaysFeriepenger: boolean; // "Får du feriepenger fra arbeidsgiver som om du var i jobb?"
+  feriepengegrunnlag?: number; // Valgfritt: overstyrrer monthlySalary * 12 for feriepenge-beregning
 }
 
 export interface CalculatorInput {
@@ -114,6 +115,16 @@ export interface EconomyResult {
 export interface CalculatorResult {
   leave: LeaveResult;
   economy?: EconomyResult; // Kun hvis økonomi-data er fylt ut
+}
+
+// --- Cumulative Liquidity Time Series ---
+
+export interface TimeSeriesPoint {
+  month: Date;
+  income80: number;
+  income100: number;
+  cumulative80: number;
+  cumulative100: number;
 }
 
 // --- Advanced Period Planner Types ---

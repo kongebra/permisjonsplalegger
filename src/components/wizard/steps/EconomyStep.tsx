@@ -190,6 +190,48 @@ function ParentEconomySection({
           </Toggle>
         </div>
       </div>
+
+      {/* Feriepengegrunnlag — vises når NAV betaler */}
+      {!economy.employerPaysFeriepenger && economy.monthlySalary > 0 && (
+        <>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm">Feriepengegrunnlag (valgfritt)</Label>
+              <HelpButton>
+                <div className="space-y-2">
+                  <p>Feriepengegrunnlaget er inntekten du opptjente i fjor som danner
+                  grunnlaget for feriepengene du får utbetalt i juni.</p>
+                  <p>Hvis du ikke fyller inn, bruker vi årslønn ({formatCurrency(economy.monthlySalary * 12)}) som estimat.</p>
+                </div>
+              </HelpButton>
+            </div>
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              enterKeyHint="done"
+              value={economy.feriepengegrunnlag || ''}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                const num = Number(val);
+                onChange({ ...economy, feriepengegrunnlag: num > 0 ? num : undefined });
+              }}
+              onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
+              placeholder={formatCurrency(economy.monthlySalary * 12)}
+            />
+          </div>
+
+          {/* Juni-trekk forklaring */}
+          <InfoBox variant="info">
+            <p className="font-medium">Hvorfor trekkes jeg i lønn i juni?</p>
+            <p className="mt-1">I juni utbetales feriepenger basert på forrige års inntekt.
+            Når NAV betaler foreldrepenger, opptjener du kun feriepenger
+            for de første {coverage === 100 ? '12' : '15'} ukene.
+            Resten av permisjonen gir ingen opptjening — så juni-lønnen
+            året etter blir lavere enn normalt.</p>
+          </InfoBox>
+        </>
+      )}
     </div>
   );
 }

@@ -6,9 +6,9 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
-import type { LeaveResult, EconomyResult } from '@/lib/types';
+import type { LeaveResult, EconomyResult, TimeSeriesPoint } from '@/lib/types';
 import { calculateLeave } from '@/lib/calculator';
-import { compareScenarios } from '@/lib/calculator/economy';
+import { compareScenarios, generateCumulativeTimeSeries } from '@/lib/calculator/economy';
 
 /**
  * Hook for wizard state and actions
@@ -269,6 +269,52 @@ export function useEconomyComparison(): EconomyResult | null {
       sharedWeeksToMother,
       leave80.gap,
       leave100.gap,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dueDateMs, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);
+}
+
+/**
+ * Hook for cumulative time series comparing 80% vs 100% scenarios.
+ * Returns null if no salary data is available.
+ */
+export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
+  const { dueDate, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
+    usePlannerStore(
+      useShallow((state) => ({
+        dueDate: state.dueDate,
+        rights: state.rights,
+        sharedWeeksToMother: state.sharedWeeksToMother,
+        daycareStartDate: state.daycareStartDate,
+        daycareEnabled: state.daycareEnabled,
+      }))
+    );
+
+  const { motherEconomy, fatherEconomy } = usePlannerStore(
+    useShallow((state) => ({
+      motherEconomy: state.motherEconomy,
+      fatherEconomy: state.fatherEconomy,
+    }))
+  );
+
+  const dueDateMs = dueDate.getTime();
+  const daycareDateMs = daycareStartDate?.getTime() ?? 0;
+
+  return useMemo(() => {
+    if (motherEconomy.monthlySalary <= 0) return null;
+
+    const effectiveDaycare =
+      daycareEnabled && daycareStartDate
+        ? daycareStartDate
+        : new Date(dueDate.getFullYear() + 3, 7, 1);
+
+    return generateCumulativeTimeSeries(
+      motherEconomy,
+      rights !== 'mother-only' ? fatherEconomy : undefined,
+      dueDate,
+      rights,
+      sharedWeeksToMother,
+      effectiveDaycare,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dueDateMs, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);

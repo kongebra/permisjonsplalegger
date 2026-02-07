@@ -11,6 +11,7 @@ import { LEAVE_CONFIG } from '@/lib/constants';
 import { GlossaryTerm } from '@/components/ui/glossary-term';
 import { cn } from '@/lib/utils';
 import { MonthlyIncomeOverview } from './MonthlyIncomeOverview';
+import { CumulativeLiquidityChart } from './CumulativeLiquidityChart';
 
 function daysToWeeks(days: number) {
   return Math.ceil(days / 7);
@@ -125,6 +126,8 @@ export function PlannerEconomy() {
       <QuotaOverview />
 
       <MonthlyIncomeOverview />
+
+      <CumulativeLiquidityChart />
 
       {!economyResult ? (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">

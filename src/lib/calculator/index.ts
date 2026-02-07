@@ -2,7 +2,7 @@
  * Hovedeksport for kalkulatormotoren
  */
 
-import { calculateLeave, calculateGap } from './dates';
+import { calculateLeave } from './dates';
 import { compareScenarios } from './economy';
 import { LEAVE_CONFIG } from '../constants';
 import type {
@@ -110,7 +110,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 // Re-eksporter nyttige funksjoner og typer
 export {
   calculateLeave,
-  calculateGap,
   countVacationDays,
   calculateQuotaUsage,
   validatePeriods,
@@ -127,6 +126,7 @@ export {
   calculateDailyRate,
   calculateNavPayout,
   compareScenarios,
+  generateCumulativeTimeSeries,
 } from './economy';
 export * from '../types';
 export * from '../constants';

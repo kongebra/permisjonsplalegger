@@ -142,13 +142,21 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
         </Card>
       </div>
 
-      {/* Fotnote */}
-      {(scenario100.breakdown.gapCost > 0 || scenario80.breakdown.gapCost > 0) && (
-        <p className="text-xs text-muted-foreground">
-          Gap-kostnaden antar at én forelder er hjemme uten lønn i hele gapet.
-          I praksis kan ferie, fleksibel jobb eller annen hjelp redusere dette.
-        </p>
-      )}
+      {/* Fotnoter */}
+      <div className="space-y-1">
+        {(scenario100.breakdown.gapCost > 0 || scenario80.breakdown.gapCost > 0) && (
+          <p className="text-xs text-muted-foreground">
+            Gap-kostnaden antar at én forelder er hjemme uten lønn i hele gapet.
+            I praksis kan ferie, fleksibel jobb eller annen hjelp redusere dette.
+          </p>
+        )}
+        {(scenario100.breakdown.feriepengeDifference > 0 || scenario80.breakdown.feriepengeDifference > 0) && (
+          <p className="text-xs text-muted-foreground">
+            Tapt feriepengeopptjening vises i juni-lønnen året etter — NAV dekker kun
+            opptjening for de første 12–15 ukene av permisjonen.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
