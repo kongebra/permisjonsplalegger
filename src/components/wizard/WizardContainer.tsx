@@ -19,15 +19,19 @@ import {
   useJobSettings,
   useEconomy,
   useCalculatedLeave,
-  usePersistence,
   useCanProceed,
 } from "@/store/hooks";
+import { usePlannerStore } from "@/store";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
 
-export function WizardContainer() {
+interface WizardContainerProps {
+  skipIntro?: boolean;
+}
+
+export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
   const router = useRouter();
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(!skipIntro);
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [cameFromSummary, setCameFromSummary] = useState(false);
   const stepContentRef = useRef<HTMLDivElement>(null);
@@ -72,12 +76,7 @@ export function WizardContainer() {
     useEconomy();
 
   // Persistence
-  const { savePlan, hasSavedPlan } = usePersistence();
-
-  // Skip intro if user has saved plan or is past step 1 (state-during-render)
-  if (showIntro && (hasSavedPlan || currentStep > 1)) {
-    setShowIntro(false);
-  }
+  const savePlan = usePlannerStore((state) => state.savePlan);
 
   // Derive animation direction from step change (state-during-render pattern)
   if (animState.prevStep !== currentStep) {
@@ -97,9 +96,11 @@ export function WizardContainer() {
   }, [currentStep]);
 
   // Sync wizard step with browser history for back button support
+  // Only active when intro is dismissed (avoid polluting history during intro)
   const isPopstateRef = useRef(false);
 
   useEffect(() => {
+    if (showIntro) return;
     // Push new history state when step changes (but not from popstate)
     if (isPopstateRef.current) {
       isPopstateRef.current = false;
@@ -110,9 +111,11 @@ export function WizardContainer() {
       "",
       `#steg-${currentStep}`,
     );
-  }, [currentStep]);
+  }, [currentStep, showIntro]);
 
   useEffect(() => {
+    if (showIntro) return;
+
     const handlePopstate = (e: PopStateEvent) => {
       const step = e.state?.wizardStep;
       if (typeof step === "number" && step >= 1 && step <= TOTAL_WIZARD_STEPS) {
@@ -129,7 +132,7 @@ export function WizardContainer() {
     );
     window.addEventListener("popstate", handlePopstate);
     return () => window.removeEventListener("popstate", handlePopstate);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showIntro]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate leave result
   const leaveResult = useCalculatedLeave();
@@ -165,6 +168,8 @@ export function WizardContainer() {
     if (!isSettingUp) return;
     const timer = setTimeout(() => {
       completeWizard();
+      // Re-save so the persisted plan has wizardCompleted: true
+      usePlannerStore.getState().savePlan();
       router.push("/planlegger/kalender");
     }, SETUP_LOADER_DURATION);
     return () => clearTimeout(timer);

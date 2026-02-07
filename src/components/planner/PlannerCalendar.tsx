@@ -308,8 +308,8 @@ export function PlannerCalendar() {
         />
       )}
 
-      {/* FAB for adding new periods */}
-      {!showDayDetail && <AddPeriodFab onClick={() => openPeriodModal()} />}
+      {/* FAB for adding new periods — hidden during overlays */}
+      {!showDayDetail && !showMonthOverview && <AddPeriodFab onClick={() => openPeriodModal()} />}
 
       {/* Period edit modal */}
       <PeriodModal

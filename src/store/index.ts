@@ -174,6 +174,12 @@ export const usePlannerStore = create<PlannerStore>()(
 
     // Reset everything
     resetAll: () => {
+      // Cancel any pending auto-save to prevent re-saving cleared data
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = null;
+      }
+
       const state = usePlannerStore.getState();
       state.resetWizard();
       state.resetJobSettings();
@@ -212,6 +218,9 @@ usePlannerStore.subscribe(
     const postWizardChange = curr.autoSaveEnabled && curr.wizardCompleted;
 
     if (!wizardStepChanged && !postWizardChange) return;
+
+    // Skip auto-save after resetAll() — wizard was completed but is now reset
+    if (wizardStepChanged && prev.wizardCompleted && !curr.wizardCompleted) return;
 
     // Skip if nothing changed (for post-wizard saves)
     if (!wizardStepChanged && JSON.stringify(curr) === JSON.stringify(prev)) return;

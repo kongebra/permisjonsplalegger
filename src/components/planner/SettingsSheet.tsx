@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
-import { ChevronDown, CalendarDays, Users, Percent, Baby, Wallet } from 'lucide-react';
+import { ChevronDown, CalendarDays, Users, Percent, Baby, Wallet, Trash2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -46,9 +47,11 @@ interface SettingsSheetProps {
 type SettingsSection = 'dueDate' | 'rights' | 'coverage' | 'distribution' | 'daycare' | 'economy' | null;
 
 export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
+  const router = useRouter();
   const wizard = useWizard();
   const economy = useEconomy();
   const recalculateFromSettings = usePlannerStore((s) => s.recalculateFromSettings);
+  const resetAll = usePlannerStore((s) => s.resetAll);
 
   // Local settings state (edited in sheet, applied on "Oppdater")
   const [dueDate, setDueDate] = useState(wizard.dueDate);
@@ -63,6 +66,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   // UI state
   const [expandedSection, setExpandedSection] = useState<SettingsSection>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Sync local state when sheet opens
   const handleOpenChange = useCallback((isOpen: boolean) => {
@@ -120,6 +124,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     }
     doApply();
   }, [isDestructiveChange, doApply]);
+
+  const handleDeleteData = useCallback(() => {
+    resetAll();
+    setShowDeleteDialog(false);
+    onOpenChange(false);
+    router.push('/planlegger');
+  }, [resetAll, onOpenChange, router]);
 
   const toggleSection = (section: SettingsSection) => {
     setExpandedSection((prev) => (prev === section ? null : section));
@@ -310,10 +321,11 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                 )}
               </div>
             </SettingsRow>
+
           </div>
 
-          {/* Sticky bottom button */}
-          <div className="border-t px-4 py-4">
+          {/* Bottom area: delete + update button */}
+          <div className="border-t px-4 py-4 space-y-3">
             <Button
               onClick={handleApply}
               disabled={!hasChanges}
@@ -321,6 +333,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             >
               Oppdater plan
             </Button>
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="flex items-center justify-center gap-2 w-full text-sm text-destructive hover:underline py-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Slett alle data og start på nytt
+            </button>
           </div>
         </SheetContent>
       </Sheet>
@@ -345,6 +364,35 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             </Button>
             <Button onClick={doApply}>
               Oppdater
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete data confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Slette alle data?</DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Dette sletter planen din og all informasjon du har lagt inn.
+                  Du kommer tilbake til starten og kan begynne på nytt.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ingen data er lagret utenfor nettleseren din. Vi sender ingenting
+                  til noen server — alt ligger kun på denne enheten.
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Avbryt
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteData}>
+              Slett og start på nytt
             </Button>
           </DialogFooter>
         </DialogContent>

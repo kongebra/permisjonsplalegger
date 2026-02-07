@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
@@ -16,7 +15,7 @@ const SettingsSheet = dynamic(
 );
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ChevronLeft, Save, Undo2, Settings } from 'lucide-react';
+import { Save, Undo2, Settings } from 'lucide-react';
 
 const emptySubscribe = () => () => {};
 
@@ -81,14 +80,7 @@ export default function KalenderPage() {
       {/* Header */}
       <header className="border-b sticky top-0 bg-background z-40">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/planlegger">
-            <Button variant="ghost" size="sm" className="flex items-center gap-1">
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Tilbake</span>
-            </Button>
-          </Link>
-
-          <h1 className="text-lg font-semibold">Kalender</h1>
+          <h1 className="text-lg font-semibold">Permisjonsplanlegger</h1>
 
           <div className="flex items-center gap-2">
             {/* Undo button */}
