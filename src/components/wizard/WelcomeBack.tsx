@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarHeart, ArrowRight, RotateCcw } from "lucide-react";
+import { CalendarHeart, ArrowRight, RotateCcw, Info } from "lucide-react";
 import posthog from "posthog-js";
 
 interface WelcomeBackProps {
@@ -68,9 +68,12 @@ export function WelcomeBack({ onContinue, onStartNew }: WelcomeBackProps) {
         </div>
 
         {/* Privacy note */}
-        <p className="text-xs text-muted-foreground text-center">
-          Dette er et planleggingsverktøy, ikke en offentlig tjeneste. Kontakt
-          NAV for offisielle beregninger.
+        <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-1.5">
+          <Info className="w-4 h-4 shrink-0" />
+          <span>
+            Husk: Estimatverktøy laget av privatpersoner — sjekk alltid med
+            NAV.
+          </span>
         </p>
       </div>
     </div>

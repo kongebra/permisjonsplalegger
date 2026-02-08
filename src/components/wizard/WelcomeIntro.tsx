@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Clock, Calculator } from "lucide-react";
+import { Shield, Clock, Calculator, AlertTriangle } from "lucide-react";
 import posthog from "posthog-js";
 
 interface WelcomeIntroProps {
@@ -11,7 +11,7 @@ interface WelcomeIntroProps {
 
 export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-3">
           Velkommen til permisjonsplanleggeren
@@ -28,8 +28,8 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
             <div>
               <h3 className="font-semibold">Trygt og privat</h3>
               <p className="text-sm text-muted-foreground">
-                Personlig informasjon lagres kun lokalt. Anonym
-                bruksstatistikk samles inn for å forbedre tjenesten.
+                Personlig informasjon lagres kun lokalt. Anonym bruksstatistikk
+                samles inn for å forbedre tjenesten.
               </p>
             </div>
           </CardContent>
@@ -60,6 +60,27 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
         </Card>
       </div>
 
+      <div className="rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-3">
+        <div className="flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1.5 text-xs text-amber-800">
+            <p className="font-semibold text-amber-900 text-sm">
+              Viktig å vite
+            </p>
+            <ul className="list-disc list-inside space-y-0.5">
+              <li>Ikke en offentlig tjeneste — laget av privatpersoner</li>
+              <li>Estimater kan inneholde feil</li>
+              <li>Sjekk alltid med NAV for rettigheter og beløp</li>
+              <li>Regler og satser kan endre seg</li>
+            </ul>
+            <p className="text-amber-700">
+              Ved å bruke kalkulatoren godtar du at den kun er ment som et
+              hjelpemiddel.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Button
         onClick={() => {
           posthog.capture("wizard_started");
@@ -70,10 +91,6 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
       >
         Start planleggingen
       </Button>
-
-      <p className="text-xs text-muted-foreground text-center">
-        Dette er et planleggingsverktøy, ikke en offentlig tjeneste. Kontakt NAV for offisielle beregninger.
-      </p>
     </div>
   );
 }
