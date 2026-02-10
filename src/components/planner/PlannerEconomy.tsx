@@ -48,7 +48,7 @@ function QuotaOverview() {
         label: 'Mors kvote',
         used: Math.min(motherQuotaWeeks, config.mother),
         total: config.mother,
-        color: 'bg-pink-400',
+        color: 'bg-mother-strong',
       });
     }
 
@@ -57,7 +57,7 @@ function QuotaOverview() {
         label: 'Fars kvote',
         used: Math.min(fatherQuotaWeeks, config.father),
         total: config.father,
-        color: 'bg-blue-400',
+        color: 'bg-father-strong',
       });
     }
 
@@ -66,7 +66,7 @@ function QuotaOverview() {
         label: 'Fellesperiode',
         used: Math.min(sharedWeeksMother + sharedWeeksFather, config.shared),
         total: config.shared,
-        color: 'bg-purple-400',
+        color: 'bg-shared',
         sharedMother: sharedWeeksMother,
         sharedFather: sharedWeeksFather,
       });
@@ -95,11 +95,11 @@ function QuotaOverview() {
           {quota.sharedMother !== undefined ? (
             <div className="h-2 bg-muted rounded-full overflow-hidden flex">
               <div
-                className="h-full bg-pink-400 transition-all"
+                className="h-full bg-mother-strong transition-all"
                 style={{ width: `${Math.min(100, (quota.sharedMother / quota.total) * 100)}%` }}
               />
               <div
-                className="h-full bg-blue-400 transition-all"
+                className="h-full bg-father-strong transition-all"
                 style={{ width: `${Math.min(100 - (quota.sharedMother / quota.total) * 100, (quota.sharedFather! / quota.total) * 100)}%` }}
               />
             </div>

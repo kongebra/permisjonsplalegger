@@ -105,17 +105,17 @@ export function MiniMonth({
                 !isCurrentMonth && 'opacity-20',
                 // Due date and daycare start trump leave colors
                 isDue
-                  ? 'bg-violet-500 ring-1 ring-violet-300'
+                  ? 'bg-duedate'
                   : isDaycare
-                    ? 'bg-emerald-500 ring-1 ring-emerald-300'
+                    ? 'bg-daycare'
                     : hasMother && hasFather
-                      ? 'bg-gradient-to-r from-pink-400 to-blue-400'
+                      ? 'bg-gradient-to-r from-mother-strong to-father-strong'
                       : hasMother
-                        ? 'bg-pink-400'
+                        ? 'bg-mother-strong'
                         : hasFather
-                          ? 'bg-blue-400'
+                          ? 'bg-father-strong'
                           : isSunday
-                            ? 'bg-red-200'
+                            ? 'bg-destructive/20'
                             : 'bg-muted',
               )}
             />

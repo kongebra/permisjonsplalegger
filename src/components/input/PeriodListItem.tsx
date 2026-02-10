@@ -20,22 +20,22 @@ const typeConfig: Record<
   quota: {
     label: 'Kvote',
     icon: <Briefcase className="h-4 w-4" />,
-    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    className: 'bg-success-bg text-success-fg',
   },
   shared: {
     label: 'Fellesperiode',
     icon: <Calendar className="h-4 w-4" />,
-    className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    className: 'bg-shared-light text-shared',
   },
   vacation: {
     label: 'Ferie',
     icon: <Umbrella className="h-4 w-4" />,
-    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    className: 'bg-warning-bg text-warning-fg',
   },
   unpaid: {
     label: 'Ulønnet',
     icon: <Clock className="h-4 w-4" />,
-    className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    className: 'bg-unpaid text-muted-foreground',
   },
 };
 

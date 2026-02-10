@@ -20,8 +20,8 @@ interface ParentPeriodSectionProps {
 }
 
 const parentLabels: Record<Parent, { title: string; color: string }> = {
-  mother: { title: 'Mor', color: 'text-pink-600 dark:text-pink-400' },
-  father: { title: 'Far / Medmor', color: 'text-blue-600 dark:text-blue-400' },
+  mother: { title: 'Mor', color: 'text-mother' },
+  father: { title: 'Far / Medmor', color: 'text-father' },
 };
 
 export function ParentPeriodSection({

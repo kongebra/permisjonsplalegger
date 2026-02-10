@@ -24,7 +24,7 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
       <div className="grid gap-4">
         <Card>
           <CardContent className="flex items-start gap-4">
-            <Shield className="w-8 h-8 text-green-600 shrink-0" />
+            <Shield className="w-8 h-8 text-primary shrink-0" />
             <div>
               <h3 className="font-semibold">Trygt og privat</h3>
               <p className="text-sm text-muted-foreground">
@@ -37,7 +37,7 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
 
         <Card>
           <CardContent className="flex items-start gap-4">
-            <Clock className="w-8 h-8 text-blue-600 shrink-0" />
+            <Clock className="w-8 h-8 text-primary shrink-0" />
             <div>
               <h3 className="font-semibold">Tar ca 5 minutter</h3>
               <p className="text-sm text-muted-foreground">
@@ -49,7 +49,7 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
 
         <Card>
           <CardContent className="flex items-start gap-4">
-            <Calculator className="w-8 h-8 text-purple-600 shrink-0" />
+            <Calculator className="w-8 h-8 text-primary shrink-0" />
             <div>
               <h3 className="font-semibold">Se hva familien faktisk får</h3>
               <p className="text-sm text-muted-foreground">
@@ -60,11 +60,11 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
         </Card>
       </div>
 
-      <div className="rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-3">
+      <div className="rounded-lg bg-warning-bg border border-warning-fg/20 px-3.5 py-3">
         <div className="flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1.5 text-xs text-amber-800">
-            <p className="font-semibold text-amber-900 text-sm">
+          <AlertTriangle className="w-4 h-4 text-warning-fg shrink-0 mt-0.5" />
+          <div className="space-y-1.5 text-xs text-warning-fg">
+            <p className="font-semibold text-foreground text-sm">
               Viktig å vite
             </p>
             <ul className="list-disc list-inside space-y-0.5">
@@ -73,7 +73,7 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
               <li>Sjekk alltid med NAV for rettigheter og beløp</li>
               <li>Regler og satser kan endre seg</li>
             </ul>
-            <p className="text-amber-700">
+            <p className="text-warning-fg">
               Ved å bruke kalkulatoren godtar du at den kun er ment som et
               hjelpemiddel.
             </p>

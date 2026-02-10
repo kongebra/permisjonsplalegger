@@ -47,7 +47,7 @@ export function DueDateInput({ value, onChange }: DueDateInputProps) {
             onSelect={(date) => date && onChange(date)}
             defaultMonth={value}
             locale={nb}
-            autoFocus
+            autoFocus // eslint-disable-line jsx-a11y/no-autofocus -- Intentional: focus calendar when popover opens
             captionLayout="dropdown"
             startMonth={new Date()}
             endMonth={new Date(new Date().getFullYear() + 3, 11)}

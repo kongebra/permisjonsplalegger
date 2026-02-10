@@ -3,77 +3,78 @@ import type { Parent, LeaveSegmentType, PlannerPeriodType } from '@/lib/types';
 /**
  * Centralized color system for calendar components.
  * Single source of truth — both CalendarTimeline and PlannerCalendar consume these.
+ * Uses semantic CSS variables defined in globals.css.
  */
 
 // Parent base colors (used for solid leave periods)
 export const PARENT_COLORS: Record<Parent, { bg: string; darkBg: string; border: string }> = {
   mother: {
-    bg: 'bg-pink-300',
-    darkBg: 'dark:bg-pink-500',
-    border: 'rgb(190, 24, 93)',
+    bg: 'bg-mother-base',
+    darkBg: 'dark:bg-mother-strong',
+    border: 'var(--color-mother-strong)',
   },
   father: {
-    bg: 'bg-blue-300',
-    darkBg: 'dark:bg-blue-500',
-    border: 'rgb(30, 64, 175)',
+    bg: 'bg-father-base',
+    darkBg: 'dark:bg-father-strong',
+    border: 'var(--color-father-strong)',
   },
 };
 
 // Segment type → Tailwind color class (for PeriodBandRenderer stripes)
 export const SEGMENT_COLORS: Record<Parent, Record<string, string>> = {
   mother: {
-    preBirth: 'bg-pink-300',
-    mandatory: 'bg-pink-400',
-    quota: 'bg-pink-300',
-    shared: 'bg-pink-200',
-    overlap: 'bg-pink-200',
-    vacation: 'bg-pink-100',
-    unpaid: 'bg-gray-200',
-    gap: 'bg-orange-200',
+    preBirth: 'bg-mother-base',
+    mandatory: 'bg-mother-strong',
+    quota: 'bg-mother-base',
+    shared: 'bg-mother-light',
+    overlap: 'bg-mother-light',
+    vacation: 'bg-mother-light',
+    unpaid: 'bg-unpaid',
+    gap: 'bg-gap',
   },
   father: {
-    preBirth: 'bg-blue-300',
-    mandatory: 'bg-blue-400',
-    quota: 'bg-blue-300',
-    shared: 'bg-blue-200',
-    overlap: 'bg-blue-200',
-    vacation: 'bg-blue-100',
-    unpaid: 'bg-gray-200',
-    gap: 'bg-orange-200',
+    preBirth: 'bg-father-base',
+    mandatory: 'bg-father-strong',
+    quota: 'bg-father-base',
+    shared: 'bg-father-light',
+    overlap: 'bg-father-light',
+    vacation: 'bg-father-light',
+    unpaid: 'bg-unpaid',
+    gap: 'bg-gap',
   },
 };
 
 // Planner period type → Tailwind color class
 export const PERIOD_COLORS: Record<Parent, Record<string, string>> = {
   mother: {
-    permisjon: 'bg-pink-300',
-    ferie: 'bg-pink-100',
-    ulonnet: 'bg-gray-200',
-    annet: 'bg-purple-200',
+    permisjon: 'bg-mother-base',
+    ferie: 'bg-mother-light',
+    ulonnet: 'bg-unpaid',
+    annet: 'bg-shared-light',
   },
   father: {
-    permisjon: 'bg-blue-300',
-    ferie: 'bg-blue-100',
-    ulonnet: 'bg-gray-200',
-    annet: 'bg-purple-200',
+    permisjon: 'bg-father-base',
+    ferie: 'bg-father-light',
+    ulonnet: 'bg-unpaid',
+    annet: 'bg-shared-light',
   },
 };
 
 // Timeline day-cell status colors (for full-cell coloring in CalendarTimeline)
 export const STATUS_COLORS = {
-  mother: 'bg-pink-300 dark:bg-pink-500',
-  father: 'bg-blue-300 dark:bg-blue-500',
-  motherVacation: 'bg-pink-300 dark:bg-pink-500',
-  fatherVacation: 'bg-blue-300 dark:bg-blue-500',
+  mother: 'bg-mother-base dark:bg-mother-strong',
+  father: 'bg-father-base dark:bg-father-strong',
+  motherVacation: 'bg-mother-base dark:bg-mother-strong',
+  fatherVacation: 'bg-father-base dark:bg-father-strong',
   motherVacationOverlapFather: '',
   fatherVacationOverlapMother: '',
   overlap: '',
-  gap: 'bg-red-200 dark:bg-red-900/50 border border-dashed border-red-400',
-  duedate: 'bg-violet-500 dark:bg-violet-600 text-white font-bold',
-  daycare: 'bg-green-500 dark:bg-green-600 text-white font-bold',
-  daycareWithMotherVacation: 'bg-green-500 dark:bg-green-600 text-white font-bold',
-  daycareWithFatherVacation: 'bg-green-500 dark:bg-green-600 text-white font-bold',
-  unpaid: 'bg-gray-200 dark:bg-gray-700',
+  gap: 'bg-gap dark:bg-gap border border-dashed border-gap-border',
+  duedate: 'bg-duedate text-white font-bold',
+  daycare: 'bg-daycare text-white font-bold',
+  daycareWithMotherVacation: 'bg-daycare text-white font-bold',
+  daycareWithFatherVacation: 'bg-daycare text-white font-bold',
+  unpaid: 'bg-unpaid dark:bg-unpaid',
   normal: 'bg-muted',
 } as const;
 
@@ -82,7 +83,7 @@ export type DayStatus = keyof typeof STATUS_COLORS;
 // Inline styles for gradient/border effects that can't be done with Tailwind classes alone
 export function getOverlapStyle(): React.CSSProperties {
   return {
-    background: `linear-gradient(135deg, rgb(249, 168, 212) 50%, rgb(147, 197, 253) 50%)`,
+    background: `linear-gradient(135deg, var(--color-mother-base) 50%, var(--color-father-base) 50%)`,
   };
 }
 
@@ -93,13 +94,13 @@ export function getVacationFullBorderStyle(parent: Parent): React.CSSProperties 
 export function getVacationHalfBorderStyle(parent: Parent): React.CSSProperties {
   if (parent === 'mother') {
     return {
-      background: `linear-gradient(135deg, rgb(249, 168, 212) 50%, rgb(147, 197, 253) 50%)`,
+      background: `linear-gradient(135deg, var(--color-mother-base) 50%, var(--color-father-base) 50%)`,
       borderLeft: `2px dashed ${PARENT_COLORS.mother.border}`,
       borderTop: `2px dashed ${PARENT_COLORS.mother.border}`,
     };
   }
   return {
-    background: `linear-gradient(135deg, rgb(249, 168, 212) 50%, rgb(147, 197, 253) 50%)`,
+    background: `linear-gradient(135deg, var(--color-mother-base) 50%, var(--color-father-base) 50%)`,
     borderRight: `2px dashed ${PARENT_COLORS.father.border}`,
     borderBottom: `2px dashed ${PARENT_COLORS.father.border}`,
   };
@@ -149,10 +150,10 @@ export function getSegmentPattern(type: LeaveSegmentType | PlannerPeriodType): '
 
 // Get color for a segment
 export function getSegmentColor(parent: Parent, type: string): string {
-  return SEGMENT_COLORS[parent][type] || 'bg-gray-200';
+  return SEGMENT_COLORS[parent][type] || 'bg-unpaid';
 }
 
 // Get color for a custom period
 export function getPeriodColor(parent: Parent, type: string): string {
-  return PERIOD_COLORS[parent][type] || 'bg-gray-200';
+  return PERIOD_COLORS[parent][type] || 'bg-unpaid';
 }

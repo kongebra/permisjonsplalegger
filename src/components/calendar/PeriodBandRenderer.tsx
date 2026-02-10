@@ -16,6 +16,7 @@ function renderBand(
 ) {
   const leftPercent = (band.startDayIndex / 7) * 100;
   const widthPercent = ((band.endDayIndex - band.startDayIndex) / 7) * 100;
+  const isInteractive = !!(onPeriodSelect && band.periodId);
 
   const handleClick = () => {
     if (band.periodId && onPeriodSelect) {
@@ -23,9 +24,18 @@ function renderBand(
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && isInteractive) {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div
       key={band.id}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? -1 : undefined}
       className={cn(
         'absolute h-1/2 flex items-center overflow-hidden',
         isTop ? 'top-0' : 'bottom-0',
@@ -34,7 +44,7 @@ function renderBand(
         band.isEnd && 'rounded-r-sm',
         band.pattern === 'dashed' && 'border-t border-dashed border-current opacity-80',
         band.pattern === 'hatched' && 'opacity-60',
-        onPeriodSelect && band.periodId && 'pointer-events-auto cursor-pointer hover:brightness-90',
+        isInteractive && 'pointer-events-auto cursor-pointer hover:brightness-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
       )}
       style={{
         left: `${leftPercent}%`,
@@ -42,6 +52,7 @@ function renderBand(
         ...band.inlineStyle,
       }}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       title={band.label}
     >
       {band.showLabel && (
@@ -63,7 +74,7 @@ export function PeriodBandRenderer({
   }
 
   return (
-    <div className="relative h-7 pointer-events-none -mt-0.5">
+    <div aria-hidden="true" className="relative h-7 pointer-events-none -mt-0.5">
       {motherBands.map((band) => renderBand(band, true, onPeriodSelect))}
       {fatherBands.map((band) => renderBand(band, false, onPeriodSelect))}
     </div>

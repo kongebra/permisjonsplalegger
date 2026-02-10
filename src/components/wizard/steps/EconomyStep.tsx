@@ -145,7 +145,7 @@ function ParentEconomySection({
               onPressedChange={(pressed) =>
                 onChange({ ...economy, employerCoversAbove6G: pressed })
               }
-              className="data-[state=on]:bg-green-600 data-[state=on]:text-white h-7 px-2.5 text-xs"
+              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground h-7 px-2.5 text-xs"
             >
               Ja
             </Toggle>
@@ -185,7 +185,7 @@ function ParentEconomySection({
             onPressedChange={(pressed) =>
               onChange({ ...economy, employerPaysFeriepenger: pressed })
             }
-            className="data-[state=on]:bg-green-600 data-[state=on]:text-white h-7 px-2.5 text-xs"
+            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground h-7 px-2.5 text-xs"
           >
             Ja
           </Toggle>

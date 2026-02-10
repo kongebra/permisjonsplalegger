@@ -72,9 +72,11 @@ export function DayDetailPanel({
 
   return (
     <div
+      role="region"
+      aria-label={`Detaljer for ${format(date, 'EEEE d. MMMM yyyy', { locale: nb })}`}
       className={cn(
-        'fixed bottom-0 inset-x-0 bg-background rounded-t-2xl shadow-2xl border-t z-40',
-        'p-4 pb-6 max-h-[50vh] overflow-y-auto',
+        'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl bg-background rounded-t-2xl shadow-2xl border-t z-40',
+        'p-4 pb-6 max-h-[40vh] overflow-y-auto',
         'transform transition-transform duration-200 translate-y-0',
       )}
     >
@@ -91,24 +93,24 @@ export function DayDetailPanel({
       {/* Badges */}
       <div className="flex flex-wrap gap-2 mb-3">
         {holidayName && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
             {holidayName}
           </span>
         )}
         {isDueDate && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-duedate/10 text-duedate">
             <Baby className="w-3 h-3" />
             Termindato
           </span>
         )}
         {isDaycareStart && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-daycare/10 text-daycare">
             <GraduationCap className="w-3 h-3" />
             Barnehagestart
           </span>
         )}
         {isGapDay && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning-bg text-warning-fg">
             <AlertTriangle className="w-3 h-3" />
             Gap-dag
           </span>
@@ -125,9 +127,11 @@ export function DayDetailPanel({
             >
               {/* Parent color dot */}
               <div
+                role="img"
+                aria-label={period.parent === 'mother' ? 'Mor' : 'Far'}
                 className={cn(
                   'w-3 h-3 rounded-full shrink-0',
-                  period.parent === 'mother' ? 'bg-pink-400' : 'bg-blue-400'
+                  period.parent === 'mother' ? 'bg-mother-strong' : 'bg-father-strong'
                 )}
               />
               <div className="flex-1 min-w-0">

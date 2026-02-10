@@ -48,7 +48,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
           {/* Mors feriedager */}
           {showMother && (
             <div className="space-y-4">
-              <h4 className="font-medium text-pink-600 dark:text-pink-400">Mor</h4>
+              <h4 className="font-medium text-mother">Mor</h4>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
                           mother: { ...vacation.mother, duringFatherLeave: pressed },
                         })
                       }
-                      className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
+                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                     >
                       Ja (overlapp)
                     </Toggle>
@@ -124,7 +124,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
                           mother: { ...vacation.mother, duringFatherLeave: !pressed },
                         })
                       }
-                      className="data-[state=on]:bg-blue-600 data-[state=on]:text-white"
+                      className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground"
                     >
                       Nei (skyv far)
                     </Toggle>
@@ -137,7 +137,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
           {/* Fars feriedager */}
           {showFather && (
             <div className="space-y-4">
-              <h4 className="font-medium text-blue-600 dark:text-blue-400">Far / Medmor</h4>
+              <h4 className="font-medium text-father">Far / Medmor</h4>
 
               {/* Feriedager FØR permisjon */}
               <div className="space-y-2">
@@ -202,7 +202,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
                           father: { ...vacation.father, duringMotherLeave: pressed },
                         })
                       }
-                      className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
+                      className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                     >
                       Ja (overlapp)
                     </Toggle>
@@ -214,7 +214,7 @@ export function VacationInput({ vacation, onChange, rights }: VacationInputProps
                           father: { ...vacation.father, duringMotherLeave: !pressed },
                         })
                       }
-                      className="data-[state=on]:bg-blue-600 data-[state=on]:text-white"
+                      className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground"
                     >
                       Nei (skyv far)
                     </Toggle>

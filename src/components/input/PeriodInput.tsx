@@ -75,7 +75,7 @@ export function PeriodInput({
             </span>
           )}
           {hasIssues && (
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-warning-fg" />
           )}
         </div>
         <ChevronDown
@@ -96,7 +96,7 @@ export function PeriodInput({
               {validation.errors.map((error, i) => (
                 <div
                   key={`error-${i}`}
-                  className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded"
+                  className="text-sm text-destructive bg-destructive/10 p-2 rounded"
                 >
                   {error}
                 </div>
@@ -104,7 +104,7 @@ export function PeriodInput({
               {validation.warnings.map((warning, i) => (
                 <div
                   key={`warning-${i}`}
-                  className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded"
+                  className="text-sm text-warning-fg bg-warning-bg p-2 rounded"
                 >
                   {warning}
                 </div>
@@ -116,13 +116,13 @@ export function PeriodInput({
           {showMother && showFather ? (
             <Tabs defaultValue="mother" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="mother" className="text-pink-600 dark:text-pink-400">
+                <TabsTrigger value="mother" className="text-mother">
                   Mor
                   {motherConfig.periods.length > 0 && (
                     <span className="ml-1 text-xs">({motherConfig.periods.length})</span>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="father" className="text-blue-600 dark:text-blue-400">
+                <TabsTrigger value="father" className="text-father">
                   Far / Medmor
                   {fatherConfig.periods.length > 0 && (
                     <span className="ml-1 text-xs">({fatherConfig.periods.length})</span>

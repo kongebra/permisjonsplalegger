@@ -123,7 +123,7 @@ export function MonthGrid({
                 idx === 5
                   ? "text-muted-foreground"
                   : idx === 6
-                    ? "text-red-600"
+                    ? "text-destructive"
                     : "text-muted-foreground"
               }`}
             >
@@ -165,7 +165,7 @@ export function MonthGrid({
                 ))}
               </div>
 
-              {/* Period bands overlay — skip in picker mode (strips in cells instead) */}
+              {/* Period bands overlay — aria-hidden to avoid ARIA grid nesting violation */}
               {bands && !pickerMode && (
                 <PeriodBandRenderer
                   motherBands={bands.mother}

@@ -184,7 +184,7 @@ export function AddPeriodDialog({
 
           {/* Vacation days preview */}
           {periodType === 'vacation' && startDate && endDate && (
-            <div className="rounded-lg border bg-amber-50 dark:bg-amber-900/20 p-3">
+            <div className="rounded-lg border bg-warning-bg p-3">
               <p className="text-sm">
                 <span className="font-medium">Feriedager brukt:</span>{' '}
                 {vacationDaysUsed !== undefined ? vacationDaysUsed : '...'}{' '}

@@ -48,7 +48,7 @@ export function YearOverview({
         <h2 className="text-lg font-semibold">Årsoversikt</h2>
         <button
           onClick={onClose}
-          className="p-2 rounded-lg hover:bg-muted transition-colors"
+          className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           aria-label="Lukk"
         >
           <X className="w-5 h-5" />
@@ -74,32 +74,32 @@ export function YearOverview({
       </div>
 
       {/* Legend */}
-      <div className="border-t p-4 flex flex-wrap justify-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-pink-400" />
+      <ul className="border-t p-4 flex flex-wrap justify-center gap-6 text-sm list-none">
+        <li className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-mother-strong" role="img" aria-label="Mor farge" />
           <span>Mor</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-400" />
+        </li>
+        <li className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-father-strong" role="img" aria-label="Far farge" />
           <span>Far</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-400 to-blue-400" />
+        </li>
+        <li className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-mother-strong to-father-strong" role="img" aria-label="Overlapp farge" />
           <span>Overlapp</span>
-        </div>
+        </li>
         {dueDate && (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-violet-500 ring-1 ring-violet-300" />
+          <li className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-duedate" role="img" aria-label="Termin markør" />
             <span>Termin</span>
-          </div>
+          </li>
         )}
         {daycareStart && (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 ring-1 ring-emerald-300" />
+          <li className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-daycare" role="img" aria-label="Barnehagestart markør" />
             <span>Barnehagestart</span>
-          </div>
+          </li>
         )}
-      </div>
+      </ul>
     </div>
   );
 }

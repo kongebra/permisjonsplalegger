@@ -30,7 +30,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
           {/* Mor */}
           {result.mother.weeks > 0 && (
             <tr className="border-b">
-              <td className="p-3 text-pink-600 dark:text-pink-400 font-medium">
+              <td className="p-3 text-[var(--color-mother)] font-medium">
                 Mor
               </td>
               <td className="p-3">{formatDate(result.mother.start)}</td>
@@ -41,8 +41,8 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
 
           {/* Overlapp (mellom mor og far) */}
           {result.overlap && (
-            <tr className="border-b bg-purple-50 dark:bg-purple-950/20">
-              <td className="p-3 text-purple-600 dark:text-purple-400 font-medium pl-6">
+            <tr className="border-b bg-shared-light">
+              <td className="p-3 text-shared font-medium pl-6">
                 ↳ Overlapp
               </td>
               <td className="p-3">{formatDate(result.overlap.start)}</td>
@@ -54,7 +54,7 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
           {/* Far */}
           {showFather && result.father.weeks > 0 && (
             <tr className="border-b">
-              <td className="p-3 text-blue-600 dark:text-blue-400 font-medium">
+              <td className="p-3 text-[var(--color-father)] font-medium">
                 Far
               </td>
               <td className="p-3">{formatDate(result.father.start)}</td>
@@ -65,8 +65,8 @@ export function DateSummary({ result, showFather }: DateSummaryProps) {
 
           {/* Gap */}
           {result.gap.days > 0 && (
-            <tr className="bg-red-50 dark:bg-red-950/20">
-              <td className="p-3 text-red-600 dark:text-red-400 font-medium">
+            <tr className="bg-gap/20">
+              <td className="p-3 text-gap-border font-medium">
                 Gap
               </td>
               <td className="p-3">{formatDate(result.gap.start)}</td>

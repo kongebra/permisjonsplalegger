@@ -140,10 +140,10 @@ export function CalendarTimeline({
   const legendItems = useMemo((): LegendItem[] => {
     const items: LegendItem[] = [];
 
-    items.push({ id: "mother", color: "bg-pink-300 dark:bg-pink-500", pattern: "solid", label: "Mor" });
+    items.push({ id: "mother", color: "bg-mother-base dark:bg-mother-strong", pattern: "solid", label: "Mor" });
 
     if (showFather) {
-      items.push({ id: "father", color: "bg-blue-300 dark:bg-blue-500", pattern: "solid", label: "Far" });
+      items.push({ id: "father", color: "bg-father-base dark:bg-father-strong", pattern: "solid", label: "Far" });
     }
 
     if (result.overlap) {
@@ -159,27 +159,27 @@ export function CalendarTimeline({
     if (segments.some((s) => s.type === "vacation" && s.parent === "mother")) {
       items.push({
         id: "mother-vacation",
-        color: "bg-pink-300 dark:bg-pink-500",
+        color: "bg-mother-base dark:bg-mother-strong",
         pattern: "dashed",
         label: "Mor ferie",
-        inlineStyle: { border: "2px dashed rgb(190, 24, 93)" },
+        inlineStyle: { border: "2px dashed var(--color-mother-strong)" },
       });
     }
 
     if (segments.some((s) => s.type === "vacation" && s.parent === "father")) {
       items.push({
         id: "father-vacation",
-        color: "bg-blue-300 dark:bg-blue-500",
+        color: "bg-father-base dark:bg-father-strong",
         pattern: "dashed",
         label: "Far ferie",
-        inlineStyle: { border: "2px dashed rgb(30, 64, 175)" },
+        inlineStyle: { border: "2px dashed var(--color-father-strong)" },
       });
     }
 
     if (segments.some((s) => s.type === "unpaid")) {
       items.push({
         id: "unpaid",
-        color: "bg-gray-200 dark:bg-gray-700",
+        color: "bg-unpaid dark:bg-unpaid",
         pattern: "hatched",
         label: "Ulønnet",
         inlineStyle: { border: "2px dashed rgb(107, 114, 128)" },
@@ -189,17 +189,17 @@ export function CalendarTimeline({
     if (gap.days > 0) {
       items.push({
         id: "gap",
-        color: "border border-dashed border-red-400 bg-red-200 dark:bg-red-900/50",
+        color: "border border-dashed border-gap-border bg-gap dark:bg-gap",
         pattern: "dashed",
         label: "Gap",
       });
     }
 
-    items.push({ id: "duedate", color: "bg-violet-500 dark:bg-violet-600", pattern: "solid", label: "Termindato" });
-    items.push({ id: "daycare", color: "bg-green-500 dark:bg-green-600", pattern: "solid", label: "Barnehagestart" });
+    items.push({ id: "duedate", color: "bg-duedate", pattern: "solid", label: "Termindato" });
+    items.push({ id: "daycare", color: "bg-daycare", pattern: "solid", label: "Barnehagestart" });
     items.push({
       id: "redday",
-      color: "bg-muted text-red-600 font-bold flex items-center justify-center text-[8px]",
+      color: "bg-muted text-destructive font-bold flex items-center justify-center text-[8px]",
       pattern: "solid",
       label: "Rød dag (søn/helligdag)",
     });

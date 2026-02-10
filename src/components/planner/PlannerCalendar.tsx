@@ -17,6 +17,7 @@ import type { CustomPeriod } from '@/lib/types';
 
 export function PlannerCalendar() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [srAnnouncement, setSrAnnouncement] = useState('');
 
   // Store state
   const { dueDate, coverage, rights, daycareStartDate, daycareEnabled } = useWizard();
@@ -112,6 +113,7 @@ export function PlannerCalendar() {
   const handlePeriodSave = useCallback(
     (periodData: Omit<CustomPeriod, 'id'>) => {
       addPeriod(periodData);
+      setSrAnnouncement('Periode lagt til');
     },
     [addPeriod],
   );
@@ -120,6 +122,7 @@ export function PlannerCalendar() {
   const handlePeriodUpdate = useCallback(
     (id: string, updates: Partial<CustomPeriod>) => {
       updatePeriod(id, updates);
+      setSrAnnouncement('Periode oppdatert');
     },
     [updatePeriod],
   );
@@ -128,6 +131,7 @@ export function PlannerCalendar() {
   const handlePeriodDelete = useCallback(
     (id: string) => {
       deletePeriod(id);
+      setSrAnnouncement('Periode slettet');
     },
     [deletePeriod],
   );
@@ -180,6 +184,10 @@ export function PlannerCalendar() {
 
   return (
     <div>
+      {/* Screen reader announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {srAnnouncement}
+      </div>
       <div className="space-y-4">
         {/* Navigation header */}
         <div className="flex items-center justify-between">
@@ -216,34 +224,34 @@ export function PlannerCalendar() {
         </div>
 
         {/* Color legend */}
-        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm bg-pink-300" />
+        <ul className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-xs text-muted-foreground list-none">
+          <li className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-mother-base" role="img" aria-label="Mor farge" />
             <span>Mor</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm bg-blue-300" />
+          </li>
+          <li className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-father-base" role="img" aria-label="Far farge" />
             <span>Far</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm border border-dashed border-red-400 bg-red-200" />
+          </li>
+          <li className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm border border-dashed border-gap-border bg-gap" role="img" aria-label="Gap farge" />
             <span>Gap</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm bg-gray-200" />
+          </li>
+          <li className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-sm bg-unpaid opacity-60" role="img" aria-label="Ulønnet farge" />
             <span>Ulønnet</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full ring-2 ring-violet-500" />
+          </li>
+          <li className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full ring-2 ring-duedate" role="img" aria-label="Termin markør" />
             <span>Termin</span>
-          </div>
+          </li>
           {daycareEnabled && (
-            <div className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full ring-2 ring-emerald-500" />
+            <li className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full ring-2 ring-daycare" role="img" aria-label="Barnehagestart markør" />
               <span>Barnehagestart</span>
-            </div>
+            </li>
           )}
-        </div>
+        </ul>
 
         {/* Calendar */}
         <div

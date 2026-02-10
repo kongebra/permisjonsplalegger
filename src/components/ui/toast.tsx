@@ -90,19 +90,19 @@ interface ToastItemProps {
 
 const TOAST_STYLES: Record<ToastType, { bg: string; icon: React.ReactNode }> = {
   info: {
-    bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
+    bg: 'bg-info-bg border-info-fg/20 text-info-fg',
     icon: <Info className="w-4 h-4" />,
   },
   success: {
-    bg: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
+    bg: 'bg-success-bg border-success-fg/20 text-success-fg',
     icon: <CheckCircle className="w-4 h-4" />,
   },
   warning: {
-    bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200',
+    bg: 'bg-warning-bg border-warning-fg/20 text-warning-fg',
     icon: <AlertCircle className="w-4 h-4" />,
   },
   error: {
-    bg: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
+    bg: 'bg-destructive/10 border-destructive/20 text-destructive',
     icon: <AlertCircle className="w-4 h-4" />,
   },
 };

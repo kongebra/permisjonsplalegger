@@ -97,13 +97,13 @@ function ParentEconomyInput({
       </div>
 
       {/* Dekker arbeidsgiver over 6G */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Label>Dekker arbeidsgiver lønn over 6G?</Label>
+      <fieldset className="space-y-2">
+        <legend className="flex items-center gap-2 text-sm font-medium">
+          Dekker arbeidsgiver lønn over 6G?
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" aria-label="Hjelp om 6G-dekning" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
@@ -113,14 +113,15 @@ function ParentEconomyInput({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        <div className="flex gap-2">
+        </legend>
+        <div className="flex gap-2" role="group" aria-label="Dekker arbeidsgiver over 6G">
           <Toggle
             pressed={economy.employerCoversAbove6G}
             onPressedChange={(pressed) =>
               onChange({ ...economy, employerCoversAbove6G: pressed })
             }
-            className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
+            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            aria-label="Ja, arbeidsgiver dekker over 6G"
           >
             Ja
           </Toggle>
@@ -129,21 +130,22 @@ function ParentEconomyInput({
             onPressedChange={(pressed) =>
               onChange({ ...economy, employerCoversAbove6G: !pressed })
             }
-            className="data-[state=on]:bg-red-600 data-[state=on]:text-white"
+            className="data-[state=on]:bg-destructive data-[state=on]:text-white"
+            aria-label="Nei, arbeidsgiver dekker ikke over 6G"
           >
             Nei
           </Toggle>
         </div>
-      </div>
+      </fieldset>
 
       {/* Feriepenger */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Label>Får du feriepenger fra arbeidsgiver som om du var i jobb?</Label>
+      <fieldset className="space-y-2">
+        <legend className="flex items-center gap-2 text-sm font-medium">
+          Får du feriepenger fra arbeidsgiver som om du var i jobb?
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" aria-label="Hjelp om feriepenger" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
@@ -155,14 +157,15 @@ function ParentEconomyInput({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        <div className="flex gap-2">
+        </legend>
+        <div className="flex gap-2" role="group" aria-label="Feriepenger fra arbeidsgiver">
           <Toggle
             pressed={economy.employerPaysFeriepenger}
             onPressedChange={(pressed) =>
               onChange({ ...economy, employerPaysFeriepenger: pressed })
             }
-            className="data-[state=on]:bg-green-600 data-[state=on]:text-white"
+            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            aria-label="Ja, feriepenger fra arbeidsgiver"
           >
             Ja (arbeidsgiver)
           </Toggle>
@@ -171,12 +174,13 @@ function ParentEconomyInput({
             onPressedChange={(pressed) =>
               onChange({ ...economy, employerPaysFeriepenger: !pressed })
             }
-            className="data-[state=on]:bg-orange-600 data-[state=on]:text-white"
+            className="data-[state=on]:bg-warning-fg data-[state=on]:text-white"
+            aria-label="Nei, feriepenger fra NAV"
           >
             Nei (NAV)
           </Toggle>
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 }
@@ -214,7 +218,7 @@ export function EconomySection({
                 label="Mor"
                 economy={motherEconomy}
                 onChange={onMotherEconomyChange}
-                colorClass="text-pink-600 dark:text-pink-400"
+                colorClass="text-mother"
               />
             )}
 
@@ -224,7 +228,7 @@ export function EconomySection({
                 label="Far / Medmor"
                 economy={fatherEconomy}
                 onChange={onFatherEconomyChange}
-                colorClass="text-blue-600 dark:text-blue-400"
+                colorClass="text-father"
               />
             )}
           </div>

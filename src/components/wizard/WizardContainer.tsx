@@ -302,21 +302,22 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
 
   return (
     <div
-      className="max-w-lg mx-auto"
       role="region"
       aria-label="Permisjonsplanlegger"
     >
-      {/* Progress indicator */}
-      <WizardProgress
-        currentStep={currentStep}
-        totalSteps={TOTAL_WIZARD_STEPS}
-      />
+      {/* Progress indicator — wider on desktop for 8 steps */}
+      <div className="max-w-2xl mx-auto">
+        <WizardProgress
+          currentStep={currentStep}
+          totalSteps={TOTAL_WIZARD_STEPS}
+        />
+      </div>
 
-      {/* Step content */}
+      {/* Step content — narrower for readability */}
       <div
         ref={stepContentRef}
         tabIndex={-1}
-        className="py-4 pb-28 outline-none"
+        className="max-w-lg mx-auto py-4 pb-32 outline-none scroll-pb-32"
         aria-live="polite"
       >
         <div
@@ -333,15 +334,17 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
 
       {/* Navigation buttons — sticky bottom */}
       {!isLastStep && (
-        <div className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t pb-[env(safe-area-inset-bottom)]">
+        <nav aria-label="Steg-navigasjon" className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
             {!canProceed && (
               <div
-                className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-warning-bg border border-warning-fg/20 rounded-lg"
                 role="alert"
+                aria-atomic="true"
+                aria-live="assertive"
               >
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <p className="text-sm text-amber-700 dark:text-amber-400">
+                <AlertCircle className="w-4 h-4 text-warning-fg shrink-0" aria-hidden="true" />
+                <p className="text-sm text-warning-fg">
                   {stepHints[currentStep] ||
                     "Fyll ut informasjonen over for å fortsette"}
                 </p>
@@ -377,7 +380,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
               </Button>
             </div>
           </div>
-        </div>
+        </nav>
       )}
     </div>
   );

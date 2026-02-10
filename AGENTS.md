@@ -17,6 +17,7 @@ This file provides guidance to AI coding agents (Claude Code, Cursor, Copilot, W
 ```
 docs/KRAVSPEC.md             # Full requirements specification (Norwegian) - READ for detailed acceptance criteria
 docs/PROGRESS.md             # Current progress, architecture, decisions, and context for new developers
+docs/UU-SJEKKLISTE.md        # Universell utforming (WCAG) sjekkliste - alle 35 krav med status og mønstre
 docs/IMPLEMENTATION_PLAN.md  # Original implementation plan (ARCHIVED - kept for historical reference)
 ```
 
@@ -123,6 +124,30 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 - Do not round intermediate calculations - only round final display values
 - Do not create new state outside the Zustand store — use existing slices or add new ones
 
+### Universell Utforming (UU) - OBLIGATORISK
+
+**Alle nye features og endringer SKAL oppfylle WCAG 2.1 nivå A og AA.** UU-tilsynet krever dette for norske nettsider. Les `docs/UU-SJEKKLISTE.md` for komplett sjekkliste med alle 35 krav.
+
+**Før du pusher ny kode:**
+
+1. `bun run lint` passerer (inkl. `eslint-plugin-jsx-a11y` regler)
+2. Alle nye interaktive elementer har tastaturstotte (Tab, Enter, Space, Escape)
+3. Alle nye knapper har synlig fokusring (`focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none`)
+4. Skjemafelt har `<label>` eller `aria-labelledby`
+5. Ingen informasjon formidles kun med farge (bruk monster/tekst i tillegg)
+6. Ny tekst har kontrastforhold >= 4.5:1
+
+**Etablerte UU-monstre (gjenbruk disse):**
+
+- Custom-knapper: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none`
+- Toggle-par (Ja/Nei): Pakk i `<fieldset>` + `<legend>`, legg `aria-label` pa hver Toggle
+- Sliders: `aria-labelledby` + `aria-valuetext`, `aria-live="polite"` pa output
+- Fargeprover: `role="img"` + `aria-label`
+- Ikonknapper uten tekst: `aria-label="Beskrivelse"`
+- Dekorative ikoner: `aria-hidden="true"`
+- Feilmeldinger: `role="alert"` + `aria-atomic="true"` + `aria-live="assertive"`
+- Statusoppdateringer: `aria-live="polite"` + `aria-atomic="true"` i sr-only div
+
 ### Testing Scenarios (Mental Check)
 
 - _High Earner:_ If salary is 1M and employer doesn't cover >6G, the 80% option must show a massive loss compared to 100%.
@@ -137,7 +162,7 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 | `bun run dev` | Start development server (localhost:3000) |
 | `bun run build` | Production build |
 | `bun run start` | Start production server |
-| `bun run lint` | Run ESLint |
+| `bun run lint` | Run ESLint (inkl. jsx-a11y tilgjengelighetregler) |
 
 ---
 

@@ -14,9 +14,9 @@ const typeLabels: Record<QuotaUsage['type'], string> = {
 };
 
 const typeColors: Record<QuotaUsage['type'], { bg: string; fill: string }> = {
-  mother: { bg: 'bg-pink-100 dark:bg-pink-900/30', fill: 'bg-pink-500 dark:bg-pink-400' },
-  father: { bg: 'bg-blue-100 dark:bg-blue-900/30', fill: 'bg-blue-500 dark:bg-blue-400' },
-  shared: { bg: 'bg-purple-100 dark:bg-purple-900/30', fill: 'bg-purple-500 dark:bg-purple-400' },
+  mother: { bg: 'bg-mother-light', fill: 'bg-mother-strong' },
+  father: { bg: 'bg-father-light', fill: 'bg-father-strong' },
+  shared: { bg: 'bg-shared-light', fill: 'bg-shared' },
 };
 
 export function QuotaSummary({ quotaUsage }: QuotaSummaryProps) {
@@ -36,7 +36,7 @@ export function QuotaSummary({ quotaUsage }: QuotaSummaryProps) {
             <div key={usage.type} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span>{typeLabels[usage.type]}</span>
-                <span className={cn(usage.isOverbooked && 'text-red-500 font-medium')}>
+                <span className={cn(usage.isOverbooked && 'text-destructive font-medium')}>
                   {usage.weeksUsed}/{usage.weeksAvailable} uker
                   {usage.isOverbooked && ' (!)'}
                 </span>
@@ -46,13 +46,13 @@ export function QuotaSummary({ quotaUsage }: QuotaSummaryProps) {
                   className={cn(
                     'h-full rounded-full transition-all duration-300',
                     colors.fill,
-                    usage.isOverbooked && 'bg-red-500 dark:bg-red-400'
+                    usage.isOverbooked && 'bg-destructive'
                   )}
                   style={{ width: `${Math.min(100, percentage)}%` }}
                 />
               </div>
               {usage.isOverbooked && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-destructive">
                   Overskredet med {usage.weeksUsed - usage.weeksAvailable} uker
                 </p>
               )}

@@ -81,13 +81,13 @@ function getDotColor(indicator: DayIndicator): string {
 
   switch (category) {
     case 'leave':
-      return parent === 'mother' ? 'bg-pink-400' : 'bg-blue-400';
+      return parent === 'mother' ? 'bg-mother-strong' : 'bg-father-strong';
     case 'vacation':
-      return parent === 'mother' ? 'bg-pink-200' : 'bg-blue-200';
+      return parent === 'mother' ? 'bg-mother-light' : 'bg-father-light';
     case 'gap':
-      return 'bg-orange-400';
+      return 'bg-gap-border';
     case 'unpaid':
-      return 'bg-gray-400';
+      return 'bg-unpaid';
   }
 }
 

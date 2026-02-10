@@ -220,11 +220,12 @@ function PeriodModalContent({
                   key={t}
                   onClick={() => setType(t)}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm transition-colors border',
+                    'px-3 py-2 rounded-lg text-sm transition-colors border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     type === t
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-muted hover:bg-muted/50',
                   )}
+                  aria-pressed={type === t}
                 >
                   {PERIOD_TYPE_LABELS[t]}
                 </button>
@@ -253,11 +254,12 @@ function PeriodModalContent({
                 <button
                   onClick={() => setParent('mother')}
                   className={cn(
-                    'flex-1 px-3 py-2 rounded-lg text-sm transition-colors',
+                    'flex-1 px-3 py-2 rounded-lg text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     parent === 'mother'
-                      ? 'bg-pink-500 text-white'
-                      : 'bg-pink-100 text-pink-700 hover:bg-pink-200',
+                      ? 'bg-mother-strong text-white'
+                      : 'bg-mother-light text-mother hover:bg-mother-base/30',
                   )}
+                  aria-pressed={parent === 'mother'}
                 >
                   Mor
                 </button>
@@ -266,11 +268,12 @@ function PeriodModalContent({
                 <button
                   onClick={() => setParent('father')}
                   className={cn(
-                    'flex-1 px-3 py-2 rounded-lg text-sm transition-colors',
+                    'flex-1 px-3 py-2 rounded-lg text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     parent === 'father'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                      ? 'bg-father-strong text-white'
+                      : 'bg-father-light text-father hover:bg-father-base/30',
                   )}
+                  aria-pressed={parent === 'father'}
                 >
                   Far
                 </button>
@@ -288,11 +291,12 @@ function PeriodModalContent({
                 <button
                   onClick={() => applyPlacement('after-mother')}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border',
+                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     placement === 'after-mother'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-muted hover:bg-muted/50',
                   )}
+                  aria-pressed={placement === 'after-mother'}
                 >
                   Etter mors permisjon
                 </button>
@@ -301,11 +305,12 @@ function PeriodModalContent({
                 <button
                   onClick={() => applyPlacement('before-father')}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border',
+                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     placement === 'before-father'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-muted hover:bg-muted/50',
                   )}
+                  aria-pressed={placement === 'before-father'}
                 >
                   Før fars permisjon
                 </button>
@@ -314,11 +319,12 @@ function PeriodModalContent({
                 <button
                   onClick={() => applyPlacement('overlap-father')}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border',
+                    'px-3 py-2 rounded-lg text-sm text-left transition-colors border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                     placement === 'overlap-father'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-muted hover:bg-muted/50',
                   )}
+                  aria-pressed={placement === 'overlap-father'}
                 >
                   Overlapp med fars permisjon
                 </button>
@@ -326,11 +332,12 @@ function PeriodModalContent({
               <button
                 onClick={() => applyPlacement('custom')}
                 className={cn(
-                  'px-3 py-2 rounded-lg text-sm text-left transition-colors border',
+                  'px-3 py-2 rounded-lg text-sm text-left transition-colors border focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                   placement === 'custom'
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-muted hover:bg-muted/50',
                 )}
+                aria-pressed={placement === 'custom'}
               >
                 Egendefinerte datoer
               </button>
@@ -418,13 +425,14 @@ function PeriodModalContent({
                     type="button"
                     onClick={() => setColor(c)}
                     className={cn(
-                      'w-8 h-8 rounded-full transition-all',
+                      'w-8 h-8 rounded-full transition-all focus-visible:outline-none',
                       color === c
                         ? 'ring-2 ring-offset-2 ring-primary scale-110'
-                        : 'hover:scale-105',
+                        : 'hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
                     )}
                     style={{ backgroundColor: c }}
                     aria-label={`Velg farge ${c}`}
+                    aria-pressed={color === c}
                   />
                 ))}
               </div>

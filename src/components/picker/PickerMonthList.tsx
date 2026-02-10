@@ -130,19 +130,19 @@ export function PickerMonthList({
         {showLegend && (
           <div className="flex items-center justify-center gap-4 px-3 py-1.5 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-0.75 rounded-full bg-pink-300/70" />
+              <span className="inline-block w-3 h-0.75 rounded-full bg-mother-base/70" />
               Mor
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-0.75 rounded-full bg-blue-300/70" />
+              <span className="inline-block w-3 h-0.75 rounded-full bg-father-base/70" />
               Far
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-500" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-duedate" />
               Termin
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-daycare" />
               Barnehage
             </span>
           </div>
@@ -157,7 +157,7 @@ export function PickerMonthList({
                 idx === 5
                   ? "text-muted-foreground/70"
                   : idx === 6
-                    ? "text-red-400"
+                    ? "text-destructive"
                     : "text-muted-foreground"
               }`}
             >

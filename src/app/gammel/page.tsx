@@ -270,14 +270,14 @@ export default function Home() {
       <footer className="border-t mt-12">
         <div className="container mx-auto px-4 py-6 space-y-4">
           {/* Disclaimer */}
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-            <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">
+          <div className="bg-warning-bg border border-warning-fg/20 rounded-lg p-4">
+            <h4 className="font-medium text-warning-fg mb-2">
               Viktig informasjon
             </h4>
-            <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+            <p className="text-sm text-warning-fg mb-2">
               Dette er et planleggingsverktøy, ikke en offisiell kilde.
             </p>
-            <ul className="text-sm text-amber-700 dark:text-amber-300 list-disc list-inside space-y-1">
+            <ul className="text-sm text-warning-fg list-disc list-inside space-y-1">
               <li>Resultatene er estimater basert på generelle regler</li>
               <li>Kontakt NAV for offisielle beregninger og godkjenning</li>
               <li>Snakk med arbeidsgiver om deres spesifikke ordninger</li>

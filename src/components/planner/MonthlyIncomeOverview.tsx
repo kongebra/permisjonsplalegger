@@ -150,13 +150,13 @@ export function MonthlyIncomeOverview() {
             <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex">
               {m.totalNav > 0 && normalIncome > 0 && (
                 <div
-                  className="h-full bg-indigo-400"
+                  className="h-full bg-chart-1"
                   style={{ width: `${(m.totalNav / normalIncome) * 100}%` }}
                 />
               )}
               {m.totalSalary > 0 && normalIncome > 0 && (
                 <div
-                  className="h-full bg-emerald-400"
+                  className="h-full bg-chart-2"
                   style={{ width: `${(m.totalSalary / normalIncome) * 100}%` }}
                 />
               )}
@@ -170,11 +170,11 @@ export function MonthlyIncomeOverview() {
 
       <div className="flex gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-indigo-400" />
+          <span className="w-2.5 h-2.5 rounded-sm bg-chart-1" />
           <span>Foreldrepenger</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-400" />
+          <span className="w-2.5 h-2.5 rounded-sm bg-chart-2" />
           <span>Lønn</span>
         </div>
       </div>

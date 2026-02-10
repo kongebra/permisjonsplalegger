@@ -45,11 +45,11 @@ export function DistributionSliders({
       {/* Felleskvote fordeling */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Label>Hvor mange uker av felleskvoten skal mor ta?</Label>
+          <Label id="shared-weeks-label">Hvor mange uker av felleskvoten skal mor ta?</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" aria-label="Hjelp om felleskvote" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
@@ -67,13 +67,15 @@ export function DistributionSliders({
           min={0}
           step={1}
           className="w-full"
+          aria-labelledby="shared-weeks-label"
+          aria-valuetext={`Mor ${sharedWeeksToMother} uker, Far ${sharedWeeksToFather} uker av ${maxShared}`}
         />
-        <div className="text-sm text-center font-medium">
-          <span className="text-pink-600 dark:text-pink-400">
+        <div className="text-sm text-center font-medium" aria-live="polite">
+          <span className="text-mother">
             Mor: {sharedWeeksToMother} uker
           </span>
           <span className="text-muted-foreground mx-2">•</span>
-          <span className="text-blue-600 dark:text-blue-400">
+          <span className="text-father">
             Far: {sharedWeeksToFather} uker
           </span>
           <span className="text-muted-foreground ml-2">
@@ -85,11 +87,11 @@ export function DistributionSliders({
       {/* Overlapp */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Label>Overlapp (samtidig permisjon)</Label>
+          <Label id="overlap-weeks-label">Overlapp (samtidig permisjon)</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" aria-label="Hjelp om overlapp" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
@@ -107,8 +109,12 @@ export function DistributionSliders({
           min={0}
           step={1}
           className="w-full"
+          aria-labelledby="overlap-weeks-label"
+          aria-valuetext={overlapWeeks === 0
+            ? 'Ingen overlapp'
+            : `${overlapWeeks} uker samtidig permisjon`}
         />
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground" aria-live="polite">
           {overlapWeeks === 0
             ? 'Ingen overlapp - far starter når mor er ferdig'
             : `${overlapWeeks} uker samtidig permisjon`}

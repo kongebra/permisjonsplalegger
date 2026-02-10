@@ -20,7 +20,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
         className={`${
           absDiff <= 10000
             ? 'border-muted bg-muted/30'
-            : 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+            : 'border-warning-fg bg-warning-bg'
         }`}
       >
         <CardHeader className="pb-2">
@@ -35,7 +35,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
             className={`text-4xl font-bold ${
               absDiff <= 10000
                 ? 'text-muted-foreground'
-                : 'text-orange-600 dark:text-orange-400'
+                : 'text-warning-fg'
             }`}
           >
             {formatCurrency(absDiff)}
@@ -57,14 +57,14 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>NAV-utbetaling</span>
-              <span className="text-green-600">
+              <span className="text-success-fg">
                 +{formatCurrency(scenario100.breakdown.navPayout)}
               </span>
             </div>
             {scenario100.breakdown.commissionLoss > 0 && (
               <div className="flex justify-between">
                 <span>Provisjonstap</span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario100.breakdown.commissionLoss)}
                 </span>
               </div>
@@ -75,7 +75,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
                   Udekket gap
                   <span className="text-muted-foreground text-xs"> (tapt inntekt)</span>
                 </span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario100.breakdown.gapCost)}
                 </span>
               </div>
@@ -83,7 +83,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
             {scenario100.breakdown.feriepengeDifference > 0 && (
               <div className="flex justify-between">
                 <span>Tapt feriepengeopptjening</span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario100.breakdown.feriepengeDifference)}
                 </span>
               </div>
@@ -103,14 +103,14 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>NAV-utbetaling</span>
-              <span className="text-green-600">
+              <span className="text-success-fg">
                 +{formatCurrency(scenario80.breakdown.navPayout)}
               </span>
             </div>
             {scenario80.breakdown.commissionLoss > 0 && (
               <div className="flex justify-between">
                 <span>Provisjonstap</span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario80.breakdown.commissionLoss)}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
                   Udekket gap
                   <span className="text-muted-foreground text-xs"> (tapt inntekt)</span>
                 </span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario80.breakdown.gapCost)}
                 </span>
               </div>
@@ -129,7 +129,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
             {scenario80.breakdown.feriepengeDifference > 0 && (
               <div className="flex justify-between">
                 <span>Tapt feriepengeopptjening</span>
-                <span className="text-red-600">
+                <span className="text-destructive">
                   -{formatCurrency(scenario80.breakdown.feriepengeDifference)}
                 </span>
               </div>

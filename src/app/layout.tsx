@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Permisjonsøkonomi-kalkulator",
   description: "Sammenlign 80% vs 100% foreldrepermisjon og finn ut hva som lønner seg for familien",
   other: {
-    "theme-color": "oklch(1 0 0)",
+    "theme-color": "oklch(0.985 0.005 80)",
   },
 };
 

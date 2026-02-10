@@ -71,7 +71,7 @@ export function DayCell({
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset',
           !day.isCurrentMonth && 'opacity-30',
           // Range fill — semi-transparent, edge-to-edge
-          day.isInSelection && !day.isSelected && 'bg-violet-500/12',
+          day.isInSelection && !day.isSelected && 'bg-duedate/12',
           // Range rounding (pill shape)
           day.isSelectionStart && !day.isSelectionEnd && 'rounded-l-full',
           day.isSelectionEnd && !day.isSelectionStart && 'rounded-r-full',
@@ -89,7 +89,7 @@ export function DayCell({
         {day.isSelected && day.isInSelection && (
           <span
             className={cn(
-              'absolute inset-0 bg-violet-500/12',
+              'absolute inset-0 bg-duedate/12',
               day.isSelectionStart && !day.isSelectionEnd && 'rounded-l-full',
               day.isSelectionEnd && !day.isSelectionStart && 'rounded-r-full',
             )}
@@ -98,10 +98,10 @@ export function DayCell({
 
         {/* Dot markers for dueDate and daycareStart */}
         {day.isDueDate && !day.isSelected && (
-          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-violet-500 z-10" />
+          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-duedate z-10" />
         )}
         {day.isDaycareStart && !day.isDueDate && !day.isSelected && (
-          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10" />
+          <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-daycare z-10" />
         )}
 
         {/* Day number — centered */}
@@ -112,9 +112,9 @@ export function DayCell({
             day.isSelected && 'text-background font-bold',
             // Not selected: color hierarchy
             !day.isSelected && day.isSaturday && !day.isHoliday && 'text-muted-foreground/70',
-            !day.isSelected && (day.isSunday || day.isHoliday) && 'text-red-400',
-            !day.isSelected && day.isDueDate && 'text-violet-600 font-semibold',
-            !day.isSelected && day.isDaycareStart && !day.isDueDate && 'text-emerald-600 font-semibold',
+            !day.isSelected && (day.isSunday || day.isHoliday) && 'text-destructive',
+            !day.isSelected && day.isDueDate && 'text-duedate font-semibold',
+            !day.isSelected && day.isDaycareStart && !day.isDueDate && 'text-daycare font-semibold',
           )}
         >
           {day.dayOfMonth}
@@ -125,10 +125,10 @@ export function DayCell({
           <span
             className={cn(
               'absolute bottom-0 left-0 right-0 h-[3px]',
-              day.isGapDay && 'bg-orange-300/50 border-t border-dashed border-orange-400/40',
-              !day.isGapDay && hasMother && !hasFather && 'bg-pink-300/50',
-              !day.isGapDay && hasFather && !hasMother && 'bg-blue-300/50',
-              !day.isGapDay && hasMother && hasFather && 'bg-gradient-to-r from-pink-300/50 to-blue-300/50',
+              day.isGapDay && 'bg-gap/50 border-t border-dashed border-gap-border/40',
+              !day.isGapDay && hasMother && !hasFather && 'bg-mother-base/50',
+              !day.isGapDay && hasFather && !hasMother && 'bg-father-base/50',
+              !day.isGapDay && hasMother && hasFather && 'bg-gradient-to-r from-mother-base/50 to-father-base/50',
             )}
           />
         )}
@@ -138,22 +138,30 @@ export function DayCell({
 
   // Non-interactive mode (CalendarTimeline): colored cell with day number
   if (!interactive) {
+    const isClickable = !!onDateSelect;
     return (
       <div
         className={cn(
           'aspect-square rounded-sm flex items-center justify-center text-xs',
           statusClassName,
-          isRedDay && 'text-red-600 dark:text-red-400 font-bold',
-          day.isDueDate && 'ring-2 ring-violet-500 ring-inset font-bold',
-          day.isDaycareStart && 'ring-2 ring-emerald-500 ring-inset font-bold',
-          onDateSelect && 'cursor-pointer',
+          isRedDay && 'text-destructive font-bold',
+          day.isDueDate && 'ring-2 ring-duedate ring-inset font-bold',
+          day.isDaycareStart && 'ring-2 ring-daycare ring-inset font-bold',
+          isClickable && 'cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
           sharedClasses,
         )}
         style={inlineStyle}
         title={tooltip}
         role="gridcell"
+        tabIndex={isClickable ? 0 : -1}
         aria-label={ariaLabel}
-        onClick={onDateSelect ? handleClick : undefined}
+        onClick={isClickable ? handleClick : undefined}
+        onKeyDown={isClickable ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        } : undefined}
       >
         {day.dayOfMonth}
       </div>
@@ -175,8 +183,8 @@ export function DayCell({
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
         !day.isCurrentMonth && 'opacity-30',
         day.isToday && !day.isDueDate && !day.isDaycareStart && 'ring-2 ring-primary ring-inset',
-        day.isDueDate && 'ring-2 ring-violet-500 ring-inset',
-        day.isDaycareStart && !day.isDueDate && 'ring-2 ring-emerald-500 ring-inset',
+        day.isDueDate && 'ring-2 ring-duedate ring-inset',
+        day.isDaycareStart && !day.isDueDate && 'ring-2 ring-daycare ring-inset',
         day.isSelected && 'bg-primary/20',
         day.isInSelection && !day.isSelected && 'bg-primary/10',
         day.isSelectionStart && 'rounded-l-lg',
@@ -189,10 +197,10 @@ export function DayCell({
       <span
         className={cn(
           'absolute top-0.5 left-1 text-xs font-medium z-10',
-          (day.isHoliday || day.isSunday) && 'text-red-600',
+          (day.isHoliday || day.isSunday) && 'text-destructive',
           day.isSaturday && !day.isHoliday && 'text-muted-foreground',
-          day.isDueDate && 'text-violet-600 font-bold',
-          day.isDaycareStart && !day.isDueDate && 'text-emerald-600 font-bold',
+          day.isDueDate && 'text-duedate font-bold',
+          day.isDaycareStart && !day.isDueDate && 'text-daycare font-bold',
         )}
       >
         {day.dayOfMonth}

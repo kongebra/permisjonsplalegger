@@ -85,10 +85,10 @@ export default function KalenderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
+    <div className="min-h-screen bg-background flex flex-col animate-fade-in max-w-3xl mx-auto">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background z-40">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold">Permisjonsplanlegger</h1>
 
           <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export default function KalenderPage() {
       </header>
 
       {/* Main content */}
-      <main id="main" className="flex-1 container mx-auto px-4 py-4">
+      <main id="main" className="flex-1 px-4 py-4">
         <Tabs defaultValue="kalender" onValueChange={handleTabChange}>
           <TabsList className="w-full mb-4">
             <TabsTrigger value="kalender" className="flex-1">Kalender</TabsTrigger>
