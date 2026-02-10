@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Planlegger | Permisjonsøkonomi-kalkulator",
+  title: "Planlegger",
+  description:
+    "Sett opp foreldrepermisjonen steg for steg. Velg termin, fordeling og dekningsgrad.",
+  alternates: {
+    canonical: "https://perm-planlegger.vercel.app/planlegger",
+  },
 };
 
 export default function PlanleggerLayout({

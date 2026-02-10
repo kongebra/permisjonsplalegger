@@ -52,7 +52,9 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 | State | Zustand | 5.x | Sliced store (wizard, periods, economy, persistence, ui) |
 | Dates | date-fns | 4.x | All date manipulation and formatting |
 
-**Privacy:** Client-side only. No database, no cookies, no server-side storage. localStorage brukes KUN for lagring/lasting av planer (`permisjonsplan-v1`) — ingen tracking eller analytics.
+**Privacy:** Client-side only. No database, no cookies, no server-side storage. localStorage brukes KUN for lagring/lasting av planer (`permisjonsplan-v1`). PostHog analytics bruker `persistence: "memory"` — ingen lagring i brukerens nettleser, ingen samtykke nødvendig.
+
+**Analytics:** PostHog (EU/Frankfurt) initialiseres i `instrumentation-client.ts`. Konfigurert med `respect_dnt: true`, `autocapture: false`, `disable_session_recording: true`, `persistence: "memory"`. Kun eksplisitte `posthog.capture()`-kall sender data.
 
 ---
 
@@ -117,7 +119,8 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 ### DO NOT
 
 - Do not send any data to a server - all calculations happen client-side
-- Do not use localStorage for anything other than plan persistence (`permisjonsplan-v1`)
+- Do not use localStorage for anything other than plan persistence (`permisjonsplan-v1`) — PostHog uses memory-only persistence
+- Do not add cookie banners or consent dialogs — current analytics setup requires no consent (memory-only, DNT-respecting)
 - Do not assume parental leave rules from other countries apply
 - Do not use Pages Router - use App Router only
 - Do not add backend/API routes - all calculations happen client-side
@@ -171,13 +174,20 @@ Most parents lose money (50k-100k NOK) choosing 80% coverage because they fail t
 ```
 src/
 ├── app/
-│   ├── layout.tsx                    # Root layout (Geist fonts, Providers)
+│   ├── layout.tsx                    # Root layout (Geist fonts, Providers, metadata, JSON-LD)
 │   ├── page.tsx                      # Redirect → /planlegger
 │   ├── globals.css                   # Tailwind CSS v4 + CSS variables
+│   ├── sitemap.ts                    # XML sitemap (auto-generated)
+│   ├── robots.ts                     # robots.txt (auto-generated)
+│   ├── opengraph-image.tsx           # OG image generation (edge runtime)
 │   ├── planlegger/
 │   │   ├── page.tsx                  # Wizard page (entry point)
 │   │   └── kalender/
 │   │       └── page.tsx              # Calendar + economy (post-wizard)
+│   ├── personvern/
+│   │   └── page.tsx                  # Privacy policy (Server Component)
+│   ├── om/
+│   │   └── page.tsx                  # About page (Server Component)
 │   └── gammel/
 │       └── page.tsx                  # Legacy calculator (kept for reference)
 ├── store/
@@ -199,6 +209,7 @@ src/
 │   └── utils.ts                      # cn() helper for Tailwind
 ├── components/
 │   ├── providers.tsx                 # Root provider (ToastProvider)
+│   ├── SiteFooter.tsx               # Shared footer (Om, Personvern, GitHub links)
 │   ├── calendar/                     # Shared calendar primitives
 │   │   ├── DayCell.tsx, MonthGrid.tsx, PeriodBandRenderer.tsx
 │   │   ├── CalendarLegend.tsx, colors.ts, types.ts

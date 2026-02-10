@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useSyncExternalStore, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
@@ -144,12 +145,14 @@ export default function KalenderPage() {
         </Tabs>
       </main>
 
-      {/* Footer with auto-save indicator */}
-      {autoSaveEnabled && (
-        <footer className="border-t py-2 text-center text-xs text-muted-foreground">
-          Autolagring aktivert
-        </footer>
-      )}
+      {/* Footer */}
+      <footer className="border-t py-3 text-center text-xs text-muted-foreground">
+        {autoSaveEnabled && <p className="mb-2">Autolagring aktivert</p>}
+        <nav aria-label="Bunntekst" className="flex flex-wrap justify-center gap-4">
+          <Link href="/om" className="hover:underline">Om oss</Link>
+          <Link href="/personvern" className="hover:underline">Personvern</Link>
+        </nav>
+      </footer>
 
       {/* Settings sheet */}
       <SettingsSheet open={showSettings} onOpenChange={setShowSettings} />

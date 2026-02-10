@@ -13,9 +13,9 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-3">
+        <p className="text-3xl font-bold mb-3" role="heading" aria-level={2}>
           Velkommen til permisjonsplanleggeren
-        </h1>
+        </p>
         <p className="text-muted-foreground text-lg">
           Planlegg foreldrepermisjonen og forstå økonomien.
         </p>

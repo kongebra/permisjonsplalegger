@@ -10,7 +10,7 @@ posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
   disable_session_recording: true,
   autocapture: false,
   respect_dnt: true,
-  persistence: "localStorage",
+  persistence: "memory",
   person_profiles: "identified_only",
 });
 

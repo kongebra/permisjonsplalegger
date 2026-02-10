@@ -1,8 +1,8 @@
 # Prosjekt-fremgang
 
-Sist oppdatert: 7. februar 2026
+Sist oppdatert: 10. februar 2026
 
-## Status: Wizard + Planlegger-kalender ferdig, polering pågår
+## Status: Wizard + Planlegger-kalender ferdig, SEO/audit-runde gjennomført
 
 Applikasjonen har to moduser: en 8-trinns onboarding-wizard og en interaktiv planlegger-kalender med økonomi-fane. Gammel kalkulator-side beholdt under `/gammel` for referanse.
 
@@ -15,6 +15,10 @@ Applikasjonen har to moduser: en 8-trinns onboarding-wizard og en interaktiv pla
 ```
 / (redirect) → /planlegger (wizard) → /planlegger/kalender (kalender + økonomi)
                                       └→ /gammel (legacy kalkulator, beholdt for referanse)
+/personvern  → Personvernerklæring (GDPR)
+/om          → Om-side med disclaimer
+/sitemap.xml → Auto-generert sitemap
+/robots.txt  → Auto-generert robots.txt
 ```
 
 ### State management
@@ -195,7 +199,9 @@ Brukes av gammel side (`/gammel`) og delvis av wizard/planner:
 ### localStorage-bruk
 
 - **Planlegger bruker localStorage** for lagring/lasting av planer (`permisjonsplan-v1`)
-- Dette er IKKE generell datalagring — ingen tracking, cookies, eller server-side lagring
+- Dette er IKKE generell datalagring — ingen tracking-cookies eller server-side lagring
+- PostHog analytics bruker `persistence: "memory"` — ingen lagring i brukerens nettleser
+- Ingen samtykke-banner nødvendig (ekomloven §2-7b: ingen lagring utover det strengt nødvendige)
 - Bruker kan starte fersk eller fortsette fra lagret plan
 - Autolagring aktiveres etter første manuelle lagring
 
@@ -224,6 +230,22 @@ return new Date(year + 1, 7, 1); // Født før aug → bhg 1 år senere
 
 ---
 
+## Nylig gjennomført: SEO/Audit-runde (10. feb 2026)
+
+Website-audit ga 32/100. Følgende ble fikset for å nå ~85+:
+
+- **H1 + `<main>` landmark** — Alle tre page states (checking/returning/ready) i planlegger wrappet i `<main id="main">` med sr-only `<h1>`
+- **Sitemap + robots.txt** — Auto-generert via `src/app/sitemap.ts` og `src/app/robots.ts`
+- **Metadata + OG-tags** — metadataBase, title template, 150+ tegn description, OG (no_NO), twitter card, canonical, keywords, JSON-LD WebApplication schema
+- **Security headers** — X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, CSP (tillater PostHog + inline styles)
+- **Personvernerklæring** — `/personvern` — GDPR-kompatibel, norsk
+- **Om-side** — `/om` — Disclaimer, beregningsgrunnlag, åpen kildekode
+- **SiteFooter** — Delt footer-komponent med lenker til Om, Personvern, GitHub
+- **OG-bilde** — Edge runtime, 1200x630, med tittel og badges
+- **PostHog memory-only** — `persistence: "memory"` i stedet for localStorage, ingen samtykke nødvendig
+
+---
+
 ## Ikke implementert ennå / Gjenstående
 
 ### Fra kravspek (KRAVSPEC.md)
@@ -241,7 +263,7 @@ return new Date(year + 1, 7, 1); // Født før aug → bhg 1 år senere
 
 ### Teknisk
 
-8. **Tester** — Ingen automatiske tester (unit/integration).
+8. **Tester** — E2E a11y-tester finnes (Playwright), men mangler unit/integration-tester.
 9. **Legacy-opprydding** — `/gammel`-ruten og tilhørende input-komponenter kan potensielt fjernes hvis wizard/planner dekker alt.
 
 ---
@@ -251,13 +273,20 @@ return new Date(year + 1, 7, 1); // Født før aug → bhg 1 år senere
 ```
 src/
 ├── app/
-│   ├── layout.tsx                    # Root layout (Geist fonter, Providers)
+│   ├── layout.tsx                    # Root layout (Geist fonter, Providers, metadata, JSON-LD)
 │   ├── page.tsx                      # Redirect → /planlegger
 │   ├── globals.css                   # Tailwind v4 + CSS vars (light/dark)
+│   ├── sitemap.ts                    # XML sitemap (auto-generert)
+│   ├── robots.ts                     # robots.txt (auto-generert)
+│   ├── opengraph-image.tsx           # OG-bilde (edge runtime, 1200x630)
 │   ├── planlegger/
 │   │   ├── page.tsx                  # Wizard-side (ny plan / fortsett lagret)
 │   │   └── kalender/
 │   │       └── page.tsx              # Kalender + økonomi (etter wizard)
+│   ├── personvern/
+│   │   └── page.tsx                  # Personvernerklæring (Server Component)
+│   ├── om/
+│   │   └── page.tsx                  # Om-side med disclaimer (Server Component)
 │   └── gammel/
 │       └── page.tsx                  # Legacy kalkulator (beholdt for referanse)
 ├── store/
@@ -284,6 +313,7 @@ src/
 │       └── initialize-periods.ts     # Wizard-resultat → editerbare perioder
 ├── components/
 │   ├── providers.tsx                 # Root: ToastProvider
+│   ├── SiteFooter.tsx               # Delt footer (Om, Personvern, GitHub-lenker)
 │   ├── calendar/                     # Delte kalender-primitiver
 │   │   ├── DayCell.tsx
 │   │   ├── MonthGrid.tsx

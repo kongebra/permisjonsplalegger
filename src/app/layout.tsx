@@ -13,9 +13,45 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://perm-planlegger.vercel.app";
+const siteDescription =
+  "Gratis kalkulator som sammenligner 80% og 100% foreldrepermisjon. Se hvordan gapet mellom permisjon og barnehagestart, feriepenger og 6G-taket påvirker familiens økonomi.";
+
 export const metadata: Metadata = {
-  title: "Permisjonsøkonomi-kalkulator",
-  description: "Sammenlign 80% vs 100% foreldrepermisjon og finn ut hva som lønner seg for familien",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Permisjonsøkonomi-kalkulator",
+    template: "%s | Permisjonsøkonomi-kalkulator",
+  },
+  description: siteDescription,
+  keywords: [
+    "foreldrepenger",
+    "foreldrepermisjon",
+    "NAV",
+    "80% vs 100%",
+    "permisjonskalkulator",
+    "feriepenger",
+    "6G",
+    "barnehagestart",
+    "gapet",
+    "permisjon økonomi",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "no_NO",
+    siteName: "Permisjonsøkonomi-kalkulator",
+    title: "Permisjonsøkonomi-kalkulator",
+    description: siteDescription,
+    url: siteUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Permisjonsøkonomi-kalkulator",
+    description: siteDescription,
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
   other: {
     "theme-color": "oklch(0.985 0.005 80)",
   },
@@ -27,6 +63,18 @@ export const viewport = {
   viewportFit: 'cover' as const,
 };
 
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Permisjonsøkonomi-kalkulator",
+  description: siteDescription,
+  url: siteUrl,
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "All",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "NOK" },
+  inLanguage: "no",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +82,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="no">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

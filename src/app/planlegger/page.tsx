@@ -22,7 +22,7 @@ function getHasSavedPlan(): boolean {
 /** Shimmer skeleton matching WelcomeIntro layout — shown during 'checking' phase */
 function WizardSkeleton() {
   return (
-    <div className="min-h-dvh flex items-center justify-center px-4">
+    <div className="flex items-center justify-center min-h-[80dvh]">
       <div className="max-w-lg w-full space-y-6 animate-pulse">
         <div className="text-center space-y-3">
           <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto" />
@@ -111,26 +111,17 @@ export default function PlanleggerPage() {
     pageState = "ready";
   }
 
-  if (pageState === "checking") {
-    return (
-      <div className="min-h-dvh bg-background">
-        <WizardSkeleton />
-      </div>
-    );
-  }
-
-  if (pageState === "returning") {
-    return (
-      <div className="min-h-dvh bg-background">
-        <WelcomeBack onContinue={handleContinue} onStartNew={handleStartNew} />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-dvh bg-background">
       <main id="main" className="container mx-auto px-4 py-4">
-        <WizardContainer skipIntro={userChoice === "continue"} />
+        <h1 className="sr-only">Permisjonsøkonomi-kalkulator</h1>
+        {pageState === "checking" && <WizardSkeleton />}
+        {pageState === "returning" && (
+          <WelcomeBack onContinue={handleContinue} onStartNew={handleStartNew} />
+        )}
+        {pageState === "ready" && (
+          <WizardContainer skipIntro={userChoice === "continue"} />
+        )}
       </main>
     </div>
   );
