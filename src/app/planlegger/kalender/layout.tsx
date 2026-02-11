@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Permisjonskalender",
+  title: "Permisjonskalender og økonomi",
   description:
     "Interaktiv kalender for foreldrepermisjon. Planlegg perioder, se sammenligning av 80% og 100% dekning, og beregn gapet før barnehagestart.",
   alternates: {
