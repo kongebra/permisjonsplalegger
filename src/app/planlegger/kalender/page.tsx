@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback, useSyncExternalStore, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/store';
 import { PlannerCalendar, CalendarOnboarding, CalendarSkeleton } from '@/components/planner';
@@ -86,11 +85,11 @@ export default function KalenderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in max-w-3xl mx-auto">
+    <div className="bg-background flex flex-col animate-fade-in max-w-3xl mx-auto">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background z-40">
         <div className="px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Permisjonsplanlegger</h1>
+          <span className="text-lg font-semibold">Permisjonsplanlegger</span>
 
           <div className="flex items-center gap-2">
             {/* Undo button */}
@@ -125,6 +124,9 @@ export default function KalenderPage() {
               <Save className="w-4 h-4" />
               <span className="hidden sm:inline">Lagre</span>
             </Button>
+            {autoSaveEnabled && (
+              <span className="text-xs text-muted-foreground hidden sm:inline">Auto</span>
+            )}
           </div>
         </div>
       </header>
@@ -144,15 +146,6 @@ export default function KalenderPage() {
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t py-3 text-center text-xs text-muted-foreground">
-        {autoSaveEnabled && <p className="mb-2">Autolagring aktivert</p>}
-        <nav aria-label="Bunntekst" className="flex flex-wrap justify-center gap-4">
-          <Link href="/om" className="hover:underline">Om oss</Link>
-          <Link href="/personvern" className="hover:underline">Personvern</Link>
-        </nav>
-      </footer>
 
       {/* Settings sheet */}
       <SettingsSheet open={showSettings} onOpenChange={setShowSettings} />

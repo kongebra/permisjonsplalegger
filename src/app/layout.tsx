@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,15 +43,11 @@ export const metadata: Metadata = {
     siteName: "Permisjonsøkonomi-kalkulator",
     title: "Permisjonsøkonomi-kalkulator",
     description: siteDescription,
-    url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
     title: "Permisjonsøkonomi-kalkulator",
     description: siteDescription,
-  },
-  alternates: {
-    canonical: siteUrl,
   },
   other: {
     "theme-color": "oklch(0.985 0.005 80)",
@@ -89,12 +86,15 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh flex flex-col`}
       >
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-background focus:text-foreground">
           Hopp til hovedinnhold
         </a>
-        <Providers>{children}</Providers>
+        <div className="flex-1">
+          <Providers>{children}</Providers>
+        </div>
+        <SiteFooter />
       </body>
     </html>
   );

@@ -41,7 +41,7 @@ test.describe('Tilgjengelighet: Kalender (/planlegger/kalender)', () => {
   });
 
   test('Sidetittel er beskrivende', async ({ page }) => {
-    await expect(page).toHaveTitle(/Kalender/);
+    await expect(page).toHaveTitle(/Permisjonskalender/);
   });
 
   test('Hovedinnhold er i <main> landemerke', async ({ page }) => {

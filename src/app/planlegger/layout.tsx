@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Planlegger",
+  title: "Planlegg foreldrepermisjon steg for steg",
   description:
-    "Sett opp foreldrepermisjonen steg for steg. Velg termin, fordeling og dekningsgrad.",
+    "Sett opp foreldrepermisjonen din steg for steg. Velg termindato, fordeling mellom mor og far, dekningsgrad, og se når barnehageplassen starter. Gratis og privat.",
   alternates: {
     canonical: "https://perm-planlegger.vercel.app/planlegger",
   },

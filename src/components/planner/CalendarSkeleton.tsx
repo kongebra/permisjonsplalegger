@@ -1,6 +1,6 @@
 export function CalendarSkeleton() {
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
+    <div className="bg-background flex flex-col animate-fade-in">
       {/* Header skeleton */}
       <header className="border-b sticky top-0 bg-background z-40">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">

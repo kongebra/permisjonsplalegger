@@ -49,7 +49,7 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
   });
 
   test('Sidetittel er beskrivende', async ({ page }) => {
-    await expect(page).toHaveTitle(/Planlegger|Permisjonsøkonomi/);
+    await expect(page).toHaveTitle(/Planlegg|Permisjonsøkonomi/);
   });
 
   test('Skip-link finnes og peker til #main', async ({ page }) => {

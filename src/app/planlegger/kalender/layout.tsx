@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Kalender",
+  title: "Permisjonskalender og økonomioversikt",
   description:
-    "Interaktiv kalender for permisjonsplanlegging. Se perioder, økonomi og gapet før barnehagestart.",
+    "Interaktiv kalender for foreldrepermisjon. Planlegg perioder for mor og far, se økonomisk sammenligning av 80% og 100% dekning, og beregn gapet før barnehagestart.",
   alternates: {
     canonical: "https://perm-planlegger.vercel.app/planlegger/kalender",
   },
@@ -14,5 +14,10 @@ export default function KalenderLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <h1 className="sr-only">Permisjonskalender og økonomioversikt</h1>
+      {children}
+    </>
+  );
 }

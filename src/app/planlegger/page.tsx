@@ -112,7 +112,7 @@ export default function PlanleggerPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="bg-background">
       <main id="main" className="container mx-auto px-4 py-4">
         <h1 className="sr-only">Permisjonsøkonomi-kalkulator</h1>
         {pageState === "checking" && <WizardSkeleton />}

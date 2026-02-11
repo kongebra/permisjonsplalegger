@@ -45,3 +45,6 @@ next-env.d.ts
 
 # posthog setup report (contains project IDs)
 posthog-setup-report.md
+
+test-results/
+playwright-report/
