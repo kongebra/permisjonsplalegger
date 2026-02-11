@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Permisjonskalender og økonomioversikt",
+  title: "Permisjonskalender",
   description:
-    "Interaktiv kalender for foreldrepermisjon. Planlegg perioder for mor og far, se økonomisk sammenligning av 80% og 100% dekning, og beregn gapet før barnehagestart.",
+    "Interaktiv kalender for foreldrepermisjon. Planlegg perioder, se sammenligning av 80% og 100% dekning, og beregn gapet før barnehagestart.",
   alternates: {
     canonical: "https://perm-planlegger.vercel.app/planlegger/kalender",
   },

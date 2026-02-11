@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Personvernerklæring og dine rettigheter",
+  title: "Personvernerklæring",
   description:
-    "Les om hvordan Permisjonsøkonomi-kalkulator behandler data. All informasjon lagres lokalt i nettleseren. Anonym bruksstatistikk via PostHog (EU). Dine GDPR-rettigheter forklart.",
+    "Slik behandler Permisjonsøkonomi-kalkulator data. All informasjon lagres lokalt i nettleseren. Anonym statistikk via PostHog (EU).",
   alternates: {
     canonical: "https://perm-planlegger.vercel.app/personvern",
   },
@@ -14,7 +14,12 @@ export default function PersonvernPage() {
   return (
     <div className="bg-background">
       <main id="main" className="container mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Personvernerklæring</h1>
+        <h1 className="text-3xl font-bold mb-4">Personvernerklæring</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Publisert <time dateTime="2025-12-01">1. desember 2025</time>
+          {" "}&middot;{" "}
+          Oppdatert <time dateTime="2026-02-11">11. februar 2026</time>
+        </p>
 
         <div className="prose prose-sm max-w-none space-y-6 text-foreground">
           <p>
@@ -77,7 +82,7 @@ export default function PersonvernPage() {
           <ul className="list-disc list-inside space-y-1">
             <li>
               <strong>Vercel</strong> &ndash; Hosting og distribusjon av nettsiden.
-              Vercel kan behandle IP-adresser og standard HTTP-metadata for å levere
+              Vercel behandler IP-adresser og standard HTTP-metadata for å levere
               innhold. Se{" "}
               <a
                 href="https://vercel.com/legal/privacy-policy"
@@ -110,11 +115,11 @@ export default function PersonvernPage() {
             (GDPR), har du krav på:
           </p>
           <ul className="list-disc list-inside space-y-1">
-            <li><strong>Rett til innsyn</strong> &ndash; Du kan be om oversikt over data vi behandler</li>
-            <li><strong>Rett til retting</strong> &ndash; Du kan kreve at uriktige opplysninger rettes</li>
-            <li><strong>Rett til sletting</strong> &ndash; Du kan be om at data fjernes</li>
-            <li><strong>Rett til dataportabilitet</strong> &ndash; Du kan be om å få utlevert data i et maskinlesbart format</li>
-            <li><strong>Rett til å protestere</strong> &ndash; Du kan protestere mot vår behandling</li>
+            <li><strong>Rett til innsyn</strong> &ndash; Be om oversikt over data vi behandler</li>
+            <li><strong>Rett til retting</strong> &ndash; Krev at uriktige opplysninger rettes</li>
+            <li><strong>Rett til sletting</strong> &ndash; Be om at data fjernes</li>
+            <li><strong>Rett til dataportabilitet</strong> &ndash; Få utlevert data i et maskinlesbart format</li>
+            <li><strong>Rett til å protestere</strong> &ndash; Protest mot vår behandling av data</li>
           </ul>
           <p>For å fjerne lokalt lagret data fra nettleseren:</p>
           <ol className="list-decimal list-inside space-y-1">
@@ -124,9 +129,9 @@ export default function PersonvernPage() {
 
           <h2 className="text-xl font-semibold mt-8">7. Endringer i denne erklæringen</h2>
           <p>
-            Vi kan oppdatere denne personvernerklæringen ved behov, for eksempel
+            Denne personvernerklæringen oppdateres ved behov, for eksempel
             ved endringer i funksjonalitet eller regelverk. Vesentlige endringer
-            vil bli markert med oppdatert dato nederst på denne siden.
+            markeres med oppdatert dato nederst på denne siden.
           </p>
 
           <h2 className="text-xl font-semibold mt-8">8. Kontakt</h2>

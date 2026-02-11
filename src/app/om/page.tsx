@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Om Permisjonsøkonomi-kalkulator",
+  title: "Om kalkulatoren",
   description:
-    "Gratis verktøy som hjelper norske foreldre med valget mellom 80% og 100% foreldrepermisjon. Beregn gapet før barnehagestart, feriepenger og 6G-effekten privat i nettleseren.",
+    "Gratis verktøy for norske foreldre som sammenligner 80% og 100% foreldrepermisjon. Beregn gapet før barnehagestart, feriepenger og 6G-effekten.",
   alternates: {
     canonical: "https://perm-planlegger.vercel.app/om",
   },
@@ -14,7 +14,14 @@ export default function OmPage() {
   return (
     <div className="bg-background">
       <main id="main" className="container mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Om Permisjonsøkonomi-kalkulator</h1>
+        <h1 className="text-3xl font-bold mb-4">Om Permisjonsøkonomi-kalkulator</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Skrevet av teamet bak Permisjonsøkonomi-kalkulator
+          {" "}&middot;{" "}
+          Publisert <time dateTime="2025-12-01">1. desember 2025</time>
+          {" "}&middot;{" "}
+          Oppdatert <time dateTime="2026-02-11">11. februar 2026</time>
+        </p>
 
         <div className="prose prose-sm max-w-none space-y-6 text-foreground">
           <h2 className="text-xl font-semibold mt-8">Hvorfor dette verktøyet?</h2>

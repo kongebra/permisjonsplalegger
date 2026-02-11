@@ -2,13 +2,16 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t py-6 text-center text-xs text-muted-foreground">
+    <footer className="border-t py-6 text-center text-xs text-foreground/60">
       <nav aria-label="Bunntekst" className="flex flex-wrap justify-center gap-4 mb-2">
-        <Link href="/om" className="hover:underline">
+        <Link href="/om" className="hover:underline" title="About us">
           Om oss
         </Link>
-        <Link href="/personvern" className="hover:underline">
+        <Link href="/personvern" className="hover:underline" title="Privacy Policy">
           Personvern
+        </Link>
+        <Link href="/planlegger/kalender" className="hover:underline">
+          Kalender
         </Link>
         <a
           href="https://github.com/kongebra/permisjonsplalegger"

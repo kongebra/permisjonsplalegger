@@ -70,6 +70,23 @@ const jsonLd = JSON.stringify({
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "NOK" },
   inLanguage: "no",
+  datePublished: "2025-12-01",
+  dateModified: "2026-02-11",
+  author: {
+    "@type": "Organization",
+    name: "Permisjonsøkonomi-kalkulator",
+    url: `${siteUrl}/om`,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Permisjonsøkonomi-kalkulator",
+    url: `${siteUrl}/om`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      url: "https://github.com/kongebra/permisjonsplalegger/issues",
+      contactType: "customer support",
+    },
+  },
 });
 
 export default function RootLayout({
