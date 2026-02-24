@@ -110,6 +110,15 @@ describe('calculateMotherPeriod', () => {
     const expectedEnd = addWeeks(leaveStart, result.weeks);
     expect(result.end.getTime()).toBe(expectedEnd.getTime());
   });
+
+  test('father-only: mother start and end both equal dueDate', () => {
+    const dueDate = new Date(2026, 6, 5);
+    const leaveStart = calculateLeaveStart(dueDate, 100);
+    const result = calculateMotherPeriod(leaveStart, dueDate, 100, 0, 'father-only');
+    expect(result.weeks).toBe(0);
+    expect(result.start.getTime()).toBe(dueDate.getTime()); // Not leaveStart!
+    expect(result.end.getTime()).toBe(dueDate.getTime());
+  });
 });
 
 describe('calculateFatherPeriod', () => {

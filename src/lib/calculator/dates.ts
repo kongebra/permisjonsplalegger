@@ -71,7 +71,7 @@ export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {
  */
 export function calculateMotherPeriod(
   leaveStart: Date,
-  _dueDate: Date,
+  dueDate: Date,
   coverage: Coverage,
   sharedWeeksToMother: number,
   rights: ParentRights
@@ -84,8 +84,8 @@ export function calculateMotherPeriod(
     // Mor får hele perioden
     totalMotherWeeks = config.total;
   } else if (rights === 'father-only') {
-    // Mor får ingen permisjon
-    totalMotherWeeks = 0;
+    // Mor får ingen permisjon; start/slutt settes til termindato så far starter riktig
+    return { start: dueDate, end: dueDate, weeks: 0 };
   } else {
     // Begge har rett: mødrekvote + andel av fellesperiode
     totalMotherWeeks = config.preBirth + config.mother + sharedWeeksToMother;
