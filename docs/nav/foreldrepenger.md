@@ -40,13 +40,28 @@ Du velger mellom **100% dekning** (kortere periode) eller **80% dekning** (lengr
 | **Fedrekvote/Medmorkvote** (forbeholdt far/medmor) | 15 uker | 19 uker |
 | **Fellesperiode** (deles fritt) | 16 uker | 20 uker og 1 dag |
 
-### Når bare far/medmor har rett – ett barn (fra 2. august 2024)
+### Kun far eller medmor har rett
 
-| | 100% | 80% |
-|---|---|---|
-| Uten aktivitetskrav | 10 uker | 10 uker |
-| Med aktivitetskrav | 30 uker | 42 uker og 1 dag |
-| **Totalt** | 40 uker | 52 uker og 1 dag |
+Hvis kun far eller medmor har rett til foreldrepenger, gjelder egne regler:
+
+| Dekningsgrad | Totalt | Uten aktivitetskrav | Med aktivitetskrav |
+|---|---|---|---|
+| 100% | 40 uker | 10 uker | 30 uker |
+| 80% | 52 uker og 1 dag | 10 uker | 42 uker og 1 dag |
+
+**Startdato:** Permisjonen starter fra barnets fødsel (termindato), ikke 3 uker før som for mor.
+
+**Aktivitetskravet:** For de ukene som krever aktivitet, må mor/den andre forelderen enten:
+- Være i arbeid
+- Ta utdanning på heltid
+- Være registrert arbeidssøker hos NAV
+- Ha en sykdomsrelatert grunn godkjent av NAV
+- Ha en annen godkjent grunn
+
+**Merk:** Kalkulatoren modellerer ikke reduksjon ved mors deltidsarbeid (§ 14-13 fjerde ledd).
+Flerbarnstillegg er heller ikke modellert (ingen aktivitetskrav gjelder der).
+
+**Kilde:** [NAV.no – Kun far eller medmor har rett](https://www.nav.no/foreldrepenger#kun-far-har-rett)
 
 ### Når bare mor har rett – ett barn
 

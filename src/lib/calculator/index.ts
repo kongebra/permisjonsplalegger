@@ -17,16 +17,19 @@ import type {
  */
 export function getDefaultDaycareStart(dueDate: Date): Date {
   const year = dueDate.getFullYear();
-  const augustFirstSameYear = new Date(year, 7, 1); // August = 7 (0-indexed)
+  const septemberFirst = new Date(year, 8, 1); // September = 8 (0-indexed)
 
-  // Barnet må være ca. 1 år før barnehagestart (hovedopptak 1. august)
-  // Hvis født før 1. august: første mulighet er 1. august neste år
-  // Hvis født etter 1. august: første mulighet er 1. august året etter neste år
-  if (dueDate >= augustFirstSameYear) {
+  // Barnehageloven § 16:
+  // - Født jan–aug: rett til plass august (år+1) – barnet fyller 1 innen utgangen av august
+  // - Født sep–nov: rett til plass sin fødselsmåned (år+1), men de fleste velger
+  //   august-opptaket (år+2) – vi bruker år+2 som forenklet default (se barnehagerett.md)
+  // - Født des: rett til plass august (år+2)
+  if (dueDate >= septemberFirst) {
     // F.eks. født sept 2026 → bhg start aug 2028
     return new Date(year + 2, 7, 1);
   }
 
+  // F.eks. født aug 2026 → bhg start aug 2027
   // F.eks. født juli 2026 → bhg start aug 2027
   return new Date(year + 1, 7, 1);
 }

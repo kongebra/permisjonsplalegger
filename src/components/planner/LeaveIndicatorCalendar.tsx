@@ -34,6 +34,7 @@ function toCategory(type: LeaveSegmentType): IndicatorCategory {
     case 'quota':
     case 'shared':
     case 'overlap':
+    case 'activity-required':
       return 'leave';
     case 'vacation':
       return 'vacation';

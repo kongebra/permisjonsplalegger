@@ -59,7 +59,8 @@ export type LeaveSegmentType =
   | 'overlap' // Overlappende periode
   | 'vacation' // Ferie (dekker gap)
   | 'unpaid' // Ulønnet permisjon
-  | 'gap'; // Gap mellom permisjon og barnehage
+  | 'gap' // Gap mellom permisjon og barnehage
+  | 'activity-required'; // Fars 30/42 uker som krever at mor er i aktivitet
 
 export interface LeaveSegment {
   parent: Parent;

@@ -23,6 +23,23 @@ import type {
 import { calculateLeave } from './dates';
 
 /**
+ * Teller antall arbeidsdager (man–fre) mellom to datoer.
+ * Brukes for å beregne reelt inntektstap i et gap – helgedager teller ikke.
+ */
+export function countWorkingDaysInGap(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current < end) {
+    const day = current.getDay();
+    if (day >= 1 && day <= 5) { // Mandag (1) til fredag (5)
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+/**
  * Beregner grunnlaget for NAV-utbetaling
  * Begrenset til 6G med mindre arbeidsgiver dekker over 6G
  */
@@ -182,15 +199,16 @@ export function calculate80Scenario(
     );
   }
 
-  // Gap-kostnad (80% har lengre permisjon, ofte mindre gap)
+  // Gap-kostnad: teller kun arbeidsdager (man–fre), ikke helgedager
   const motherDailyRate = calculateDailyRate(motherEconomy.monthlySalary);
   const fatherDailyRate = fatherEconomy
     ? calculateDailyRate(fatherEconomy.monthlySalary)
     : Infinity;
+  const gapWorkingDays = countWorkingDaysInGap(gap.start, gap.end);
   const { cost: gapCost, takenBy } = calculateGapCost(
     motherDailyRate,
     fatherDailyRate,
-    gap.days
+    gapWorkingDays
   );
 
   const navPayout = motherNavPayout + fatherNavPayout;
@@ -265,15 +283,16 @@ export function calculate100Scenario(
     );
   }
 
-  // Gap-kostnad (100% har kortere permisjon, ofte større gap)
+  // Gap-kostnad: teller kun arbeidsdager (man–fre), ikke helgedager
   const motherDailyRate = calculateDailyRate(motherEconomy.monthlySalary);
   const fatherDailyRate = fatherEconomy
     ? calculateDailyRate(fatherEconomy.monthlySalary)
     : Infinity;
+  const gapWorkingDays = countWorkingDaysInGap(gap.start, gap.end);
   const { cost: gapCost, takenBy } = calculateGapCost(
     motherDailyRate,
     fatherDailyRate,
-    gap.days
+    gapWorkingDays
   );
 
   const navPayout = motherNavPayout + fatherNavPayout;

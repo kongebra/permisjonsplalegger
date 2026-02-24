@@ -47,12 +47,23 @@ export function RightsStep({ value, onChange }: RightsStepProps) {
       </div>
 
       {/* Info box for single parents */}
-      {(value === 'mother-only' || value === 'father-only') && (
+      {value === 'mother-only' && (
         <InfoBox variant="info">
-          <p className="font-medium">Som enslig forelder</p>
+          <p className="font-medium">Kun mor har rett</p>
           <p className="mt-1">
-            Forelderen har rett til hele permisjonsperioden inkludert fellesperioden.
-            Det betyr opptil 46 uker (100%) eller 56 uker (80%) totalt, pluss 3 uker før termin.
+            Mor får hele permisjonsperioden inkludert fellesperioden –
+            totalt 49 uker (100%) eller 61 uker (80%), pluss 3 uker før termin.
+          </p>
+        </InfoBox>
+      )}
+
+      {value === 'father-only' && (
+        <InfoBox variant="info">
+          <p className="font-medium">Kun far/medmor har rett</p>
+          <p className="mt-1">
+            Som eneste forelder med rett har du 40 uker (100%) eller 52 uker (80%) foreldrepenger.
+            10 uker er uten aktivitetskrav. De resterende ukene krever at den andre forelderen
+            er i godkjent aktivitet (arbeid, heltidsstudier m.m.).
           </p>
         </InfoBox>
       )}

@@ -9,6 +9,7 @@ import {
   calculateMotherPeriod,
   calculateFatherPeriod,
   calculateGap,
+  buildLeaveSegments,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -99,7 +100,7 @@ describe('calculateMotherPeriod', () => {
   });
 
   test('80%: mother gets more weeks with larger shared pool', () => {
-    const shared80 = 9; // Half of 18
+    const shared80 = 9; // Testverdi innenfor fellesperioden (shared = 20 ved 80%)
     const result = calculateMotherPeriod(leaveStart, dueDate, 80, shared80, 'both');
     const expectedWeeks = LEAVE_CONFIG[80].preBirth + LEAVE_CONFIG[80].mother + shared80;
     expect(result.weeks).toBe(expectedWeeks); // 3 + 19 + 9 = 31
@@ -109,6 +110,15 @@ describe('calculateMotherPeriod', () => {
     const result = calculateMotherPeriod(leaveStart, dueDate, 100, 8, 'both');
     const expectedEnd = addWeeks(leaveStart, result.weeks);
     expect(result.end.getTime()).toBe(expectedEnd.getTime());
+  });
+
+  test('father-only: mother start and end both equal dueDate', () => {
+    const dueDate = new Date(2026, 6, 5);
+    const leaveStart = calculateLeaveStart(dueDate, 100);
+    const result = calculateMotherPeriod(leaveStart, dueDate, 100, 0, 'father-only');
+    expect(result.weeks).toBe(0);
+    expect(result.start.getTime()).toBe(dueDate.getTime()); // Not leaveStart!
+    expect(result.end.getTime()).toBe(dueDate.getTime());
   });
 });
 
@@ -142,10 +152,22 @@ describe('calculateFatherPeriod', () => {
     expect(result).toBeNull();
   });
 
-  test('father-only: gets all weeks', () => {
-    const fatherOnlyStart = new Date(2026, 6, 1);
+  test('father-only: total weeks from fatherOnly config, not config.total', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
     const result = calculateFatherPeriod(fatherOnlyStart, 100, 0, 0, 'father-only');
-    expect(result!.weeks).toBe(LEAVE_CONFIG[100].total); // 49
+    expect(result!.weeks).toBe(LEAVE_CONFIG[100].fatherOnly.total); // 40
+  });
+
+  test('father-only 100%: total = 40 uker', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
+    const result = calculateFatherPeriod(fatherOnlyStart, 100, 0, 0, 'father-only');
+    expect(result!.weeks).toBe(40);
+  });
+
+  test('father-only 80%: total = 52 uker', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
+    const result = calculateFatherPeriod(fatherOnlyStart, 80, 0, 0, 'father-only');
+    expect(result!.weeks).toBe(52);
   });
 });
 
@@ -192,7 +214,7 @@ describe('calculateGap', () => {
 describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
   const dueDate = new Date(2026, 6, 5);
   const coverage = 80 as const;
-  const shared = 18; // All shared to mother for this test
+  const shared = LEAVE_CONFIG[coverage].shared; // All shared to mother for this test
 
   test('leave start is 3 weeks before due date', () => {
     const start = calculateLeaveStart(dueDate, coverage);
@@ -205,15 +227,56 @@ describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
   test('mother period with all shared weeks', () => {
     const start = calculateLeaveStart(dueDate, coverage);
     const mother = calculateMotherPeriod(start, dueDate, coverage, shared, 'both');
-    // preBirth(3) + mother(19) + shared(18) = 40 weeks
-    expect(mother.weeks).toBe(40);
+    // preBirth(3) + mother(19) + shared(20) = 42 weeks
+    const expected = LEAVE_CONFIG[coverage].preBirth + LEAVE_CONFIG[coverage].mother + shared;
+    expect(mother.weeks).toBe(expected);
   });
 
-  test('father gets remaining weeks', () => {
+  test('father gets remaining weeks when all shared goes to mother', () => {
     const start = calculateLeaveStart(dueDate, coverage);
     const mother = calculateMotherPeriod(start, dueDate, coverage, shared, 'both');
     const father = calculateFatherPeriod(mother.end, coverage, shared, 0, 'both');
     // father(19) + shared remaining(0) = 19 weeks
-    expect(father!.weeks).toBe(19);
+    expect(father!.weeks).toBe(LEAVE_CONFIG[coverage].father);
+  });
+});
+
+// ============================================================
+// buildLeaveSegments: father-only
+// ============================================================
+describe('buildLeaveSegments: father-only', () => {
+  const dueDate = new Date(2026, 9, 15); // 15. oktober 2026
+  const daycareDate = new Date(2027, 7, 1);
+
+  test('starter på termindato, ikke 3 uker før', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments[0].start.getTime()).toBe(dueDate.getTime());
+  });
+
+  test('100%: to segmenter – quota 10 uker + activity-required 30 uker', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments).toHaveLength(2);
+    expect(fatherSegments[0].type).toBe('quota');
+    expect(fatherSegments[0].weeks).toBe(10);
+    expect(fatherSegments[1].type).toBe('activity-required');
+    expect(fatherSegments[1].weeks).toBe(30);
+  });
+
+  test('80%: to segmenter – quota 10 uker + activity-required 42 uker', () => {
+    const segments = buildLeaveSegments(dueDate, 80, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments).toHaveLength(2);
+    expect(fatherSegments[0].type).toBe('quota');
+    expect(fatherSegments[0].weeks).toBe(10);
+    expect(fatherSegments[1].type).toBe('activity-required');
+    expect(fatherSegments[1].weeks).toBe(42);
+  });
+
+  test('segment 2 starter der segment 1 slutter', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments[1].start.getTime()).toBe(fatherSegments[0].end.getTime());
   });
 });
