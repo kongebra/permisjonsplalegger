@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { usePickerSelection } from './usePickerSelection';
 import { usePickerMonths } from './usePickerMonths';
 import { PickerHeader } from './PickerHeader';
@@ -91,6 +91,7 @@ export function SmartPeriodPicker({
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl">
+        <DialogTitle className="sr-only">Velg periode</DialogTitle>
         <PickerHeader
           startDate={selStart}
           endDate={selEnd}
