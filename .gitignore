@@ -48,3 +48,6 @@ posthog-setup-report.md
 
 test-results/
 playwright-report/
+
+# git worktrees
+.worktrees/
