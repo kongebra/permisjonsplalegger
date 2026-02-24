@@ -42,3 +42,4 @@ Dette er en **permisjonsplanlegger**, ikke bare en enkel kalkulator. Målet er �
 4. **Kalender-UX:** Fungerer justeringer i kalenderen sømløst, og oppdateres "gapet" korrekt når brukeren legger til ferie eller flytter perioder?
 5. **PR-beskrivelse:** Er det lagt ved en folkelig, ikke-teknisk oppsummering av endringen nederst i PR-en?
 6. **Språk:** Er kommentarer på **norsk** og variabler/kode på **engelsk**?
+7. **Changelog:** Er `CHANGELOG.md` i rot oppdatert med en kort, ikke-teknisk beskrivelse av endringen?
