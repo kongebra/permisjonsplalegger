@@ -34,6 +34,7 @@ const SEGMENT_TYPE_LABELS: Record<string, string> = {
   overlap: 'Overlapp',
   vacation: 'Ferie',
   unpaid: 'Ulønnet',
+  'activity-required': 'Med aktivitetskrav',
 };
 
 export function DayDetailPanel({

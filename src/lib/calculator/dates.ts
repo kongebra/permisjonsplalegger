@@ -489,7 +489,9 @@ export function calculateLeave(
   );
 
   // Total kalendertid (overlapp forkorter denne)
-  const totalCalendarWeeks = weeksBetween(leaveStart, lastLeaveEnd);
+  // Far-only: permisjon starter på termindato, ikke 3 uker før
+  const calendarStart = rights === 'father-only' ? dueDate : leaveStart;
+  const totalCalendarWeeks = weeksBetween(calendarStart, lastLeaveEnd);
 
   return {
     segments,

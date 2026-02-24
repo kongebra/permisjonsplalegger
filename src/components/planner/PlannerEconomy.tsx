@@ -58,10 +58,11 @@ function QuotaOverview() {
     }
 
     if (rights !== 'mother-only') {
+      const fatherTotal = rights === 'father-only' ? config.fatherOnly.total : config.father;
       result.push({
         label: 'Fars kvote',
-        used: Math.min(fatherQuotaWeeks, config.father),
-        total: config.father,
+        used: Math.min(fatherQuotaWeeks, fatherTotal),
+        total: fatherTotal,
         color: 'bg-father-strong',
       });
     }

@@ -3,6 +3,7 @@ import {
   getDefaultDaycareStart,
   getDefaultSharedWeeksToMother,
   calculate,
+  calculateLeave,
 } from './index';
 import { LEAVE_CONFIG } from '../constants';
 import type { ParentEconomy } from '../types';
@@ -189,5 +190,35 @@ describe('calculate() integration', () => {
     });
 
     expect(result.leave.gap.days).toBeGreaterThan(0);
+  });
+});
+
+// ============================================================
+// father-only scenario
+// ============================================================
+describe('father-only scenario', () => {
+  const dueDate = new Date(2026, 9, 15); // 15. oktober 2026
+  const daycareDate = new Date(2027, 7, 1); // 1. august 2027
+
+  test('100%: total = 40 uker, starter på termindato', () => {
+    const result = calculateLeave(dueDate, 100, 'father-only', 0, 0, daycareDate);
+    expect(result.father.weeks).toBe(40);
+    expect(result.father.start.getTime()).toBe(dueDate.getTime());
+    expect(result.mother.weeks).toBe(0);
+  });
+
+  test('80%: total = 52 uker', () => {
+    const result = calculateLeave(dueDate, 80, 'father-only', 0, 0, daycareDate);
+    expect(result.father.weeks).toBe(52);
+  });
+
+  test('to segmenter: quota 10 uker + activity-required 30 uker (100%)', () => {
+    const result = calculateLeave(dueDate, 100, 'father-only', 0, 0, daycareDate);
+    const fatherSegs = result.segments.filter(s => s.parent === 'father');
+    expect(fatherSegs).toHaveLength(2);
+    expect(fatherSegs[0].type).toBe('quota');
+    expect(fatherSegs[0].weeks).toBe(10);
+    expect(fatherSegs[1].type).toBe('activity-required');
+    expect(fatherSegs[1].weeks).toBe(30);
   });
 });
