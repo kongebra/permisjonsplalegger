@@ -1,5 +1,9 @@
 # Kravspesifikasjon: Permisjonsøkonomi-kalkulator (MVP)
 
+> **Status (feb 2026):** Kjernefunksjonalitet implementert som wizard (8 steg) + interaktiv kalender.
+> Gjenstående fra denne spekken: Likviditetsgraf (3.3), fullstendig feriepenge-breakdown, tooltips for juni-lønn.
+> Se `docs/PROGRESS.md` for full implementasjonsstatus.
+
 ## 1. Bakgrunn og Formål
 
 Mange foreldre taper store summer (ofte 50 000 – 100 000 kr) på å velge 80 % dekningsgrad fremfor 100 % dekningsgrad kombinert med ulønnet permisjon. Dette gjelder spesielt for arbeidstakere med lønn over 6G, provisjonsbasert lønn, eller gode feriepengeavtaler gjennom arbeidsgiver.
@@ -68,7 +72,7 @@ Applikasjonen skal ta inn følgende data for hver av foreldrene (Mor og Far/Medm
 
 - **Totalregnskapet:** En tydelig sum som viser netto differanse mellom valgene.
   - _Eks: "Dere tjener totalt 45 000 kr mer på å velge 100 % + ulønnet permisjon."_
-- **Likviditets-graf:** En visuell fremstilling (linjediagram) av akkumulert inntekt gjennom perioden frem til barnehagestart.
+- **Likviditets-graf:** *(Ikke implementert ennå)* En visuell fremstilling (linjediagram) av akkumulert inntekt gjennom perioden frem til barnehagestart.
 - **Anbefaling for "Gapet":** En tekst som viser hvem av foreldrene det lønner seg at tar den ulønnede permisjonen (basert på dagsats).
 
 ---

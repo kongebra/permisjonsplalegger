@@ -1,26 +1,29 @@
-# Ideer
+# Ideer og backlog
 
-## Feriedager før/etter permisjon
+## Kjente bugs
 
-### Mor
+- Klikke på en dag flere ganger «spiser» uker for mor – kvotetelling trigges feil ved gjentatt klikk
+- Wizard: barnehagestart-datepicker viser dagens dato i stedet for estimert dato fra termindato
+- Termindato-valg: vanskelig å hoppe mer enn én måned frem/tilbake – må utvide komponentet
 
-En linje man kan legge inn feriedager etter permisjon for mor, der man legger inn antall dager, samt en checkbox for å markere at disse dagene skal tas ut i far/medmors sin permisjon. Det vil si at mor da har ferie etter sin permisjon for å være med far og barn, i fars permisjon.
+## UI-issues
 
-Hvis det ikke er avhuket, så vil feriedagene legges til før far permisjon starter, altså "dytte" far sin permisjon senere.
+- Wizard-sidene bør helst passe på én skjermhøyde uten scrolling. Vurder mer kompakte komponenter, spesielt på mobil. Oppsummerings-steget kan være unntaket.
 
-### Far/Medmor
+## Feature-ideer
 
-Tilsvarende linje, men vi må ha 2 linjer her:
+### Feriedager før/etter permisjon
 
-- En linje som velger feriedager før permisjon
-- En linje som velger feriedager etter permisjon
+**Mor:** Legg inn antall feriedager etter permisjon. Valgfri checkbox: «Skal tas ut i fars permisjon» (mor er hjemme men tar ferie mens far har permisjon). Hvis ikke avhuket, dyttes fars permisjon tilsvarende.
 
-Samme checkbox for å velge om feriedagene skal tas ut i mors permisjon eller ikke, dette gjelder da for feriedager før permisjon. Feriedager etter permisjon legges bare på i kalender og sånt.
+**Far/Medmor:** To linjer:
+- Feriedager *før* permisjon (med tilsvarende checkbox om de skal tas i mors permisjon)
+- Feriedager *etter* permisjon (legges bare på i kalender)
 
-## Justering på farger i kalender
+### Diagonal fargedeling for felles dager
 
-### Felles dager
+I stedet for én oransje farge for fellesperiode, split dagcellen diagonalt: øverste venstre = mors farge, nederste høyre = fars farge. Gjelder også de 2 første ukene etter fødsel.
 
-Vi har nå en oransj farge for felles dager i kalenderen, men her kan vi nok gjøre ting enda bedre, og mer tydlig på hva som skjer. Det vi heller gjør er å "splitte" felles dager i to, der mor har halvparten av dagen og far har halvparten av dagen. Dette kan vi vise med en diagonal linje i kalenderen, der øverste venstre del er mors farge og nederste høyre del er fars farge (eller omvendt).
+### Barnehagestart – smartere dato
 
-Dette gjelder også da 2 uker etter fødsel, som er felles dager. (disse dagene trenger ikke stå i tabellvisning under kalender, der ser det fortsatt som det gjør nå, ut som mors permisjon).
+I stedet for kun august-opptak, vis «Tidligst barnehagestart: [dato]» tydelig i appen med forbehold om at faktisk oppstart kan variere. Se `docs/nav/barnehagerett.md` for lovhjemmel og logikk. Kan vurdere å støtte september/oktober/november-opptak for barn født i disse månedene.
