@@ -236,6 +236,28 @@ usePlannerStore.subscribe(
   }
 );
 
+// Dev-only: logg state til console slik at next-devtools-mcp get_logs kan plukke det opp
+if (process.env.NODE_ENV === 'development') {
+  usePlannerStore.subscribe(
+    (state) => ({
+      dueDate: state.dueDate,
+      rights: state.rights,
+      coverage: state.coverage,
+      sharedWeeksToMother: state.sharedWeeksToMother,
+      daycareStartDate: state.daycareStartDate,
+      daycareEnabled: state.daycareEnabled,
+      motherEconomy: state.motherEconomy,
+      fatherEconomy: state.fatherEconomy,
+      motherJobSettings: state.motherJobSettings,
+      fatherJobSettings: state.fatherJobSettings,
+      periods: state.periods.length,
+    }),
+    (curr) => {
+      console.log('[planner-state]', JSON.stringify(curr, null, 2));
+    }
+  );
+}
+
 // Export types
 export type { WizardSlice } from './slices/wizardSlice';
 export type { JobSettingsSlice } from './slices/jobSettingsSlice';
