@@ -9,6 +9,7 @@ import {
   calculate100Scenario,
   compareScenarios,
   generateCumulativeTimeSeries,
+  countWorkingDaysInGap,
 } from './economy';
 import { G, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
 import type { ParentEconomy, GapInfo } from '../types';
@@ -95,6 +96,34 @@ describe('calculateCommissionLoss', () => {
 
   test('zero commission means zero loss', () => {
     expect(calculateCommissionLoss(0, 59)).toBe(0);
+  });
+});
+
+// ============================================================
+// countWorkingDaysInGap
+// ============================================================
+describe('countWorkingDaysInGap', () => {
+  test('lørdag til mandag = 0 arbeidsdager', () => {
+    const saturday = new Date(2026, 7, 15); // lør 15. aug 2026
+    const monday = new Date(2026, 7, 17);   // man 17. aug 2026
+    expect(countWorkingDaysInGap(saturday, monday)).toBe(0);
+  });
+
+  test('mandag til neste mandag (7 dager) = 5 arbeidsdager', () => {
+    const monday = new Date(2026, 7, 17); // man 17. aug 2026
+    const nextMonday = new Date(2026, 7, 24);
+    expect(countWorkingDaysInGap(monday, nextMonday)).toBe(5);
+  });
+
+  test('mandag til fredag (4 dager) = 4 arbeidsdager', () => {
+    const monday = new Date(2026, 7, 17);
+    const friday = new Date(2026, 7, 21);
+    expect(countWorkingDaysInGap(monday, friday)).toBe(4);
+  });
+
+  test('samme dato = 0 arbeidsdager', () => {
+    const date = new Date(2026, 7, 17);
+    expect(countWorkingDaysInGap(date, date)).toBe(0);
   });
 });
 
@@ -242,13 +271,14 @@ describe('acceptance: high earner with commission (78k + 12k)', () => {
 // Akseptansekrav #2: Gap-test
 // ============================================================
 describe('acceptance: gap test (100% ends may, daycare aug)', () => {
-  test('gap cost is correctly subtracted from 100% scenario', () => {
+  test('gap cost uses working days, not calendar days', () => {
     const mother = makeEconomy({ monthlySalary: 50_000 });
     const gap100 = makeGap(92); // ~3 months gap
     const scenario = calculate100Scenario(mother, undefined, 26, 0, gap100);
+    const workingDays = countWorkingDaysInGap(gap100.start, gap100.end);
     expect(scenario.breakdown.gapCost).toBeGreaterThan(0);
     expect(scenario.breakdown.gapCost).toBeCloseTo(
-      calculateDailyRate(50_000) * 92
+      calculateDailyRate(50_000) * workingDays
     );
   });
 
