@@ -15,6 +15,11 @@ export const LEAVE_CONFIG = {
     shared: 16, // Fellesperiode
     preBirth: 3, // Uker før termin
     motherMandatoryPostBirth: 6, // Obligatoriske uker etter fødsel
+    fatherOnly: {
+      noRequirement: 10,   // Fritt å ta ut uten aktivitetskrav
+      withRequirement: 30, // Krever at mor er i godkjent aktivitet
+      total: 40,           // NAV: 40 uker ved 100%
+    },
   },
   80: {
     total: 61, // NAV: 61 uker og 1 dag (avrundet til hele uker)
@@ -23,6 +28,11 @@ export const LEAVE_CONFIG = {
     shared: 20, // NAV: 20 uker og 1 dag (avrundet til hele uker)
     preBirth: 3,
     motherMandatoryPostBirth: 6,
+    fatherOnly: {
+      noRequirement: 10,
+      withRequirement: 42, // NAV: 42 uker og 1 dag – avrundet til hele uker
+      total: 52,           // NAV: 52 uker og 1 dag – avrundet til hele uker
+    },
   },
 } as const;
 

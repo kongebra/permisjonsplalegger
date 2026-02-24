@@ -142,10 +142,22 @@ describe('calculateFatherPeriod', () => {
     expect(result).toBeNull();
   });
 
-  test('father-only: gets all weeks', () => {
-    const fatherOnlyStart = new Date(2026, 6, 1);
+  test('father-only: total weeks from fatherOnly config, not config.total', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
     const result = calculateFatherPeriod(fatherOnlyStart, 100, 0, 0, 'father-only');
-    expect(result!.weeks).toBe(LEAVE_CONFIG[100].total); // 49
+    expect(result!.weeks).toBe(LEAVE_CONFIG[100].fatherOnly.total); // 40
+  });
+
+  test('father-only 100%: total = 40 uker', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
+    const result = calculateFatherPeriod(fatherOnlyStart, 100, 0, 0, 'father-only');
+    expect(result!.weeks).toBe(40);
+  });
+
+  test('father-only 80%: total = 52 uker', () => {
+    const fatherOnlyStart = new Date(2026, 6, 5);
+    const result = calculateFatherPeriod(fatherOnlyStart, 80, 0, 0, 'father-only');
+    expect(result!.weeks).toBe(52);
   });
 });
 
