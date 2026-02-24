@@ -34,7 +34,12 @@ function QuotaOverview() {
     for (const p of permisjonPeriods) {
       const weeks = daysToWeeks(differenceInDays(p.endDate, p.startDate));
 
-      if (p.segmentType === 'quota' || p.segmentType === 'preBirth' || p.segmentType === 'mandatory') {
+      if (
+        p.segmentType === 'quota' ||
+        p.segmentType === 'activity-required' ||
+        p.segmentType === 'preBirth' ||
+        p.segmentType === 'mandatory'
+      ) {
         if (p.parent === 'mother') motherQuotaWeeks += weeks;
         else fatherQuotaWeeks += weeks;
       } else if (p.segmentType === 'shared' || p.segmentType === 'overlap' || !p.segmentType) {
