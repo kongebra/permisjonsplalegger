@@ -9,6 +9,7 @@ import {
   calculateMotherPeriod,
   calculateFatherPeriod,
   calculateGap,
+  buildLeaveSegments,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -237,5 +238,45 @@ describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
     const father = calculateFatherPeriod(mother.end, coverage, shared, 0, 'both');
     // father(19) + shared remaining(0) = 19 weeks
     expect(father!.weeks).toBe(LEAVE_CONFIG[coverage].father);
+  });
+});
+
+// ============================================================
+// buildLeaveSegments: father-only
+// ============================================================
+describe('buildLeaveSegments: father-only', () => {
+  const dueDate = new Date(2026, 9, 15); // 15. oktober 2026
+  const daycareDate = new Date(2027, 7, 1);
+
+  test('starter på termindato, ikke 3 uker før', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments[0].start.getTime()).toBe(dueDate.getTime());
+  });
+
+  test('100%: to segmenter – quota 10 uker + activity-required 30 uker', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments).toHaveLength(2);
+    expect(fatherSegments[0].type).toBe('quota');
+    expect(fatherSegments[0].weeks).toBe(10);
+    expect(fatherSegments[1].type).toBe('activity-required');
+    expect(fatherSegments[1].weeks).toBe(30);
+  });
+
+  test('80%: to segmenter – quota 10 uker + activity-required 42 uker', () => {
+    const segments = buildLeaveSegments(dueDate, 80, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments).toHaveLength(2);
+    expect(fatherSegments[0].type).toBe('quota');
+    expect(fatherSegments[0].weeks).toBe(10);
+    expect(fatherSegments[1].type).toBe('activity-required');
+    expect(fatherSegments[1].weeks).toBe(42);
+  });
+
+  test('segment 2 starter der segment 1 slutter', () => {
+    const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
+    const fatherSegments = segments.filter(s => s.parent === 'father');
+    expect(fatherSegments[1].start.getTime()).toBe(fatherSegments[0].end.getTime());
   });
 });

@@ -218,16 +218,25 @@ export function buildLeaveSegments(
   const leaveStart = calculateLeaveStart(dueDate, coverage);
 
   if (rights === 'father-only') {
-    // Kun far har rett
-    const fatherStart = leaveStart;
-    const fatherEnd = addWeeks(fatherStart, config.total);
+    // Far starter på termindato (ikke leaveStart = termin - 3 uker)
+    const fatherStart = dueDate;
+    const noReqEnd = addWeeks(fatherStart, config.fatherOnly.noRequirement);
+    const withReqEnd = addWeeks(noReqEnd, config.fatherOnly.withRequirement);
 
     segments.push({
       parent: 'father',
       type: 'quota',
       start: fatherStart,
-      end: fatherEnd,
-      weeks: config.total,
+      end: noReqEnd,
+      weeks: config.fatherOnly.noRequirement,
+    });
+
+    segments.push({
+      parent: 'father',
+      type: 'activity-required',
+      start: noReqEnd,
+      end: withReqEnd,
+      weeks: config.fatherOnly.withRequirement,
     });
 
     // Far: Ferie etter permisjon
@@ -235,8 +244,8 @@ export function buildLeaveSegments(
       segments.push({
         parent: 'father',
         type: 'vacation',
-        start: fatherEnd,
-        end: addDays(fatherEnd, vacation.father.daysAfter),
+        start: withReqEnd,
+        end: addDays(withReqEnd, vacation.father.daysAfter),
         weeks: vacation.father.daysAfter / 7,
       });
     }
