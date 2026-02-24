@@ -100,7 +100,7 @@ describe('calculateMotherPeriod', () => {
   });
 
   test('80%: mother gets more weeks with larger shared pool', () => {
-    const shared80 = 9; // Half of 18
+    const shared80 = 9; // Testverdi innenfor fellesperioden (shared = 20 ved 80%)
     const result = calculateMotherPeriod(leaveStart, dueDate, 80, shared80, 'both');
     const expectedWeeks = LEAVE_CONFIG[80].preBirth + LEAVE_CONFIG[80].mother + shared80;
     expect(result.weeks).toBe(expectedWeeks); // 3 + 19 + 9 = 31
