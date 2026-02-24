@@ -122,8 +122,8 @@ export function calculateFatherPeriod(
   let totalFatherWeeks: number;
 
   if (rights === 'father-only') {
-    // Far får hele perioden
-    totalFatherWeeks = config.total;
+    // Far får hele perioden (40 uker ved 100%, 52 uker ved 80%)
+    totalFatherWeeks = config.fatherOnly.total;
   } else {
     // Begge har rett: fedrekvote + resten av fellesperiode
     const sharedWeeksToFather = config.shared - sharedWeeksToMother;
