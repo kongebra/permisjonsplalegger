@@ -297,6 +297,21 @@ export function PlannerCalendar() {
           daycareDate={daycareStartDate}
         />
 
+        {/* Aktivitetskrav-informasjon: kun synlig ved far-only */}
+        {rights === 'father-only' && (
+          <div className="rounded-lg border bg-muted/50 p-3 text-sm space-y-1">
+            <p className="font-medium">Om aktivitetskravet</p>
+            <p className="text-muted-foreground">
+              10 av ukene dine kan tas ut fritt. For de resterende ukene
+              må mor enten jobbe, studere på heltid eller oppfylle
+              annet godkjent aktivitetskrav fra NAV.
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Kalkulatoren tar ikke hensyn til reduksjon ved mors deltidsarbeid.
+            </p>
+          </div>
+        )}
+
         {/* Year overview modal */}
         {showMonthOverview && (
           <YearOverview
