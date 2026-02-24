@@ -27,8 +27,31 @@ describe('getDefaultDaycareStart', () => {
     expect(result.getDate()).toBe(1);
   });
 
-  test('born on august 1: daycare 2 years later', () => {
+  test('born on august 1: daycare next year aug 1', () => {
     const dueDate = new Date(2026, 7, 1); // Aug 1, 2026
+    const result = getDefaultDaycareStart(dueDate);
+    expect(result.getFullYear()).toBe(2027);
+    expect(result.getMonth()).toBe(7);
+    expect(result.getDate()).toBe(1);
+  });
+
+  test('born on august 31: daycare next year aug 1', () => {
+    const dueDate = new Date(2026, 7, 31); // Aug 31, 2026
+    const result = getDefaultDaycareStart(dueDate);
+    expect(result.getFullYear()).toBe(2027);
+    expect(result.getMonth()).toBe(7);
+    expect(result.getDate()).toBe(1);
+  });
+
+  test('born in september: daycare 2 years later aug 1', () => {
+    const dueDate = new Date(2026, 8, 1); // Sept 1, 2026
+    const result = getDefaultDaycareStart(dueDate);
+    expect(result.getFullYear()).toBe(2028);
+    expect(result.getMonth()).toBe(7);
+  });
+
+  test('born in december: daycare 2 years later aug 1', () => {
+    const dueDate = new Date(2026, 11, 15); // Dec 15, 2026
     const result = getDefaultDaycareStart(dueDate);
     expect(result.getFullYear()).toBe(2028);
     expect(result.getMonth()).toBe(7);
@@ -43,6 +66,27 @@ describe('getDefaultDaycareStart', () => {
 });
 
 // ============================================================
+// NAV periodedata – sjekk at konstantene stemmer med nav.no
+// ============================================================
+describe('LEAVE_CONFIG vs NAV-dokumentasjon', () => {
+  test('100% total er 49 uker', () => {
+    expect(LEAVE_CONFIG[100].total).toBe(49);
+  });
+
+  test('100% fellesperiode er 16 uker', () => {
+    expect(LEAVE_CONFIG[100].shared).toBe(16);
+  });
+
+  test('80% total er 61 uker (fra NAV: 61 uker og 1 dag, avrundet)', () => {
+    expect(LEAVE_CONFIG[80].total).toBe(61);
+  });
+
+  test('80% fellesperiode er 20 uker (fra NAV: 20 uker og 1 dag, avrundet)', () => {
+    expect(LEAVE_CONFIG[80].shared).toBe(20);
+  });
+});
+
+// ============================================================
 // Default shared weeks
 // ============================================================
 describe('getDefaultSharedWeeksToMother', () => {
@@ -50,8 +94,8 @@ describe('getDefaultSharedWeeksToMother', () => {
     expect(getDefaultSharedWeeksToMother(100)).toBe(8);
   });
 
-  test('80%: half of 18 = 9', () => {
-    expect(getDefaultSharedWeeksToMother(80)).toBe(9);
+  test('80%: half of 20 = 10', () => {
+    expect(getDefaultSharedWeeksToMother(80)).toBe(10);
   });
 });
 

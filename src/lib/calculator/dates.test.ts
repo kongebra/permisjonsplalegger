@@ -192,7 +192,7 @@ describe('calculateGap', () => {
 describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
   const dueDate = new Date(2026, 6, 5);
   const coverage = 80 as const;
-  const shared = 18; // All shared to mother for this test
+  const shared = LEAVE_CONFIG[coverage].shared; // All shared to mother for this test
 
   test('leave start is 3 weeks before due date', () => {
     const start = calculateLeaveStart(dueDate, coverage);
@@ -205,15 +205,16 @@ describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
   test('mother period with all shared weeks', () => {
     const start = calculateLeaveStart(dueDate, coverage);
     const mother = calculateMotherPeriod(start, dueDate, coverage, shared, 'both');
-    // preBirth(3) + mother(19) + shared(18) = 40 weeks
-    expect(mother.weeks).toBe(40);
+    // preBirth(3) + mother(19) + shared(20) = 42 weeks
+    const expected = LEAVE_CONFIG[coverage].preBirth + LEAVE_CONFIG[coverage].mother + shared;
+    expect(mother.weeks).toBe(expected);
   });
 
-  test('father gets remaining weeks', () => {
+  test('father gets remaining weeks when all shared goes to mother', () => {
     const start = calculateLeaveStart(dueDate, coverage);
     const mother = calculateMotherPeriod(start, dueDate, coverage, shared, 'both');
     const father = calculateFatherPeriod(mother.end, coverage, shared, 0, 'both');
     // father(19) + shared remaining(0) = 19 weeks
-    expect(father!.weeks).toBe(19);
+    expect(father!.weeks).toBe(LEAVE_CONFIG[coverage].father);
   });
 });

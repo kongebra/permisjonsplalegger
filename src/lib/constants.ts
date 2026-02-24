@@ -17,10 +17,10 @@ export const LEAVE_CONFIG = {
     motherMandatoryPostBirth: 6, // Obligatoriske uker etter fødsel
   },
   80: {
-    total: 59,
+    total: 61, // NAV: 61 uker og 1 dag (avrundet til hele uker)
     mother: 19,
     father: 19,
-    shared: 18,
+    shared: 20, // NAV: 20 uker og 1 dag (avrundet til hele uker)
     preBirth: 3,
     motherMandatoryPostBirth: 6,
   },
