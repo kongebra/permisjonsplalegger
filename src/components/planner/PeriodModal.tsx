@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { format, differenceInDays, differenceInBusinessDays, addDays, subDays } from 'date-fns';
+import { format, differenceInDays, addDays, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import {
   Dialog,
@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SmartPeriodPicker, buildPickerEvents, buildIconMarkers } from '@/components/picker';
 import { getHolidayMap } from '@/lib/holidays';
+import { countVacationDays } from '@/lib/calculator/dates';
+import { usePlannerStore } from '@/store';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, PlannerPeriodType, Parent, ParentRights, LeaveResult } from '@/lib/types';
 import { CalendarDays, Trash2 } from 'lucide-react';
@@ -93,6 +95,11 @@ function PeriodModalContent({
   const [placement, setPlacement] = useState<Placement>(isEditing ? 'custom' : 'after-mother');
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  const motherJobSettings = usePlannerStore((s) => s.motherJobSettings);
+  const fatherJobSettings = usePlannerStore((s) => s.fatherJobSettings);
+  const jobSettings = parent === 'mother' ? motherJobSettings : fatherJobSettings;
+  const jobType = jobSettings?.jobType ?? 'office';
+
   // Build SmartPeriodPicker data
   const pickerEvents = useMemo(() => {
     const segments = leaveResult?.segments ?? [];
@@ -144,7 +151,7 @@ function PeriodModalContent({
 
   // Day count
   const calendarDays = differenceInDays(endDate, startDate);
-  const workDays = calendarDays > 0 ? differenceInBusinessDays(endDate, startDate) : 0;
+  const workDays = calendarDays > 0 ? countVacationDays(startDate, endDate, jobType) : 0;
 
   const handleSave = () => {
     const periodData = {
@@ -154,6 +161,7 @@ function PeriodModalContent({
       endDate,
       label: type === 'annet' ? label : undefined,
       color: type === 'annet' ? color : undefined,
+      vacationDaysUsed: type === 'ferie' ? workDays : undefined,
     };
 
     if (isEditing && period) {
@@ -377,7 +385,7 @@ function PeriodModalContent({
             {/* Day count */}
             {calendarDays > 0 && (
               <p className="text-xs text-muted-foreground text-center">
-                {calendarDays} kalenderdager ({workDays} virkedager)
+                {calendarDays} kalenderdager ({workDays} feriedager)
               </p>
             )}
 
