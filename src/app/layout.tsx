@@ -16,37 +16,37 @@ const geistMono = Geist_Mono({
 
 const siteUrl = "https://perm-planlegger.vercel.app";
 const siteDescription =
-  "Gratis kalkulator som sammenligner 80% og 100% foreldrepermisjon. Se hvordan gapet mellom permisjon og barnehagestart, feriepenger og 6G-taket påvirker familiens økonomi.";
+  "Gratis verktøy for å planlegge foreldrepermisjon. Se om permisjonen rekker til barnehagestart, finn ut familiens månedlige økonomi under permisjon, og velg mellom 80% og 100% basert på hva som faktisk passer dere.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Permisjonsøkonomi-kalkulator",
-    template: "%s | Permisjonsøkonomi-kalkulator",
+    default: "Permisjonsplanleggeren",
+    template: "%s | Permisjonsplanleggeren",
   },
   description: siteDescription,
   keywords: [
-    "foreldrepenger",
     "foreldrepermisjon",
-    "NAV",
-    "80% vs 100%",
-    "permisjonskalkulator",
-    "feriepenger",
-    "6G",
-    "barnehagestart",
-    "gapet",
-    "permisjon økonomi",
+    "permisjonsplanlegging",
+    "barnehagestart og foreldrepermisjon",
+    "80% vs 100% foreldrepermisjon",
+    "burde jeg velge 80 eller 100 prosent",
+    "økonomi foreldrepermisjon",
+    "NAV foreldrepenger",
+    "permisjon kalkulator",
+    "permisjon barnehage gap",
+    "familieøkonomi permisjon",
   ],
   openGraph: {
     type: "website",
     locale: "no_NO",
-    siteName: "Permisjonsøkonomi-kalkulator",
-    title: "Permisjonsøkonomi-kalkulator",
+    siteName: "Permisjonsplanleggeren",
+    title: "Permisjonsplanleggeren",
     description: siteDescription,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Permisjonsøkonomi-kalkulator",
+    title: "Permisjonsplanleggeren",
     description: siteDescription,
   },
   other: {
@@ -63,7 +63,7 @@ export const viewport = {
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Permisjonsøkonomi-kalkulator",
+  name: "Permisjonsplanleggeren",
   description: siteDescription,
   url: siteUrl,
   applicationCategory: "FinanceApplication",
@@ -71,15 +71,15 @@ const jsonLd = JSON.stringify({
   offers: { "@type": "Offer", price: "0", priceCurrency: "NOK" },
   inLanguage: "no",
   datePublished: "2025-12-01",
-  dateModified: "2026-02-11",
+  dateModified: "2026-02-25",
   author: {
     "@type": "Organization",
-    name: "Permisjonsøkonomi-kalkulator",
+    name: "Permisjonsplanleggeren",
     url: `${siteUrl}/om`,
   },
   publisher: {
     "@type": "Organization",
-    name: "Permisjonsøkonomi-kalkulator",
+    name: "Permisjonsplanleggeren",
     url: `${siteUrl}/om`,
     contactPoint: {
       "@type": "ContactPoint",
