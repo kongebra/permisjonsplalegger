@@ -10,6 +10,7 @@ import { AddPeriodFab } from './AddPeriodFab';
 import { PeriodModal } from './PeriodModal';
 import { DayDetailPanel } from './DayDetailPanel';
 import { StatsBar } from './StatsBar';
+import { LeaveHorizonBanner } from './LeaveHorizonBanner';
 import posthog from 'posthog-js';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
@@ -195,6 +196,14 @@ export function PlannerCalendar() {
         {srAnnouncement}
       </div>
       <div className="space-y-4">
+        {/* Permisjonshorisont — persistent tidslinje */}
+        <LeaveHorizonBanner
+          leaveResult={leaveResult}
+          activeMonth={activeMonth}
+          daycareEnabled={daycareEnabled}
+          daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
+        />
+
         {/* Navigation header */}
         <div className="flex items-center justify-between">
           <Button
