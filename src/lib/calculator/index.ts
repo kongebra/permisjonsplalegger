@@ -17,21 +17,21 @@ import type {
  */
 export function getDefaultDaycareStart(dueDate: Date): Date {
   const year = dueDate.getFullYear();
-  const septemberFirst = new Date(year, 8, 1); // September = 8 (0-indexed)
+  const month = dueDate.getMonth(); // 0-indexed: jan=0, aug=7, sep=8, nov=10, dec=11
 
-  // Barnehageloven § 16:
-  // - Født jan–aug: rett til plass august (år+1) – barnet fyller 1 innen utgangen av august
-  // - Født sep–nov: rett til plass sin fødselsmåned (år+1), men de fleste velger
-  //   august-opptaket (år+2) – vi bruker år+2 som forenklet default (se barnehagerett.md)
-  // - Født des: rett til plass august (år+2)
-  if (dueDate >= septemberFirst) {
-    // F.eks. født sept 2026 → bhg start aug 2028
-    return new Date(year + 2, 7, 1);
+  // Barnehageloven § 16 ledd 1: Født jan–aug → rett til plass fra 1. august (år+1)
+  if (month <= 7) {
+    return new Date(year + 1, 7, 1);
   }
 
-  // F.eks. født aug 2026 → bhg start aug 2027
-  // F.eks. født juli 2026 → bhg start aug 2027
-  return new Date(year + 1, 7, 1);
+  // Barnehageloven § 16 ledd 2: Født sep–nov → rett til plass innen utgangen av
+  // fødselsmåneden (år+1). Vi bruker 1. i måneden som tidligst mulig start.
+  if (month <= 10) {
+    return new Date(year + 1, month, 1);
+  }
+
+  // Desember: neste august-opptak (år+2)
+  return new Date(year + 2, 7, 1);
 }
 
 /**
@@ -57,6 +57,7 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     fatherEconomy,
     vacationWeeks,
     vacation,
+    prematureWeeks = 0,
   } = input;
 
   // Beregn permisjonsfordeling
@@ -68,7 +69,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     overlapWeeks,
     daycareStartDate,
     vacationWeeks,
-    vacation
+    vacation,
+    prematureWeeks,
   );
 
   // Hvis økonomi-data er tilgjengelig, beregn sammenligning
@@ -82,7 +84,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       overlapWeeks,
       daycareStartDate,
       vacationWeeks,
-      vacation
+      vacation,
+      prematureWeeks,
     );
 
     const leave100 = calculateLeave(
@@ -93,7 +96,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       overlapWeeks,
       daycareStartDate,
       vacationWeeks,
-      vacation
+      vacation,
+      prematureWeeks,
     );
 
     const economy = compareScenarios(
@@ -121,6 +125,7 @@ export {
   generatePeriodId,
   addDays,
   addWeeks,
+  subtractWeeks,
   daysBetween,
   weeksBetween,
 } from './dates';

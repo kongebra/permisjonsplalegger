@@ -46,6 +46,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
     sharedWeeksToMother,
     daycareStartDate,
     daycareEnabled,
+    prematureBirthDate,
     setCurrentStep,
     nextStep,
     prevStep,
@@ -55,6 +56,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
     setSharedWeeksToMother,
     setDaycareStartDate,
     setDaycareEnabled,
+    setPrematureBirthDate,
     completeWizard,
   } = useWizard();
 
@@ -186,7 +188,14 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <DueDateStep value={dueDate} onChange={setDueDate} />;
+        return (
+          <DueDateStep
+            value={dueDate}
+            onChange={setDueDate}
+            prematureBirthDate={prematureBirthDate}
+            onPrematureChange={setPrematureBirthDate}
+          />
+        );
       case 2:
         return <RightsStep value={rights} onChange={setRights} />;
       case 3:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [Upublisert]
+
+### Forbedringer
+- Barnehagerett rettet for barn født i september, oktober og november: disse barna kan starte barnehage i fødselsmåneden (ikke august), og kalkulatoren viser nå riktig gap.
+- Støtte for prematur fødsel i wizard: legg inn faktisk fødselsdato og permisjonen forlenges automatisk i tråd med NAV-regelverket.
+- Informasjon om aktivitetskravet vises nå i oppsummeringen når far planlegger å ta fellesperioden.
+
 ## 2026-02-24
 
 ### Fikset: Far-only permisjonsberegning

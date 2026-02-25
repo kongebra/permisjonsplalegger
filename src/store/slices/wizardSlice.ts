@@ -19,6 +19,7 @@ export interface WizardSlice {
   sharedWeeksToMother: number;
   daycareStartDate: Date | null;
   daycareEnabled: boolean;
+  prematureBirthDate: Date | null;
 
   // Actions
   setCurrentStep: (step: number) => void;
@@ -33,6 +34,7 @@ export interface WizardSlice {
   setSharedWeeksToMother: (weeks: number) => void;
   setDaycareStartDate: (date: Date | null) => void;
   setDaycareEnabled: (enabled: boolean) => void;
+  setPrematureBirthDate: (date: Date | null) => void;
 }
 
 const TOTAL_STEPS = TOTAL_WIZARD_STEPS;
@@ -50,6 +52,7 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
   sharedWeeksToMother: getDefaultSharedWeeksToMother(100),
   daycareStartDate: getDefaultDaycareStart(new Date()),
   daycareEnabled: true,
+  prematureBirthDate: null,
 
   // Navigation actions
   setCurrentStep: (step) => set({ currentStep: Math.max(1, Math.min(step, TOTAL_STEPS)) }),
@@ -80,6 +83,7 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
       sharedWeeksToMother: getDefaultSharedWeeksToMother(100),
       daycareStartDate: getDefaultDaycareStart(new Date()),
       daycareEnabled: true,
+      prematureBirthDate: null,
     }),
 
   // Configuration actions
@@ -116,6 +120,20 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
       set({ daycareEnabled: true, daycareStartDate: getDefaultDaycareStart(dueDate) });
     } else {
       set({ daycareEnabled: false, daycareStartDate: null });
+    }
+  },
+
+  setPrematureBirthDate: (date) => {
+    const { daycareEnabled } = get();
+    // Barnehagestart baseres på faktisk fødselsdato (barnet fyller 1 år på fødselsdagen)
+    if (daycareEnabled && date) {
+      set({ prematureBirthDate: date, daycareStartDate: getDefaultDaycareStart(date) });
+    } else if (daycareEnabled && !date) {
+      // Tilbakestill til termin-basert barnehagestart
+      const { dueDate } = get();
+      set({ prematureBirthDate: null, daycareStartDate: getDefaultDaycareStart(dueDate) });
+    } else {
+      set({ prematureBirthDate: date });
     }
   },
 });

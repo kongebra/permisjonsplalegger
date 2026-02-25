@@ -18,8 +18,9 @@ import {
   type PersistenceSlice,
 } from './slices/persistenceSlice';
 import type { SavedPlan, Coverage, ParentRights, ParentEconomy } from '@/lib/types';
-import { calculateLeave } from '@/lib/calculator';
+import { calculateLeave, subtractWeeks, weeksBetween } from '@/lib/calculator';
 import { reinitializePreservingUserPeriods } from '@/lib/planner/initialize-periods';
+import { LEAVE_CONFIG } from '@/lib/constants';
 
 // Combined store type
 export type PlannerStore = WizardSlice &
@@ -69,6 +70,7 @@ export const usePlannerStore = create<PlannerStore>()(
           sharedWeeksToMother: state.sharedWeeksToMother,
           daycareStartDate: state.daycareStartDate?.toISOString() ?? null,
           daycareEnabled: state.daycareEnabled,
+          prematureBirthDate: state.prematureBirthDate?.toISOString() ?? null,
         },
         jobSettings: {
           mother: state.motherJobSettings,
@@ -98,6 +100,14 @@ export const usePlannerStore = create<PlannerStore>()(
       state.setRights(plan.wizard.rights);
       state.setCoverage(plan.wizard.coverage);
       state.setSharedWeeksToMother(plan.wizard.sharedWeeksToMother);
+
+      // Restore premature birth date BEFORE daycare settings — setPrematureBirthDate has a side
+      // effect that recalculates daycareStartDate, so we must restore the saved daycare date last.
+      state.setPrematureBirthDate(
+        plan.wizard.prematureBirthDate ? new Date(plan.wizard.prematureBirthDate) : null
+      );
+
+      // Restore saved daycare settings — this overwrites any auto-recalculation from above
       state.setDaycareEnabled(plan.wizard.daycareEnabled);
       if (plan.wizard.daycareStartDate) {
         state.setDaycareStartDate(new Date(plan.wizard.daycareStartDate));
@@ -155,6 +165,14 @@ export const usePlannerStore = create<PlannerStore>()(
           ? settings.daycareStartDate
           : new Date(settings.dueDate.getFullYear() + 3, 7, 1);
 
+      // Compute premature weeks from current state (not part of settings)
+      const { prematureBirthDate } = usePlannerStore.getState();
+      const normalLeaveStart = subtractWeeks(settings.dueDate, LEAVE_CONFIG[settings.coverage].preBirth);
+      const prematureWeeks =
+        prematureBirthDate && prematureBirthDate < subtractWeeks(settings.dueDate, 7)
+          ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
+          : 0;
+
       const newLeaveResult = calculateLeave(
         settings.dueDate,
         settings.coverage,
@@ -162,6 +180,9 @@ export const usePlannerStore = create<PlannerStore>()(
         settings.sharedWeeksToMother,
         0,
         effectiveDaycareDate,
+        [],
+        undefined,
+        prematureWeeks,
       );
 
       // Reinitialize: replace wizard periods, keep user periods
