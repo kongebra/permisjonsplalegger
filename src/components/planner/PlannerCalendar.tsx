@@ -11,6 +11,7 @@ import { PeriodModal } from './PeriodModal';
 import { DayDetailPanel } from './DayDetailPanel';
 import { StatsBar } from './StatsBar';
 import { LeaveHorizonBanner } from './LeaveHorizonBanner';
+import { MiniMonthStrip } from './MiniMonthStrip';
 import posthog from 'posthog-js';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
@@ -41,6 +42,16 @@ export function PlannerCalendar() {
 
   // Month slide direction tracking — set from event handlers, not effects
   const [monthDirection, setMonthDirection] = useState<'forward' | 'backward' | null>(null);
+
+  // PostHog A/B-test: mini-måneder strip
+  const [showMiniMonths, setShowMiniMonths] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      setShowMiniMonths(posthog.isFeatureEnabled('calendar-mini-months') === true);
+    };
+    check();
+    posthog.onFeatureFlags(check);
+  }, []);
 
   const navigateMonthWithDirection = useCallback(
     (delta: number) => {
@@ -203,6 +214,18 @@ export function PlannerCalendar() {
           daycareEnabled={daycareEnabled}
           daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
         />
+
+        {/* A/B-test: mini-måneder strip (aktiveres via PostHog feature flag "calendar-mini-months") */}
+        {showMiniMonths && (
+          <MiniMonthStrip
+            activeMonth={activeMonth}
+            segments={leaveResult.segments}
+            customPeriods={periods}
+            dueDate={dueDate}
+            daycareStart={daycareEnabled ? daycareStartDate ?? undefined : undefined}
+            onMonthSelect={setActiveMonthWithDirection}
+          />
+        )}
 
         {/* Navigation header */}
         <div className="flex items-center justify-between">
