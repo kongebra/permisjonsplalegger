@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Clock, Calculator, AlertTriangle } from "lucide-react";
+import { Shield, Clock, CalendarDays, AlertTriangle } from "lucide-react";
 import posthog from "posthog-js";
 
 interface WelcomeIntroProps {
@@ -49,11 +49,11 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
 
         <Card>
           <CardContent className="flex items-start gap-4">
-            <Calculator className="w-8 h-8 text-primary shrink-0" />
+            <CalendarDays className="w-8 h-8 text-primary shrink-0" />
             <div>
-              <h3 className="font-semibold">Se hva familien faktisk får</h3>
+              <h3 className="font-semibold">Finn ut hva som passer dere</h3>
               <p className="text-sm text-muted-foreground">
-                Sammenlign 80% og 100% dekning og finn ut hva som lønner seg.
+                Se om kabalen går opp — permisjon, barnehagestart og økonomi — og få en anbefaling på 80% eller 100%.
               </p>
             </div>
           </CardContent>
