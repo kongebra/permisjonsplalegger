@@ -1,7 +1,7 @@
 # Rett til plass i barnehage – Barnehageloven § 16
 
 > Kilde: https://lovdata.no/nav/lov/2005-06-17-64/kapIV/%C2%A716
-> Hentet: 2026-02-24
+> Hentet: 2026-02-25
 
 Barnehageloven kapittel IV regulerer kommunenes oppgaver, inkludert retten til barnehageplass. Dette er direkte relevant for kalkulatoren – barnehagestart bestemmer lengden på det ubetalte «gapet» mellom endt permisjon og barnehagestart.
 

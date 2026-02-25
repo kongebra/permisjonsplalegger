@@ -1,7 +1,7 @@
 # Foreldrepenger – NAV
 
 > Kilde: https://www.nav.no/foreldrepenger
-> Hentet: 2026-02-24
+> Hentet: 2026-02-25
 
 ## Relaterte filer i dette dokumentet
 

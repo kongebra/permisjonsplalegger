@@ -1,7 +1,7 @@
 # Engangsstønad – NAV
 
 > Kilde: https://www.nav.no/engangsstonad
-> Hentet: 2026-02-24
+> Hentet: 2026-02-25
 
 Engangsstønad er en **engangssum** i stedet for foreldrepenger ved fødsel eller adopsjon, for foreldre som **ikke** har hatt inntekt i 6 av de 10 siste månedene.
 

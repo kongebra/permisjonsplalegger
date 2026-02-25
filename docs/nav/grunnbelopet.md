@@ -1,7 +1,7 @@
 # Grunnbeløpet i folketrygden (G) – NAV
 
 > Kilde: https://www.nav.no/grunnbelopet
-> Hentet: 2026-02-24
+> Hentet: 2026-02-25
 
 Grunnbeløpet (G) er et tall som brukes til å beregne mange av NAVs utbetalinger. Det oppdateres **1. mai hvert år** og bestemmes av Stortinget etter trygdeoppgjøret.
 
