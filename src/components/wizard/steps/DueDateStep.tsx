@@ -70,7 +70,7 @@ export function DueDateStep({ value, onChange, prematureBirthDate, onPrematureCh
             onSelect={(date) => date && onPrematureChange(date)}
             locale={nb}
             captionLayout="dropdown"
-            disabled={(date) => date >= value}
+            disabled={(date) => date >= subtractWeeks(value, 7)}
             className="rounded-md border w-full"
           />
         </div>
