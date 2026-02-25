@@ -16,3 +16,11 @@ Endringer:
 - Kalendervisning splittet i to segmenter med riktig startdato
 - Informasjonsboks i wizard og kalender forklarer aktivitetskravet
 - Dokumentasjon i `docs/nav/foreldrepenger.md` oppdatert
+
+### Fikset: Feriedager trekker nå fra norske helligdager
+
+Når du velger en ferieperiode som inneholder helligdager (f.eks. påske, jul), vil kalkulatoren nå korrekt vise antall **feriedager** du faktisk bruker — ikke antall vanlige arbeidsdager.
+
+Tidligere ble skjærtorsdag, langfredag og andre helligdager feilaktig talt med som feriedager. Nå trekkes de fra automatisk, tilpasset om du jobber kontortid eller skift.
+
+I tillegg er det fikset en mangel i datovelgeren der skjermlesere ikke fikk oppgitt et navn på dialogboksen (UU-krav).
