@@ -199,6 +199,7 @@ export interface CustomPeriod {
   isFromWizard?: boolean; // true = auto-generated from wizard result
   isLocked?: boolean; // true = mandatory period, cannot be edited/deleted
   segmentType?: string; // Original LeaveSegmentType for display purposes
+  vacationDaysUsed?: number; // Antall feriedager brukt (ekskl. helligdager), kun for type='ferie'
 }
 
 /**

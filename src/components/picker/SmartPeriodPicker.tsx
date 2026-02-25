@@ -34,6 +34,7 @@ export function SmartPeriodPicker({
   iconMarkers,
   holidayMap,
   initialScrollDate,
+  jobType = 'office',
 }: SmartPeriodPickerProps) {
   // Responsive: detect mobile vs desktop
   const isMobile = useSyncExternalStore(subscribeMobile, getIsMobile, getIsMobileServer);
@@ -82,6 +83,7 @@ export function SmartPeriodPicker({
           startDate={selStart}
           endDate={selEnd}
           onConfirm={handleConfirm}
+          jobType={jobType}
         />
       </div>
     );
@@ -109,6 +111,7 @@ export function SmartPeriodPicker({
           startDate={selStart}
           endDate={selEnd}
           onConfirm={handleConfirm}
+          jobType={jobType}
         />
       </DialogContent>
     </Dialog>

@@ -406,6 +406,7 @@ function PeriodModalContent({
                 iconMarkers={iconMarkers}
                 holidayMap={holidayMap}
                 initialScrollDate={startDate}
+                jobType={jobType}
               />
             )}
           </div>
