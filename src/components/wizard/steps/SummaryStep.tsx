@@ -430,6 +430,17 @@ export function SummaryStep({
         />
       )}
 
+      {/* Aktivitetskrav-info: vises når far tar deler av fellesperioden */}
+      {rights === 'both' && sharedWeeksToMother < LEAVE_CONFIG[coverage].shared && (
+        <div className="flex gap-2 rounded-lg bg-[var(--color-info-bg,hsl(var(--muted)))] border border-[var(--color-info-fg,hsl(var(--border)))/20] p-3 text-sm">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-[var(--color-info-fg,hsl(var(--muted-foreground)))]" />
+          <p className="text-[var(--color-info-fg,hsl(var(--muted-foreground)))]">
+            Når far tar fellesperioden, krever NAV at mor er i godkjent aktivitet — arbeid,
+            heltidsutdanning, registrert arbeidssøker, eller annen godkjent grunn.
+          </p>
+        </div>
+      )}
+
       {/* Complete button */}
       <Button onClick={onComplete} size="lg" className="w-full">
         Gå til kalender

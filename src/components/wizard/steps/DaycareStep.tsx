@@ -4,6 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { format, differenceInWeeks } from "date-fns";
+import { getDefaultDaycareStart } from "@/lib/calculator";
 import { nb } from "date-fns/locale";
 
 interface DaycareStepProps {
@@ -23,15 +24,8 @@ export function DaycareStep({
   onDateChange,
   onEnabledChange,
 }: DaycareStepProps) {
-  // Calculate expected daycare start (August 1st intake)
-  const expectedDaycareStart = (() => {
-    const year = dueDate.getFullYear();
-    const augustFirstSameYear = new Date(year, 7, 1);
-    if (dueDate >= augustFirstSameYear) {
-      return new Date(year + 2, 7, 1); // Born after Aug → daycare 2 years later
-    }
-    return new Date(year + 1, 7, 1); // Born before Aug → daycare 1 year later
-  })();
+  // Beregner forventet barnehagestart basert på barnehageloven § 16
+  const expectedDaycareStart = getDefaultDaycareStart(dueDate);
 
   return (
     <div className="space-y-4">

@@ -10,6 +10,8 @@ import {
   calculateFatherPeriod,
   calculateGap,
   buildLeaveSegments,
+  countVacationDays,
+  calculateLeave,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -278,5 +280,60 @@ describe('buildLeaveSegments: father-only', () => {
     const segments = buildLeaveSegments(dueDate, 100, 'father-only', 0, 0, daycareDate, []);
     const fatherSegments = segments.filter(s => s.parent === 'father');
     expect(fatherSegments[1].start.getTime()).toBe(fatherSegments[0].end.getTime());
+  });
+});
+
+describe('countVacationDays', () => {
+  test('teller man-fre uten helligdager (vanlig uke)', () => {
+    // Mandag 2. juni 2025 → fredag 6. juni 2025 (eksklusiv slutt: 7. juni)
+    const start = new Date(2025, 5, 2); // 2. juni (mandag)
+    const end = new Date(2025, 5, 7);   // 7. juni (eksklusiv) = 5 virkedager
+    expect(countVacationDays(start, end, 'office')).toBe(5);
+  });
+
+  test('trekker fra skjærtorsdag, langfredag og 2. påskedag i påsken 2027', () => {
+    // 22. mars 2027 (man) → 3. apr (lør) inklusiv = eksklusiv slutt 4. apr
+    // Påsken 2027: Skjærtorsdag 25/3, Langfredag 26/3, Påskedag 28/3 (søn), 2. påskedag 29/3
+    // 10 man-fre - 3 helligdager på hverdager (25/3, 26/3, 29/3) → 7
+    const start = new Date(2027, 2, 22); // 22. mars 2027
+    const end = new Date(2027, 3, 4);    // 4. april 2027 (eksklusiv)
+    expect(countVacationDays(start, end, 'office')).toBe(7);
+  });
+
+  test('skiftarbeid teller man-lør og ignorerer helligdager', () => {
+    const start = new Date(2027, 2, 22);
+    const end = new Date(2027, 3, 4);
+    // man-lør i perioden: 22(ma),23(ti),24(on),25(to),26(fr),27(lø), 29(ma),30(ti),31(on),1(to),2(fr),3(lø) = 12
+    expect(countVacationDays(start, end, 'shift')).toBe(12);
+  });
+});
+
+// ============================================================
+// calculateLeave: prematur fødsel
+// ============================================================
+describe('calculateLeave with premature birth', () => {
+  test('prematureWeeks=0: no change to leave', () => {
+    const dueDate = new Date(2027, 4, 1); // 1. mai 2027
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
+    const withZero = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
+    expect(normal.mother.weeks).toBe(withZero.mother.weeks);
+  });
+
+  test('prematureWeeks=4: mother gets 4 extra weeks', () => {
+    const dueDate = new Date(2027, 4, 1);
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    expect(premature.mother.weeks).toBe(normal.mother.weeks + 4);
+  });
+
+  test('prematureWeeks=4: leave starts 4 weeks earlier', () => {
+    const dueDate = new Date(2027, 4, 1);
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    const expectedStart = subtractWeeks(normal.mother.start, 4);
+    expect(premature.mother.start.getTime()).toBe(expectedStart.getTime());
   });
 });

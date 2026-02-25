@@ -43,6 +43,7 @@ export interface CalculatorInput {
   fatherEconomy?: ParentEconomy;
   vacationWeeks: VacationWeek[];
   vacation?: VacationInput; // Feriedager (ny modell)
+  prematureWeeks?: number; // Uker barnet ble født for tidlig (0 = ikke prematur)
 }
 
 export interface VacationWeek {
@@ -199,6 +200,7 @@ export interface CustomPeriod {
   isFromWizard?: boolean; // true = auto-generated from wizard result
   isLocked?: boolean; // true = mandatory period, cannot be edited/deleted
   segmentType?: string; // Original LeaveSegmentType for display purposes
+  vacationDaysUsed?: number; // Antall feriedager brukt (ekskl. helligdager), kun for type='ferie'
 }
 
 /**
@@ -233,6 +235,7 @@ export interface SavedPlan {
     sharedWeeksToMother: number;
     daycareStartDate: string | null;
     daycareEnabled: boolean;
+    prematureBirthDate?: string | null; // ISO string or null
   };
   jobSettings: {
     mother: JobSettings | null;

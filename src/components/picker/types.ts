@@ -1,4 +1,4 @@
-import type { Parent } from '@/lib/types';
+import type { Parent, JobType } from '@/lib/types';
 
 export interface CalendarEvent {
   id: string;
@@ -32,4 +32,5 @@ export interface SmartPeriodPickerProps {
   minDate?: Date;
   maxDate?: Date;
   initialScrollDate?: Date; // auto-scroll target on open
+  jobType?: JobType; // For riktig feriedagstelling i footer (default: 'office')
 }

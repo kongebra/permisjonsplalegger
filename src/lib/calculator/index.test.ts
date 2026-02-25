@@ -20,8 +20,8 @@ describe('getDefaultDaycareStart', () => {
     expect(result.getDate()).toBe(1);
   });
 
-  test('born after august: daycare 2 years later aug 1', () => {
-    const dueDate = new Date(2026, 8, 15); // Sept 15, 2026
+  test('born after november (december): daycare 2 years later aug 1', () => {
+    const dueDate = new Date(2026, 11, 1); // Dec 1, 2026
     const result = getDefaultDaycareStart(dueDate);
     expect(result.getFullYear()).toBe(2028);
     expect(result.getMonth()).toBe(7); // August
@@ -44,18 +44,36 @@ describe('getDefaultDaycareStart', () => {
     expect(result.getDate()).toBe(1);
   });
 
-  test('born in september: daycare 2 years later aug 1', () => {
-    const dueDate = new Date(2026, 8, 1); // Sept 1, 2026
+  test('born in september: daycare next year sep 1', () => {
+    const dueDate = new Date(2026, 8, 15); // Sept 15, 2026
     const result = getDefaultDaycareStart(dueDate);
-    expect(result.getFullYear()).toBe(2028);
-    expect(result.getMonth()).toBe(7);
+    expect(result.getFullYear()).toBe(2027);
+    expect(result.getMonth()).toBe(8); // September
+    expect(result.getDate()).toBe(1);
+  });
+
+  test('born in october: daycare next year oct 1', () => {
+    const dueDate = new Date(2026, 9, 10); // Oct 10, 2026
+    const result = getDefaultDaycareStart(dueDate);
+    expect(result.getFullYear()).toBe(2027);
+    expect(result.getMonth()).toBe(9); // October
+    expect(result.getDate()).toBe(1);
+  });
+
+  test('born in november: daycare next year nov 1', () => {
+    const dueDate = new Date(2026, 10, 5); // Nov 5, 2026
+    const result = getDefaultDaycareStart(dueDate);
+    expect(result.getFullYear()).toBe(2027);
+    expect(result.getMonth()).toBe(10); // November
+    expect(result.getDate()).toBe(1);
   });
 
   test('born in december: daycare 2 years later aug 1', () => {
     const dueDate = new Date(2026, 11, 15); // Dec 15, 2026
     const result = getDefaultDaycareStart(dueDate);
     expect(result.getFullYear()).toBe(2028);
-    expect(result.getMonth()).toBe(7);
+    expect(result.getMonth()).toBe(7); // August
+    expect(result.getDate()).toBe(1);
   });
 
   test('born in january: daycare same year + 1 aug', () => {
