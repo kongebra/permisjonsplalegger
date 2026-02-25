@@ -43,6 +43,7 @@ export interface CalculatorInput {
   fatherEconomy?: ParentEconomy;
   vacationWeeks: VacationWeek[];
   vacation?: VacationInput; // Feriedager (ny modell)
+  prematureWeeks?: number; // Uker barnet ble født for tidlig (0 = ikke prematur)
 }
 
 export interface VacationWeek {
@@ -234,6 +235,7 @@ export interface SavedPlan {
     sharedWeeksToMother: number;
     daycareStartDate: string | null;
     daycareEnabled: boolean;
+    prematureBirthDate?: string | null; // ISO string or null
   };
   jobSettings: {
     mother: JobSettings | null;

@@ -7,7 +7,8 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
 import type { LeaveResult, EconomyResult, TimeSeriesPoint } from '@/lib/types';
-import { calculateLeave } from '@/lib/calculator';
+import { calculateLeave, subtractWeeks, weeksBetween } from '@/lib/calculator';
+import { LEAVE_CONFIG } from '@/lib/constants';
 import { compareScenarios, generateCumulativeTimeSeries } from '@/lib/calculator/economy';
 
 /**
@@ -24,6 +25,7 @@ export function useWizard() {
       sharedWeeksToMother: state.sharedWeeksToMother,
       daycareStartDate: state.daycareStartDate,
       daycareEnabled: state.daycareEnabled,
+      prematureBirthDate: state.prematureBirthDate,
       setCurrentStep: state.setCurrentStep,
       nextStep: state.nextStep,
       prevStep: state.prevStep,
@@ -35,6 +37,7 @@ export function useWizard() {
       setSharedWeeksToMother: state.setSharedWeeksToMother,
       setDaycareStartDate: state.setDaycareStartDate,
       setDaycareEnabled: state.setDaycareEnabled,
+      setPrematureBirthDate: state.setPrematureBirthDate,
     }))
   );
 }
@@ -165,7 +168,7 @@ export function usePersistence() {
  * when the underlying wizard inputs change.
  */
 export function useCalculatedLeave(): LeaveResult {
-  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
+  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled, prematureBirthDate } =
     usePlannerStore(
       useShallow((state) => ({
         dueDate: state.dueDate,
@@ -174,17 +177,25 @@ export function useCalculatedLeave(): LeaveResult {
         sharedWeeksToMother: state.sharedWeeksToMother,
         daycareStartDate: state.daycareStartDate,
         daycareEnabled: state.daycareEnabled,
+        prematureBirthDate: state.prematureBirthDate,
       }))
     );
 
   const dueDateMs = dueDate.getTime();
   const daycareDateMs = daycareStartDate?.getTime() ?? 0;
+  const prematureBirthDateMs = prematureBirthDate?.getTime() ?? 0;
 
   return useMemo(() => {
     const effectiveDaycareDate =
       daycareEnabled && daycareStartDate
         ? daycareStartDate
         : new Date(dueDate.getFullYear() + 3, 7, 1);
+
+    // Premature weeks = number of weeks the birth occurred before normal leave start
+    const normalLeaveStart = subtractWeeks(dueDate, LEAVE_CONFIG[coverage].preBirth);
+    const prematureWeeks = prematureBirthDate && prematureBirthDate < normalLeaveStart
+      ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
+      : 0;
 
     return calculateLeave(
       dueDate,
@@ -194,10 +205,11 @@ export function useCalculatedLeave(): LeaveResult {
       0,
       effectiveDaycareDate,
       [],
-      undefined
+      undefined,
+      prematureWeeks,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled]);
+  }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, prematureBirthDateMs]);
 }
 
 /**

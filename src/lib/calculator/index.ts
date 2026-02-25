@@ -57,6 +57,7 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     fatherEconomy,
     vacationWeeks,
     vacation,
+    prematureWeeks = 0,
   } = input;
 
   // Beregn permisjonsfordeling
@@ -68,7 +69,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     overlapWeeks,
     daycareStartDate,
     vacationWeeks,
-    vacation
+    vacation,
+    prematureWeeks,
   );
 
   // Hvis økonomi-data er tilgjengelig, beregn sammenligning
@@ -82,7 +84,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       overlapWeeks,
       daycareStartDate,
       vacationWeeks,
-      vacation
+      vacation,
+      prematureWeeks,
     );
 
     const leave100 = calculateLeave(
@@ -93,7 +96,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
       overlapWeeks,
       daycareStartDate,
       vacationWeeks,
-      vacation
+      vacation,
+      prematureWeeks,
     );
 
     const economy = compareScenarios(
@@ -121,6 +125,7 @@ export {
   generatePeriodId,
   addDays,
   addWeeks,
+  subtractWeeks,
   daysBetween,
   weeksBetween,
 } from './dates';

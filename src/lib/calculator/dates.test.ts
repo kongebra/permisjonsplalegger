@@ -11,6 +11,7 @@ import {
   calculateGap,
   buildLeaveSegments,
   countVacationDays,
+  calculateLeave,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -304,5 +305,35 @@ describe('countVacationDays', () => {
     const end = new Date(2027, 3, 4);
     // man-lør i perioden: 22(ma),23(ti),24(on),25(to),26(fr),27(lø), 29(ma),30(ti),31(on),1(to),2(fr),3(lø) = 12
     expect(countVacationDays(start, end, 'shift')).toBe(12);
+  });
+});
+
+// ============================================================
+// calculateLeave: prematur fødsel
+// ============================================================
+describe('calculateLeave with premature birth', () => {
+  test('prematureWeeks=0: no change to leave', () => {
+    const dueDate = new Date(2027, 4, 1); // 1. mai 2027
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
+    const withZero = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
+    expect(normal.mother.weeks).toBe(withZero.mother.weeks);
+  });
+
+  test('prematureWeeks=4: mother gets 4 extra weeks', () => {
+    const dueDate = new Date(2027, 4, 1);
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    expect(premature.mother.weeks).toBe(normal.mother.weeks + 4);
+  });
+
+  test('prematureWeeks=4: leave starts 4 weeks earlier', () => {
+    const dueDate = new Date(2027, 4, 1);
+    const daycare = new Date(2028, 7, 1);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    const expectedStart = subtractWeeks(normal.mother.start, 4);
+    expect(premature.mother.start.getTime()).toBe(expectedStart.getTime());
   });
 });

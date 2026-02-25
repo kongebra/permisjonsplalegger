@@ -74,7 +74,8 @@ export function calculateMotherPeriod(
   dueDate: Date,
   coverage: Coverage,
   sharedWeeksToMother: number,
-  rights: ParentRights
+  rights: ParentRights,
+  prematureWeeks: number = 0,
 ): { start: Date; end: Date; weeks: number } {
   const config = LEAVE_CONFIG[coverage];
 
@@ -82,13 +83,13 @@ export function calculateMotherPeriod(
 
   if (rights === 'mother-only') {
     // Mor får hele perioden
-    totalMotherWeeks = config.total;
+    totalMotherWeeks = config.total + prematureWeeks;
   } else if (rights === 'father-only') {
     // Mor får ingen permisjon; start/slutt settes til termindato så far starter riktig
     return { start: dueDate, end: dueDate, weeks: 0 };
   } else {
     // Begge har rett: mødrekvote + andel av fellesperiode
-    totalMotherWeeks = config.preBirth + config.mother + sharedWeeksToMother;
+    totalMotherWeeks = config.preBirth + config.mother + sharedWeeksToMother + prematureWeeks;
   }
 
   const end = addWeeks(leaveStart, totalMotherWeeks);
@@ -211,11 +212,17 @@ export function buildLeaveSegments(
   overlapWeeks: number,
   _daycareStartDate: Date,
   _vacationWeeks: VacationWeek[],
-  vacation?: VacationInput
+  vacation?: VacationInput,
+  prematureWeeks: number = 0,
 ): LeaveSegment[] {
   const segments: LeaveSegment[] = [];
   const config = LEAVE_CONFIG[coverage];
-  const leaveStart = calculateLeaveStart(dueDate, coverage);
+
+  // leaveStart med prematur-justering
+  const normalLeaveStart = calculateLeaveStart(dueDate, coverage);
+  const leaveStart = prematureWeeks > 0
+    ? subtractWeeks(normalLeaveStart, prematureWeeks)
+    : normalLeaveStart;
 
   if (rights === 'father-only') {
     // Far starter på termindato (ikke leaveStart = termin - 3 uker)
@@ -255,15 +262,15 @@ export function buildLeaveSegments(
 
   let currentDate = leaveStart;
 
-  // Mor: Før fødsel (3 uker)
-  if (config.preBirth > 0) {
-    const preBirthEnd = addWeeks(currentDate, config.preBirth);
+  // Mor: Før fødsel (3 uker + premature uker)
+  if (config.preBirth + prematureWeeks > 0) {
+    const preBirthEnd = addWeeks(currentDate, config.preBirth + prematureWeeks);
     segments.push({
       parent: 'mother',
       type: 'preBirth',
       start: currentDate,
       end: preBirthEnd,
-      weeks: config.preBirth,
+      weeks: config.preBirth + prematureWeeks,
     });
     currentDate = preBirthEnd;
   }
@@ -443,16 +450,21 @@ export function calculateLeave(
   overlapWeeks: number,
   daycareStartDate: Date,
   vacationWeeks: VacationWeek[] = [],
-  vacation?: VacationInput
+  vacation?: VacationInput,
+  prematureWeeks: number = 0,
 ): LeaveResult {
-  const leaveStart = calculateLeaveStart(dueDate, coverage);
+  // Prematur fødsel: leaveStart flyttes X uker bakover
+  const leaveStart = prematureWeeks > 0
+    ? subtractWeeks(calculateLeaveStart(dueDate, coverage), prematureWeeks)
+    : calculateLeaveStart(dueDate, coverage);
 
   const motherPeriod = calculateMotherPeriod(
     leaveStart,
     dueDate,
     coverage,
     sharedWeeksToMother,
-    rights
+    rights,
+    prematureWeeks,
   );
 
   const fatherPeriod = calculateFatherPeriod(
@@ -485,7 +497,8 @@ export function calculateLeave(
     overlapWeeks,
     daycareStartDate,
     vacationWeeks,
-    vacation
+    vacation,
+    prematureWeeks,
   );
 
   // Total kalendertid (overlapp forkorter denne)

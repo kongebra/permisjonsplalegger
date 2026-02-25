@@ -69,6 +69,7 @@ export const usePlannerStore = create<PlannerStore>()(
           sharedWeeksToMother: state.sharedWeeksToMother,
           daycareStartDate: state.daycareStartDate?.toISOString() ?? null,
           daycareEnabled: state.daycareEnabled,
+          prematureBirthDate: state.prematureBirthDate?.toISOString() ?? null,
         },
         jobSettings: {
           mother: state.motherJobSettings,
@@ -102,6 +103,11 @@ export const usePlannerStore = create<PlannerStore>()(
       if (plan.wizard.daycareStartDate) {
         state.setDaycareStartDate(new Date(plan.wizard.daycareStartDate));
       }
+
+      // Restore premature birth date if present
+      state.setPrematureBirthDate(
+        plan.wizard.prematureBirthDate ? new Date(plan.wizard.prematureBirthDate) : null
+      );
 
       // Restore wizard progress or mark as completed
       if (plan.wizard.wizardCompleted !== false) {
