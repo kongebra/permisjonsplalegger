@@ -52,9 +52,11 @@ export function LeaveHorizonLine({
     const activeEndDays = Math.max(0, Math.min(total, differenceInDays(nextMonthStart, leaveStart)));
 
     // Antall måneder for granularitetsberegning
-    const totalMonths =
+    const totalMonths = Math.max(
+      1,
       (gapEnd.getFullYear() - leaveStart.getFullYear()) * 12 +
-      (gapEnd.getMonth() - leaveStart.getMonth()) + 1;
+        (gapEnd.getMonth() - leaveStart.getMonth()) + 1,
+    );
 
     const granularity = getTimelineGranularity(totalMonths);
     const segs = buildTimelineSegments(leaveStart, gapEnd, granularity);
@@ -70,7 +72,7 @@ export function LeaveHorizonLine({
     };
   }, [leaveStart, leaveResult.mother.end, leaveEnd, gapEnd, activeMonth]);
 
-  const activeMonthWidthPercent = activeMonthEndPercent - currentPercent;
+  const activeMonthWidthPercent = Math.max(0, activeMonthEndPercent - currentPercent);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -118,7 +120,7 @@ export function LeaveHorizonLine({
       )}
 
       {/* Ruler-rad med tikkmerker og etiketter */}
-      <div className="relative h-5 mb-0.5">
+      <div aria-hidden="true" className="relative h-5 mb-0.5">
         {segments.map((seg, i) => (
           <div
             key={i}
