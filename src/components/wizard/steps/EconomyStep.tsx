@@ -86,8 +86,8 @@ function ParentEconomySection({
               onSalaryEntered(label);
             }
           }}
-          onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
-          placeholder="50 000"
+          onFocus={(e) => { e.target.select(); setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+          placeholder="f.eks. 50 000"
         />
       </div>
 
