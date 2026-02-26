@@ -7,6 +7,11 @@
 - Støtte for prematur fødsel i wizard: legg inn faktisk fødselsdato og permisjonen forlenges automatisk i tråd med NAV-regelverket.
 - Informasjon om aktivitetskravet vises nå i oppsummeringen når far planlegger å ta fellesperioden.
 
+## 2026-02-26
+
+### Navigasjon på info-sider
+Landingssiden, "Om oss" og personvernsiden har nå en tydelig header som tar deg tilbake til forsiden. Tilbake-lenkene på disse sidene peker nå riktig til forsiden i stedet for inn i planleggeren.
+
 ## 2026-02-25
 
 ### Ny identitet og landingsside
