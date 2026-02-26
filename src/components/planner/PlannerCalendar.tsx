@@ -9,8 +9,8 @@ import { YearOverview } from './YearOverview';
 import { AddPeriodFab } from './AddPeriodFab';
 import { PeriodModal } from './PeriodModal';
 import { DayDetailPanel } from './DayDetailPanel';
-import { StatsBar } from './StatsBar';
-import { LeaveHorizonBanner } from './LeaveHorizonBanner';
+import { PlanStatusBar } from './PlanStatusBar';
+import { LeaveHorizonLine } from './LeaveHorizonLine';
 import { MiniMonthStrip } from './MiniMonthStrip';
 import posthog from 'posthog-js';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
@@ -208,11 +208,18 @@ export function PlannerCalendar() {
       </div>
       <div className="space-y-4">
         {/* Permisjonshorisont — persistent tidslinje */}
-        <LeaveHorizonBanner
+        <PlanStatusBar
+          leaveResult={leaveResult}
+          customPeriods={periods}
+          daycareEnabled={daycareEnabled}
+          daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
+        />
+        <LeaveHorizonLine
           leaveResult={leaveResult}
           activeMonth={activeMonth}
           daycareEnabled={daycareEnabled}
           daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
+          onMonthChange={setActiveMonthWithDirection}
         />
 
         {/* A/B-test: mini-måneder strip (aktiveres via PostHog feature flag "calendar-mini-months") */}
@@ -320,14 +327,6 @@ export function PlannerCalendar() {
             />
           </div>
         </div>
-
-        {/* Gap indicator */}
-        <StatsBar
-          leaveResult={leaveResult}
-          customPeriods={periods}
-          daycareEnabled={daycareEnabled}
-          daycareDate={daycareStartDate}
-        />
 
         {/* Aktivitetskrav-informasjon: kun synlig ved far-only */}
         {rights === 'father-only' && (
