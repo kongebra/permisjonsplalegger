@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Clock, Shield } from 'lucide-react';
+import { SiteHeader } from '@/components/SiteHeader';
 
 export const metadata: Metadata = {
   title: 'Permisjonsplanleggeren — få kabalen til å gå opp',
@@ -28,6 +29,8 @@ const benefits = [
 
 export default function Home() {
   return (
+    <>
+    <SiteHeader />
     <main id="main" className="container mx-auto px-4 py-12 max-w-2xl">
       {/* Hero */}
       <div className="text-center space-y-4 mb-12">
@@ -73,5 +76,6 @@ export default function Home() {
         </div>
       </div>
     </main>
+    </>
   );
 }
