@@ -186,7 +186,7 @@ export function calculateFatherPeriod(
 /**
  * Teller hverdager (man-fre ekskl. helligdager) mellom to datoer
  */
-function countWorkdaysInRange(start: Date, end: Date): number {
+export function countWorkdaysInRange(start: Date, end: Date): number {
   let count = 0;
   const current = new Date(start);
   while (current < end) {

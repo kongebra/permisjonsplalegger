@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { countWorkdaysInRange } from '@/lib/calculator/dates';
 import { WORK_DAYS_PER_WEEK } from '@/lib/constants';
 import { GlossaryTerm } from '@/components/ui/glossary-term';
 import type { LeaveResult, CustomPeriod } from '@/lib/types';
@@ -39,14 +40,7 @@ export function PlanStatusBar({
     const coveredDays = gapPeriods.reduce((sum, p) => {
       const overlapStart = p.startDate > gapStart ? p.startDate : gapStart;
       const overlapEnd = p.endDate < gapEnd ? p.endDate : gapEnd;
-      let count = 0;
-      const cur = new Date(overlapStart);
-      while (cur < overlapEnd) {
-        const day = cur.getDay();
-        if (day >= 1 && day <= 5) count++;
-        cur.setDate(cur.getDate() + 1);
-      }
-      return sum + count;
+      return sum + countWorkdaysInRange(overlapStart, overlapEnd);
     }, 0);
 
     const remainingDays = Math.max(0, gapDays - coveredDays);

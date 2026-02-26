@@ -69,6 +69,9 @@ export function LeaveHorizonLine({
       role="slider"
       tabIndex={0}
       aria-label="Naviger i permisjonstidslinjen"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(currentPercent)}
       aria-valuetext={format(activeMonth, 'MMMM yyyy', { locale: nb })}
       className="relative py-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded select-none"
       onClick={handleClick}
