@@ -57,7 +57,7 @@ export function MonthView({
 
   // Dummy gap for planner (no gap concept in planner mode)
   const dummyGap = useMemo(
-    () => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0 }),
+    () => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 }),
     [],
   );
 

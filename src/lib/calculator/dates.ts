@@ -164,6 +164,20 @@ export function calculateFatherPeriod(
 }
 
 /**
+ * Teller hverdager (man-fre ekskl. helligdager) mellom to datoer
+ */
+function countWorkdaysInRange(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current < end) {
+    const day = current.getDay();
+    if (day >= 1 && day <= 5 && !isHoliday(current)) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+/**
  * Beregner gap mellom permisjonsslutt og barnehagestart
  */
 export function calculateGap(
@@ -172,12 +186,14 @@ export function calculateGap(
 ): GapInfo {
   const days = daysBetween(lastLeaveEnd, daycareStartDate);
   const weeks = Math.ceil(days / 7);
+  const workDays = countWorkdaysInRange(lastLeaveEnd, daycareStartDate);
 
   return {
     start: lastLeaveEnd,
     end: daycareStartDate,
     weeks: Math.max(0, weeks),
     days: Math.max(0, days),
+    workDays: Math.max(0, workDays),
   };
 }
 
@@ -767,6 +783,7 @@ export function calculateGapFromPeriods(
       end: daycareDate,
       weeks: 0,
       days: 0,
+      workDays: 0,
     };
   }
 
@@ -777,12 +794,14 @@ export function calculateGapFromPeriods(
   );
 
   const gapDays = daysBetween(latestEnd, daycareDate);
+  const gapWorkDays = countWorkdaysInRange(latestEnd, daycareDate);
 
   return {
     start: latestEnd,
     end: daycareDate,
     weeks: Math.max(0, Math.ceil(gapDays / 7)),
     days: Math.max(0, gapDays),
+    workDays: Math.max(0, gapWorkDays),
   };
 }
 

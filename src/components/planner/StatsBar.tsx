@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { LeaveResult, CustomPeriod } from '@/lib/types';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -25,7 +24,8 @@ export function StatsBar({
       return null;
     }
 
-    const gapDays = leaveResult.gap.days;
+    // Bruk hverdager (man-fre) — helger teller ikke som "udekket gap"
+    const gapDays = leaveResult.gap.workDays;
 
     // Check how much of the gap is covered by custom periods
     const gapStart = leaveResult.gap.start;
@@ -38,10 +38,18 @@ export function StatsBar({
         p.endDate > gapStart
     );
 
+    // Tell hverdager dekket av perioder i gapet
     const coveredDays = gapPeriods.reduce((sum, p) => {
       const overlapStart = p.startDate > gapStart ? p.startDate : gapStart;
       const overlapEnd = p.endDate < gapEnd ? p.endDate : gapEnd;
-      return sum + Math.max(0, differenceInDays(overlapEnd, overlapStart));
+      let count = 0;
+      const cur = new Date(overlapStart);
+      while (cur < overlapEnd) {
+        const day = cur.getDay();
+        if (day >= 1 && day <= 5) count++;
+        cur.setDate(cur.getDate() + 1);
+      }
+      return sum + count;
     }, 0);
 
     const remainingDays = Math.max(0, gapDays - coveredDays);
