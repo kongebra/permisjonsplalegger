@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Clock, CalendarDays, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import posthog from "posthog-js";
 
 interface WelcomeIntroProps {
@@ -17,47 +16,8 @@ export function WelcomeIntro({ onStart }: WelcomeIntroProps) {
           Velkommen til permisjonsplanleggeren
         </p>
         <p className="text-muted-foreground text-lg">
-          Planlegg foreldrepermisjonen og forstå økonomien.
+          Tar ca 5 minutter. Fremgangen lagres automatisk.
         </p>
-      </div>
-
-      <div className="grid gap-4">
-        <Card>
-          <CardContent className="flex items-start gap-4">
-            <Shield className="w-8 h-8 text-primary shrink-0" />
-            <div>
-              <h3 className="font-semibold">Trygt og privat</h3>
-              <p className="text-sm text-muted-foreground">
-                Personlig informasjon lagres kun lokalt. Anonym bruksstatistikk
-                samles inn for å forbedre tjenesten.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-start gap-4">
-            <Clock className="w-8 h-8 text-primary shrink-0" />
-            <div>
-              <h3 className="font-semibold">Tar ca 5 minutter</h3>
-              <p className="text-sm text-muted-foreground">
-                Kan lukkes når som helst. Fremgangen lagres automatisk.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-start gap-4">
-            <CalendarDays className="w-8 h-8 text-primary shrink-0" />
-            <div>
-              <h3 className="font-semibold">Finn ut hva som passer dere</h3>
-              <p className="text-sm text-muted-foreground">
-                Se om kabalen går opp — permisjon, barnehagestart og økonomi — og få en anbefaling på 80% eller 100%.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="rounded-lg bg-warning-bg border border-warning-fg/20 px-3.5 py-3">
