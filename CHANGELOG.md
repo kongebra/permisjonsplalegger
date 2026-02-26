@@ -12,6 +12,9 @@
 ### Navigasjon på info-sider
 Landingssiden, "Om oss" og personvernsiden har nå en tydelig header som tar deg tilbake til forsiden. Tilbake-lenkene på disse sidene peker nå riktig til forsiden i stedet for inn i planleggeren.
 
+### Kalender-topprad redesign
+Erstattet den tidlige horisontlinjen og gap-baren med to tydeligere komponenter: én som viser status (gap dekket/udekket + Mor/Far/Bhg-sammendrag) og én ren orienteringslinje du kan trykke på for å hoppe direkte til en måned i kalenderen.
+
 ## 2026-02-25
 
 ### Ny identitet og landingsside
