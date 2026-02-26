@@ -79,6 +79,23 @@ export function clickRatioToMonth(ratio: number, leaveStart: Date, totalDays: nu
 }
 
 /**
+ * Kalender-typer for tidslinjevisning
+ */
+export type TimelineGranularity = 'month' | 'quarter' | 'half-year';
+
+/**
+ * Bestemmer granularitet for tidslinjeruler basert på antall måneder i tidslinjen.
+ * - ≤14 måneder → month (viser individuelle måneder)
+ * - 15–24 måneder → quarter (viser kvartaler Q1–Q4)
+ * - >24 måneder → half-year (viser halvår H1/H2)
+ */
+export function getTimelineGranularity(totalMonths: number): TimelineGranularity {
+  if (totalMonths <= 14) return 'month';
+  if (totalMonths <= 24) return 'quarter';
+  return 'half-year';
+}
+
+/**
  * Beregner permisjonsstart (3 uker før termin)
  */
 export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {

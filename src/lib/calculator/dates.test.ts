@@ -13,6 +13,7 @@ import {
   countVacationDays,
   calculateLeave,
   clickRatioToMonth,
+  getTimelineGranularity,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -368,5 +369,34 @@ describe('clickRatioToMonth', () => {
     const tooHigh = clickRatioToMonth(1.5, start, 100);
     expect(tooLow.getMonth()).toBe(0);
     expect(tooHigh.getMonth()).toBe(3); // april (100 dager frem)
+  });
+});
+
+// ============================================================
+// getTimelineGranularity
+// ============================================================
+describe('getTimelineGranularity', () => {
+  it('returnerer month for 1 måned', () => {
+    expect(getTimelineGranularity(1)).toBe('month');
+  });
+
+  it('returnerer month for 14 måneder (grensen)', () => {
+    expect(getTimelineGranularity(14)).toBe('month');
+  });
+
+  it('returnerer quarter for 15 måneder (over grensen)', () => {
+    expect(getTimelineGranularity(15)).toBe('quarter');
+  });
+
+  it('returnerer quarter for 24 måneder (grensen)', () => {
+    expect(getTimelineGranularity(24)).toBe('quarter');
+  });
+
+  it('returnerer half-year for 25 måneder (over grensen)', () => {
+    expect(getTimelineGranularity(25)).toBe('half-year');
+  });
+
+  it('returnerer half-year for 30 måneder', () => {
+    expect(getTimelineGranularity(30)).toBe('half-year');
   });
 });
