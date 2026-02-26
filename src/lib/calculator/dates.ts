@@ -120,8 +120,9 @@ function formatSegmentLabel(date: Date, granularity: TimelineGranularity): strin
     const quarter = Math.floor(month / 3) + 1;
     return quarter === 1 ? `Q1 ${shortYear}` : `Q${quarter}`;
   }
-  // half-year
-  return month === 0 ? `H1 ${shortYear}` : 'H2';
+  // half-year: vis alltid årstall (H1 '26, H2 '26, H1 '27, H2 '27)
+  const half = month < 6 ? 1 : 2;
+  return `H${half} ${shortYear}`;
 }
 
 /**
@@ -160,7 +161,9 @@ export function buildTimelineSegments(
   return boundaries.map((segStart, i) => {
     const segEnd = boundaries[i + 1] ?? timelineEnd;
     const leftDays = Math.max(0, daysBetween(leaveStart, segStart));
-    const widthDays = daysBetween(segStart, segEnd);
+    // Første segment kan starte FØR leaveStart (startOfMonth), klipp til faktisk tidslinje-start
+    const effectiveStart = segStart < leaveStart ? leaveStart : segStart;
+    const widthDays = daysBetween(effectiveStart, segEnd);
 
     return {
       start: segStart,

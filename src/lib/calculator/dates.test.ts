@@ -429,6 +429,15 @@ describe('buildTimelineSegments', () => {
       expect(total).toBeCloseTo(100, 0);
     });
 
+    it('widthPercent summerer til ~100 ved midt-måneds start', () => {
+      // Typisk scenario: permisjonsstart midt i en måned
+      const start = new Date(2026, 5, 14); // 14. juni
+      const end = new Date(2026, 8, 1);    // 1. september
+      const segs = buildTimelineSegments(start, end, 'month');
+      const total = segs.reduce((s, seg) => s + seg.widthPercent, 0);
+      expect(total).toBeCloseTo(100, 0);
+    });
+
     it('januar-etikett inneholder årstall', () => {
       const start = new Date(2026, 0, 1);
       const end = new Date(2026, 3, 1);
@@ -479,7 +488,7 @@ describe('buildTimelineSegments', () => {
       const segs = buildTimelineSegments(start, end, 'half-year');
       expect(segs).toHaveLength(3);
       expect(segs[0].label).toBe("H1 '26");
-      expect(segs[1].label).toBe('H2');
+      expect(segs[1].label).toBe("H2 '26");
       expect(segs[2].label).toBe("H1 '27");
     });
   });
