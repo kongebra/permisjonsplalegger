@@ -96,6 +96,82 @@ export function getTimelineGranularity(totalMonths: number): TimelineGranularity
 }
 
 /**
+ * Et segment i tidslinjeruler-raden
+ */
+export interface TimelineSegment {
+  start: Date;          // Segmentets startdato (for active-check i komponenten)
+  leftPercent: number;  // Avstand fra venstre kant i prosent [0–100]
+  widthPercent: number; // Segmentets bredde i prosent
+  label: string;        // Vises i ruler-raden ("J '26", "Q2", "H1 '25")
+}
+
+// Norske månedsinitaler, indeks 0 = januar
+const MONTH_INITIALS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'] as const;
+
+// Bestemmer etiketten for et ruler-segment
+function formatSegmentLabel(date: Date, granularity: TimelineGranularity): string {
+  const month = date.getMonth();
+  const shortYear = `'${String(date.getFullYear()).slice(2)}`;
+
+  if (granularity === 'month') {
+    return month === 0 ? `J ${shortYear}` : MONTH_INITIALS[month];
+  }
+  if (granularity === 'quarter') {
+    const quarter = Math.floor(month / 3) + 1;
+    return quarter === 1 ? `Q1 ${shortYear}` : `Q${quarter}`;
+  }
+  // half-year
+  return month === 0 ? `H1 ${shortYear}` : 'H2';
+}
+
+/**
+ * Bygger liste med segment-objekter for tidslinjeruler basert på granularitet.
+ * Brukes av LeaveHorizonLine til å tegne måneds-/kvartal-/halvårsinndeling.
+ *
+ * @param leaveStart - Første dag i tidslinjen
+ * @param timelineEnd - Siste dag i tidslinjen (eksklusiv)
+ * @param granularity - Inndelingstype fra getTimelineGranularity
+ */
+export function buildTimelineSegments(
+  leaveStart: Date,
+  timelineEnd: Date,
+  granularity: TimelineGranularity
+): TimelineSegment[] {
+  const totalDays = Math.max(1, daysBetween(leaveStart, timelineEnd));
+
+  // Samle segmentgrenser: iterer måneder fra startOfMonth(leaveStart) til timelineEnd
+  // Stopper FØR timelineEnd slik at siste boundary ikke blir en tom sluttgrense
+  const boundaries: Date[] = [];
+  const cur = startOfMonth(leaveStart);
+  while (cur < timelineEnd) {
+    const month = cur.getMonth();
+    const shouldInclude =
+      granularity === 'month' ||
+      (granularity === 'quarter' && [0, 3, 6, 9].includes(month)) ||
+      (granularity === 'half-year' && [0, 6].includes(month));
+
+    if (shouldInclude) {
+      boundaries.push(new Date(cur));
+    }
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  // Bygg segmenter mellom par av grenser
+  return boundaries.map((segStart, i) => {
+    const segEnd = boundaries[i + 1] ?? timelineEnd;
+    const leftDays = Math.max(0, daysBetween(leaveStart, segStart));
+    const widthDays = daysBetween(segStart, segEnd);
+
+    return {
+      start: segStart,
+      leftPercent: (leftDays / totalDays) * 100,
+      widthPercent: Math.min(100, (widthDays / totalDays) * 100),
+      label: formatSegmentLabel(segStart, granularity),
+    };
+  });
+}
+
+/**
  * Beregner permisjonsstart (3 uker før termin)
  */
 export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {
