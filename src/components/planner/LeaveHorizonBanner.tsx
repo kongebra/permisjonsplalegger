@@ -23,21 +23,26 @@ export function LeaveHorizonBanner({
   const leaveEnd = leaveResult.father.end;
   const gapEnd = daycareEnabled && daycareDate ? daycareDate : leaveEnd;
 
-  const { leavePercent, gapPercent, currentPercent } = useMemo(() => {
+  const { motherPercent, fatherPercent, gapPercent, currentPercent } = useMemo(() => {
     const totalDays = Math.max(1, differenceInDays(gapEnd, leaveStart));
-    const leaveDays = differenceInDays(leaveEnd, leaveStart);
-    const gapDays = differenceInDays(gapEnd, leaveEnd);
+
+    // Mors periode: fra start til mor slutter
+    const motherDays = Math.max(0, differenceInDays(leaveResult.mother.end, leaveStart));
+    // Fars eksklusive periode: etter mor er ferdig
+    const fatherDays = Math.max(0, differenceInDays(leaveEnd, leaveResult.mother.end));
+    const gapDays = Math.max(0, differenceInDays(gapEnd, leaveEnd));
 
     // Markørposisjon: start av aktiv måned
     const activeStart = startOfMonth(activeMonth);
     const currentDays = Math.max(0, Math.min(totalDays, differenceInDays(activeStart, leaveStart)));
 
     return {
-      leavePercent: Math.max(0, Math.min(100, (leaveDays / totalDays) * 100)),
+      motherPercent: Math.max(0, Math.min(100, (motherDays / totalDays) * 100)),
+      fatherPercent: Math.max(0, Math.min(100, (fatherDays / totalDays) * 100)),
       gapPercent: Math.max(0, Math.min(100, (gapDays / totalDays) * 100)),
       currentPercent: Math.max(0, Math.min(100, (currentDays / totalDays) * 100)),
     };
-  }, [leaveStart, leaveEnd, gapEnd, activeMonth]);
+  }, [leaveStart, leaveResult.mother.end, leaveEnd, gapEnd, activeMonth]);
 
   // Gap-uker igjen (totalt gap fra permisjonsslutt til barnehagestart)
   const gapWeeksLeft = useMemo(() => {
@@ -57,11 +62,20 @@ export function LeaveHorizonBanner({
     <div className="space-y-2 pb-2 border-b">
       {/* Tidslinje */}
       <div className="relative h-2.5 rounded-full overflow-hidden bg-muted flex">
-        {/* Permisjonsblokk */}
-        <div
-          className="h-full bg-mother-base"
-          style={{ width: `${leavePercent}%` }}
-        />
+        {/* Mors permisjon */}
+        {motherPercent > 0 && (
+          <div
+            className="h-full bg-mother-base"
+            style={{ width: `${motherPercent}%` }}
+          />
+        )}
+        {/* Fars permisjon */}
+        {fatherPercent > 0 && (
+          <div
+            className="h-full bg-father-base"
+            style={{ width: `${fatherPercent}%` }}
+          />
+        )}
         {/* Gapblokk */}
         {gapPercent > 0 && (
           <div
