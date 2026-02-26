@@ -50,6 +50,7 @@ type SettingsSection = 'dueDate' | 'rights' | 'coverage' | 'distribution' | 'day
 export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const router = useRouter();
   const wizard = useWizard();
+  const { monthlyBudgetLimit, setMonthlyBudgetLimit } = wizard;
   const economy = useEconomy();
   const recalculateFromSettings = usePlannerStore((s) => s.recalculateFromSettings);
   const resetAll = usePlannerStore((s) => s.resetAll);
@@ -334,6 +335,27 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                     colorClass="text-[var(--color-father)]"
                   />
                 )}
+
+                {/* Månedlig minstegrense for budsjettindikator */}
+                <div className="space-y-1">
+                  <Label className="text-xs">Månedlig minstegrense (kr)</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    enterKeyHint="done"
+                    value={monthlyBudgetLimit || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setMonthlyBudgetLimit(val === '' ? 0 : Math.max(0, Number(val)));
+                    }}
+                    placeholder="0 = ikke satt"
+                    className="h-8 text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Måneder under grensen vises røde i økonomi-oversikten.
+                  </p>
+                </div>
               </div>
             </SettingsRow>
 

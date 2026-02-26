@@ -20,6 +20,7 @@ export interface WizardSlice {
   daycareStartDate: Date | null;
   daycareEnabled: boolean;
   prematureBirthDate: Date | null;
+  monthlyBudgetLimit: number; // 0 = ikke satt
 
   // Actions
   setCurrentStep: (step: number) => void;
@@ -35,6 +36,7 @@ export interface WizardSlice {
   setDaycareStartDate: (date: Date | null) => void;
   setDaycareEnabled: (enabled: boolean) => void;
   setPrematureBirthDate: (date: Date | null) => void;
+  setMonthlyBudgetLimit: (limit: number) => void;
 }
 
 const TOTAL_STEPS = TOTAL_WIZARD_STEPS;
@@ -53,6 +55,7 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
   daycareStartDate: getDefaultDaycareStart(new Date()),
   daycareEnabled: true,
   prematureBirthDate: null,
+  monthlyBudgetLimit: 0,
 
   // Navigation actions
   setCurrentStep: (step) => set({ currentStep: Math.max(1, Math.min(step, TOTAL_STEPS)) }),
@@ -84,6 +87,7 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
       daycareStartDate: getDefaultDaycareStart(new Date()),
       daycareEnabled: true,
       prematureBirthDate: null,
+      monthlyBudgetLimit: 0,
     }),
 
   // Configuration actions
@@ -122,6 +126,8 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
       set({ daycareEnabled: false, daycareStartDate: null });
     }
   },
+
+  setMonthlyBudgetLimit: (limit) => set({ monthlyBudgetLimit: limit }),
 
   setPrematureBirthDate: (date) => {
     const { daycareEnabled } = get();
