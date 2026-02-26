@@ -7,6 +7,17 @@
 - Støtte for prematur fødsel i wizard: legg inn faktisk fødselsdato og permisjonen forlenges automatisk i tråd med NAV-regelverket.
 - Informasjon om aktivitetskravet vises nå i oppsummeringen når far planlegger å ta fellesperioden.
 
+## 2026-02-25
+
+### Ny identitet og landingsside
+Appen heter nå Permisjonsplanleggeren. En ekte forside på perm-planlegger.vercel.app gir deg en rask oversikt og tar deg direkte til planleggingen — uten omveier.
+
+### Permisjonshorisont i kalenderen
+Øverst i kalenderen vises nå en tidslinje som alltid forteller deg hvor langt permisjonen rekker, hvor stort gapet til barnehage er, og hvilken måned du ser på.
+
+### Månedlig økonomi — se hva dere faktisk har
+Månedsoversikten viser nå hva familien tjener per måned under permisjon sammenlignet med normalt, med fargeindikator og mulighet til å sette en månedlig minstegrense.
+
 ## 2026-02-24
 
 ### Fikset: Far-only permisjonsberegning
