@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, it, test, expect } from 'bun:test';
 import {
   addDays,
   addWeeks,
@@ -12,6 +12,7 @@ import {
   buildLeaveSegments,
   countVacationDays,
   calculateLeave,
+  clickRatioToMonth,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -335,5 +336,37 @@ describe('calculateLeave with premature birth', () => {
     const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
     const expectedStart = subtractWeeks(normal.mother.start, 4);
     expect(premature.mother.start.getTime()).toBe(expectedStart.getTime());
+  });
+});
+
+describe('clickRatioToMonth', () => {
+  it('ratio 0 → startmåned', () => {
+    const start = new Date(2026, 0, 14); // 14. jan 2026
+    const result = clickRatioToMonth(0, start, 365);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(0); // januar
+    expect(result.getDate()).toBe(1);  // start av måneden
+  });
+
+  it('ratio 1 → siste måned', () => {
+    const start = new Date(2026, 0, 1);
+    const result = clickRatioToMonth(1, start, 365);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(11); // desember
+  });
+
+  it('ratio 0.5 → midtmåned', () => {
+    const start = new Date(2026, 0, 1);
+    const result = clickRatioToMonth(0.5, start, 365);
+    expect(result.getMonth()).toBe(6); // juli
+    expect(result.getDate()).toBe(1);
+  });
+
+  it('ratio klemmes til [0, 1]', () => {
+    const start = new Date(2026, 0, 1);
+    const tooLow = clickRatioToMonth(-0.5, start, 100);
+    const tooHigh = clickRatioToMonth(1.5, start, 100);
+    expect(tooLow.getMonth()).toBe(0);
+    expect(tooHigh.getMonth()).toBe(3); // april (100 dager frem)
   });
 });

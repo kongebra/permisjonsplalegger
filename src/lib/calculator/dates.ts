@@ -59,6 +59,26 @@ export function weeksBetween(start: Date, end: Date): number {
 }
 
 /**
+ * Returnerer første dag i måneden for en gitt dato
+ */
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+/**
+ * Beregner startOfMonth for måneden som tilsvarer en tap-posisjon på tidslinjen.
+ * Ratio=1 peker på siste dag i tidslinjen (totalDays - 1), ikke dagen etter.
+ * @param ratio - klikk-posisjon som andel av total bredde [0, 1]
+ * @param leaveStart - første dag i permisjonstidslinjen
+ * @param totalDays - totalt antall dager i tidslinjen
+ */
+export function clickRatioToMonth(ratio: number, leaveStart: Date, totalDays: number): Date {
+  const clampedRatio = Math.max(0, Math.min(1, ratio));
+  const targetDate = addDays(leaveStart, Math.round(clampedRatio * (totalDays - 1)));
+  return startOfMonth(targetDate);
+}
+
+/**
  * Beregner permisjonsstart (3 uker før termin)
  */
 export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {
