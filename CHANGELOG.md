@@ -15,6 +15,9 @@ Landingssiden, "Om oss" og personvernsiden har nå en tydelig header som tar deg
 ### Kalender-topprad redesign
 Erstattet den tidlige horisontlinjen og gap-baren med to tydeligere komponenter: én som viser status (gap dekket/udekket + Mor/Far/Bhg-sammendrag) og én ren orienteringslinje du kan trykke på for å hoppe direkte til en måned i kalenderen.
 
+### Tidslinje med månedsinndeling
+Permisjonstidslinjen øverst i kalenderen viser nå måneder med etiketter og synlige skiller. Den aktive måneden er fremhevet som et felt — ikke en enkel strek. Ved lange permisjoner (over 2 år) byttes automatisk til kvartal- eller halvårsinndeling for å unngå rot.
+
 ## 2026-02-25
 
 ### Ny identitet og landingsside
