@@ -26,6 +26,7 @@ export function useWizard() {
       daycareStartDate: state.daycareStartDate,
       daycareEnabled: state.daycareEnabled,
       prematureBirthDate: state.prematureBirthDate,
+      monthlyBudgetLimit: state.monthlyBudgetLimit,
       setCurrentStep: state.setCurrentStep,
       nextStep: state.nextStep,
       prevStep: state.prevStep,
@@ -38,6 +39,7 @@ export function useWizard() {
       setDaycareStartDate: state.setDaycareStartDate,
       setDaycareEnabled: state.setDaycareEnabled,
       setPrematureBirthDate: state.setPrematureBirthDate,
+      setMonthlyBudgetLimit: state.setMonthlyBudgetLimit,
     }))
   );
 }

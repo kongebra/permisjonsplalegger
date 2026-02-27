@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Hand, Palette, Eye } from 'lucide-react';
@@ -15,19 +15,65 @@ export function CalendarOnboarding() {
     () => false
   );
   const [dismissed, setDismissed] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const dismiss = () => {
     try { localStorage.setItem(ONBOARDING_KEY, 'true'); } catch { /* private browsing */ }
     setDismissed(true);
   };
 
+  // Fokus-fangst: hindrer Tab fra å nå bakgrunn, Escape lukker
+  useEffect(() => {
+    if (!shouldShow || dismissed) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+
+    // Fokuser første knapp i modalen ved åpning
+    const firstButton = cardRef.current?.querySelector<HTMLElement>('button');
+    firstButton?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { dismiss(); return; }
+      if (e.key !== 'Tab') return;
+
+      const focusable = cardRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldShow, dismissed]);
+
   if (!shouldShow || dismissed) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
+      <Card
+        ref={cardRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        className="max-w-md w-full"
+      >
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Slik bruker du kalenderen</CardTitle>
+          <CardTitle id="onboarding-title">Slik bruker du kalenderen</CardTitle>
           <Button variant="ghost" size="icon" onClick={dismiss} aria-label="Lukk">
             <X className="w-4 h-4" />
           </Button>

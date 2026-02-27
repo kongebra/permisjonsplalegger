@@ -11,7 +11,11 @@ import {
   calculateGap,
   buildLeaveSegments,
   countVacationDays,
+  countWorkdaysInRange,
   calculateLeave,
+  clickRatioToMonth,
+  getTimelineGranularity,
+  buildTimelineSegments,
 } from './dates';
 import { LEAVE_CONFIG } from '../constants';
 
@@ -308,6 +312,28 @@ describe('countVacationDays', () => {
   });
 });
 
+describe('countWorkdaysInRange', () => {
+  test('teller man-fre uten helligdager (vanlig uke)', () => {
+    // Mandag 2. juni 2025 → fredag 6. juni 2025 (eksklusiv slutt: 7. juni)
+    const start = new Date(2025, 5, 2); // 2. juni (mandag)
+    const end = new Date(2025, 5, 7);   // 7. juni (eksklusiv) = 5 hverdager
+    expect(countWorkdaysInRange(start, end)).toBe(5);
+  });
+
+  test('trekker fra skjærtorsdag, langfredag og 2. påskedag i påsken 2027', () => {
+    // 22. mars 2027 (man) → 4. april (eksklusiv)
+    // Påsken 2027: Skjærtorsdag 25/3, Langfredag 26/3, 2. påskedag 29/3 → 10 - 3 = 7
+    const start = new Date(2027, 2, 22);
+    const end = new Date(2027, 3, 4);
+    expect(countWorkdaysInRange(start, end)).toBe(7);
+  });
+
+  test('returnerer 0 når start er lik slutt', () => {
+    const date = new Date(2026, 0, 5); // mandag
+    expect(countWorkdaysInRange(date, date)).toBe(0);
+  });
+});
+
 // ============================================================
 // calculateLeave: prematur fødsel
 // ============================================================
@@ -335,5 +361,158 @@ describe('calculateLeave with premature birth', () => {
     const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
     const expectedStart = subtractWeeks(normal.mother.start, 4);
     expect(premature.mother.start.getTime()).toBe(expectedStart.getTime());
+  });
+});
+
+describe('clickRatioToMonth', () => {
+  test('ratio 0 → startmåned', () => {
+    const start = new Date(2026, 0, 14); // 14. jan 2026
+    const result = clickRatioToMonth(0, start, 365);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(0); // januar
+    expect(result.getDate()).toBe(1);  // start av måneden
+  });
+
+  test('ratio 1 → siste måned', () => {
+    const start = new Date(2026, 0, 1);
+    const result = clickRatioToMonth(1, start, 365);
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(11); // desember
+  });
+
+  test('ratio 0.5 → midtmåned', () => {
+    const start = new Date(2026, 0, 1);
+    const result = clickRatioToMonth(0.5, start, 365);
+    expect(result.getMonth()).toBe(6); // juli
+    expect(result.getDate()).toBe(1);
+  });
+
+  test('ratio klemmes til [0, 1]', () => {
+    const start = new Date(2026, 0, 1);
+    const tooLow = clickRatioToMonth(-0.5, start, 100);
+    const tooHigh = clickRatioToMonth(1.5, start, 100);
+    expect(tooLow.getMonth()).toBe(0);
+    expect(tooHigh.getMonth()).toBe(3); // april (100 dager frem)
+  });
+});
+
+// ============================================================
+// getTimelineGranularity
+// ============================================================
+describe('getTimelineGranularity', () => {
+  test('returnerer month for 1 måned', () => {
+    expect(getTimelineGranularity(1)).toBe('month');
+  });
+
+  test('returnerer month for 14 måneder (grensen)', () => {
+    expect(getTimelineGranularity(14)).toBe('month');
+  });
+
+  test('returnerer quarter for 15 måneder (over grensen)', () => {
+    expect(getTimelineGranularity(15)).toBe('quarter');
+  });
+
+  test('returnerer quarter for 24 måneder (grensen)', () => {
+    expect(getTimelineGranularity(24)).toBe('quarter');
+  });
+
+  test('returnerer half-year for 25 måneder (over grensen)', () => {
+    expect(getTimelineGranularity(25)).toBe('half-year');
+  });
+
+  test('returnerer half-year for 30 måneder', () => {
+    expect(getTimelineGranularity(30)).toBe('half-year');
+  });
+});
+
+// ============================================================
+// buildTimelineSegments
+// ============================================================
+describe('buildTimelineSegments', () => {
+  describe('month-granularitet', () => {
+    test('returnerer 3 segmenter for jan–mar 2026', () => {
+      const start = new Date(2026, 0, 1); // 1. jan
+      const end = new Date(2026, 3, 1);   // 1. apr (eksklusiv slutt)
+      const segs = buildTimelineSegments(start, end, 'month');
+      expect(segs).toHaveLength(3);
+    });
+
+    test('første segment starter på ~0%', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 3, 1);
+      const segs = buildTimelineSegments(start, end, 'month');
+      expect(segs[0].leftPercent).toBeCloseTo(0, 1);
+    });
+
+    test('widthPercent summerer til ~100', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 6, 1); // 6 måneder
+      const segs = buildTimelineSegments(start, end, 'month');
+      const total = segs.reduce((s, seg) => s + seg.widthPercent, 0);
+      expect(total).toBeCloseTo(100, 0);
+    });
+
+    test('widthPercent summerer til ~100 ved midt-måneds start', () => {
+      // Typisk scenario: permisjonsstart midt i en måned
+      const start = new Date(2026, 5, 14); // 14. juni
+      const end = new Date(2026, 8, 1);    // 1. september
+      const segs = buildTimelineSegments(start, end, 'month');
+      const total = segs.reduce((s, seg) => s + seg.widthPercent, 0);
+      expect(total).toBeCloseTo(100, 0);
+    });
+
+    test('januar-etikett inneholder årstall', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 3, 1);
+      const segs = buildTimelineSegments(start, end, 'month');
+      expect(segs[0].label).toBe("J '26");
+    });
+
+    test('andre måned-etikett er F', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 3, 1);
+      const segs = buildTimelineSegments(start, end, 'month');
+      expect(segs[1].label).toBe('F');
+    });
+
+    test('start-dato settes korrekt på hvert segment', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 3, 1);
+      const segs = buildTimelineSegments(start, end, 'month');
+      expect(segs[0].start.getMonth()).toBe(0); // januar
+      expect(segs[1].start.getMonth()).toBe(1); // februar
+      expect(segs[2].start.getMonth()).toBe(2); // mars
+    });
+  });
+
+  describe('quarter-granularitet', () => {
+    test('returnerer 4 segmenter for ett kalenderår', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2027, 0, 1);
+      const segs = buildTimelineSegments(start, end, 'quarter');
+      expect(segs).toHaveLength(4);
+    });
+
+    test('Q1 viser årstall, Q2–Q4 gjør ikke det', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2027, 0, 1);
+      const segs = buildTimelineSegments(start, end, 'quarter');
+      expect(segs[0].label).toBe("Q1 '26");
+      expect(segs[1].label).toBe('Q2');
+      expect(segs[2].label).toBe('Q3');
+      expect(segs[3].label).toBe('Q4');
+    });
+  });
+
+  describe('half-year-granularitet', () => {
+    test('returnerer korrekte halvårssegmenter', () => {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2027, 6, 1); // H1 '26, H2 '26, H1 '27
+      const segs = buildTimelineSegments(start, end, 'half-year');
+      expect(segs).toHaveLength(3);
+      expect(segs[0].label).toBe("H1 '26");
+      expect(segs[1].label).toBe("H2 '26");
+      expect(segs[2].label).toBe("H1 '27");
+    });
   });
 });

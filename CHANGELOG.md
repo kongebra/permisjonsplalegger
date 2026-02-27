@@ -7,6 +7,28 @@
 - Støtte for prematur fødsel i wizard: legg inn faktisk fødselsdato og permisjonen forlenges automatisk i tråd med NAV-regelverket.
 - Informasjon om aktivitetskravet vises nå i oppsummeringen når far planlegger å ta fellesperioden.
 
+## 2026-02-26
+
+### Navigasjon på info-sider
+Landingssiden, "Om oss" og personvernsiden har nå en tydelig header som tar deg tilbake til forsiden. Tilbake-lenkene på disse sidene peker nå riktig til forsiden i stedet for inn i planleggeren.
+
+### Kalender-topprad redesign
+Erstattet den tidlige horisontlinjen og gap-baren med to tydeligere komponenter: én som viser status (gap dekket/udekket + Mor/Far/Bhg-sammendrag) og én ren orienteringslinje du kan trykke på for å hoppe direkte til en måned i kalenderen.
+
+### Tidslinje med månedsinndeling
+Permisjonstidslinjen øverst i kalenderen viser nå måneder med etiketter og synlige skiller. Den aktive måneden er fremhevet som et felt — ikke en enkel strek. Ved lange permisjoner (over 2 år) byttes automatisk til kvartal- eller halvårsinndeling for å unngå rot.
+
+## 2026-02-25
+
+### Ny identitet og landingsside
+Appen heter nå Permisjonsplanleggeren. En ekte forside på perm-planlegger.vercel.app gir deg en rask oversikt og tar deg direkte til planleggingen — uten omveier.
+
+### Permisjonshorisont i kalenderen
+Øverst i kalenderen vises nå en tidslinje som alltid forteller deg hvor langt permisjonen rekker, hvor stort gapet til barnehage er, og hvilken måned du ser på.
+
+### Månedlig økonomi — se hva dere faktisk har
+Månedsoversikten viser nå hva familien tjener per måned under permisjon sammenlignet med normalt, med fargeindikator og mulighet til å sette en månedlig minstegrense.
+
 ## 2026-02-24
 
 ### Fikset: Far-only permisjonsberegning

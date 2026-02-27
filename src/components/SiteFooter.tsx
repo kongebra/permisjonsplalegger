@@ -22,7 +22,7 @@ export function SiteFooter() {
           GitHub
         </a>
       </nav>
-      <p>&copy; {new Date().getFullYear()} Permisjonsøkonomi-kalkulator</p>
+      <p>&copy; {new Date().getFullYear()} Permisjonsplanleggeren</p>
     </footer>
   );
 }

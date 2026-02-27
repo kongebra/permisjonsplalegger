@@ -81,7 +81,8 @@ export interface GapInfo {
   start: Date;
   end: Date;
   weeks: number;
-  days: number;
+  days: number;     // Kalenderdager (brukes til fargemarkering i kalender)
+  workDays: number; // Ukedager man-fre ekskl. helligdager (brukes til "udekket gap"-visning)
 }
 
 export interface LeaveResult {
