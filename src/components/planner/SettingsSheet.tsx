@@ -50,9 +50,9 @@ type SettingsSection = 'dueDate' | 'rights' | 'coverage' | 'distribution' | 'day
 export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const router = useRouter();
   const wizard = useWizard();
-  const { monthlyBudgetLimit, setMonthlyBudgetLimit } = wizard;
   const economy = useEconomy();
   const recalculateFromSettings = usePlannerStore((s) => s.recalculateFromSettings);
+  const applyMonthlyBudgetLimit = usePlannerStore((s) => s.setMonthlyBudgetLimit);
   const resetAll = usePlannerStore((s) => s.resetAll);
 
   // Local settings state (edited in sheet, applied on "Oppdater")
@@ -64,6 +64,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [daycareStartDate, setDaycareStartDate] = useState(wizard.daycareStartDate);
   const [motherEconomy, setMotherEconomy] = useState(economy.motherEconomy);
   const [fatherEconomy, setFatherEconomy] = useState(economy.fatherEconomy);
+  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(wizard.monthlyBudgetLimit);
 
   // UI state
   const [expandedSection, setExpandedSection] = useState<SettingsSection>(null);
@@ -81,6 +82,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       setDaycareStartDate(wizard.daycareStartDate);
       setMotherEconomy(economy.motherEconomy);
       setFatherEconomy(economy.fatherEconomy);
+      setMonthlyBudgetLimit(wizard.monthlyBudgetLimit);
       setExpandedSection(null);
     }
     onOpenChange(isOpen);
@@ -98,7 +100,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     daycareEnabled !== wizard.daycareEnabled ||
     daycareStartDate?.getTime() !== wizard.daycareStartDate?.getTime() ||
     JSON.stringify(motherEconomy) !== JSON.stringify(economy.motherEconomy) ||
-    JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy);
+    JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy) ||
+    monthlyBudgetLimit !== wizard.monthlyBudgetLimit;
 
   // Derive changed fields for analytics (no sensitive data)
   const changedFields = [
@@ -125,12 +128,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       motherEconomy,
       fatherEconomy,
     });
+    applyMonthlyBudgetLimit(monthlyBudgetLimit);
     setShowConfirmDialog(false);
     onOpenChange(false);
   }, [
     changedFields, dueDate, rights, coverage, sharedWeeksToMother,
     daycareStartDate, daycareEnabled, motherEconomy, fatherEconomy,
-    recalculateFromSettings, onOpenChange,
+    monthlyBudgetLimit, recalculateFromSettings, applyMonthlyBudgetLimit, onOpenChange,
   ]);
 
   const handleApply = useCallback(() => {
