@@ -1,4 +1,4 @@
-import { describe, it, test, expect } from 'bun:test';
+import { describe, test, expect } from 'bun:test';
 import {
   addDays,
   addWeeks,
@@ -11,6 +11,7 @@ import {
   calculateGap,
   buildLeaveSegments,
   countVacationDays,
+  countWorkdaysInRange,
   calculateLeave,
   clickRatioToMonth,
   getTimelineGranularity,
@@ -308,6 +309,28 @@ describe('countVacationDays', () => {
     const end = new Date(2027, 3, 4);
     // man-lør i perioden: 22(ma),23(ti),24(on),25(to),26(fr),27(lø), 29(ma),30(ti),31(on),1(to),2(fr),3(lø) = 12
     expect(countVacationDays(start, end, 'shift')).toBe(12);
+  });
+});
+
+describe('countWorkdaysInRange', () => {
+  test('teller man-fre uten helligdager (vanlig uke)', () => {
+    // Mandag 2. juni 2025 → fredag 6. juni 2025 (eksklusiv slutt: 7. juni)
+    const start = new Date(2025, 5, 2); // 2. juni (mandag)
+    const end = new Date(2025, 5, 7);   // 7. juni (eksklusiv) = 5 hverdager
+    expect(countWorkdaysInRange(start, end)).toBe(5);
+  });
+
+  test('trekker fra skjærtorsdag, langfredag og 2. påskedag i påsken 2027', () => {
+    // 22. mars 2027 (man) → 4. april (eksklusiv)
+    // Påsken 2027: Skjærtorsdag 25/3, Langfredag 26/3, 2. påskedag 29/3 → 10 - 3 = 7
+    const start = new Date(2027, 2, 22);
+    const end = new Date(2027, 3, 4);
+    expect(countWorkdaysInRange(start, end)).toBe(7);
+  });
+
+  test('returnerer 0 når start er lik slutt', () => {
+    const date = new Date(2026, 0, 5); // mandag
+    expect(countWorkdaysInRange(date, date)).toBe(0);
   });
 });
 
