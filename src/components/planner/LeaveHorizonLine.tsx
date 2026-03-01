@@ -37,19 +37,32 @@ export function LeaveHorizonLine({
     activeMonthEndPercent,
     totalDays,
     segments,
+    postPercent,
+    daycarePercent,
   } = useMemo(() => {
-    const total = Math.max(1, differenceInDays(gapEnd, leaveStart));
     const motherDays = Math.max(0, differenceInDays(leaveResult.mother.end, leaveStart));
     const fatherDays = Math.max(0, differenceInDays(leaveEnd, leaveResult.mother.end));
     const gapDays = Math.max(0, differenceInDays(gapEnd, leaveEnd));
 
+    // displayEnd = gapEnd + 2 måneder for visuell post-sone (ikke interaktiv)
+    const displayEnd = new Date(gapEnd.getFullYear(), gapEnd.getMonth() + 2, 1);
+    const displayTotal = Math.max(1, differenceInDays(displayEnd, leaveStart));
+
+    // Post-sone fra gapEnd til displayEnd
+    const postDays = Math.max(0, differenceInDays(displayEnd, gapEnd));
+    const postPercent = Math.max(0, Math.min(100, (postDays / displayTotal) * 100));
+
+    // Barnehage-pinne: posisjon i prosent av displayTotal
+    const gapEndDays = Math.max(0, differenceInDays(gapEnd, leaveStart));
+    const daycarePercent = Math.max(0, Math.min(100, (gapEndDays / displayTotal) * 100));
+
     // Aktiv måneds startposisjon
     const activeStart = startOfMonth(activeMonth);
-    const currentDays = Math.max(0, Math.min(total, differenceInDays(activeStart, leaveStart)));
+    const currentDays = Math.max(0, Math.min(displayTotal, differenceInDays(activeStart, leaveStart)));
 
     // Aktiv måneds sluttposisjon (start av neste måned)
     const nextMonthStart = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 1);
-    const activeEndDays = Math.max(0, Math.min(total, differenceInDays(nextMonthStart, leaveStart)));
+    const activeEndDays = Math.max(0, Math.min(displayTotal, differenceInDays(nextMonthStart, leaveStart)));
 
     // Antall måneder for granularitetsberegning
     const totalMonths = Math.max(
@@ -62,13 +75,15 @@ export function LeaveHorizonLine({
     const segs = buildTimelineSegments(leaveStart, gapEnd, granularity);
 
     return {
-      motherPercent: Math.max(0, Math.min(100, (motherDays / total) * 100)),
-      fatherPercent: Math.max(0, Math.min(100, (fatherDays / total) * 100)),
-      gapPercent: Math.max(0, Math.min(100, (gapDays / total) * 100)),
-      currentPercent: Math.max(0, Math.min(100, (currentDays / total) * 100)),
-      activeMonthEndPercent: Math.max(0, Math.min(100, (activeEndDays / total) * 100)),
-      totalDays: total,
+      motherPercent: Math.max(0, Math.min(100, (motherDays / displayTotal) * 100)),
+      fatherPercent: Math.max(0, Math.min(100, (fatherDays / displayTotal) * 100)),
+      gapPercent: Math.max(0, Math.min(100, (gapDays / displayTotal) * 100)),
+      currentPercent: Math.max(0, Math.min(100, (currentDays / displayTotal) * 100)),
+      activeMonthEndPercent: Math.max(0, Math.min(100, (activeEndDays / displayTotal) * 100)),
+      totalDays: displayTotal,
       segments: segs,
+      postPercent,
+      daycarePercent,
     };
   }, [leaveStart, leaveResult.mother.end, leaveEnd, gapEnd, activeMonth]);
 
@@ -77,7 +92,10 @@ export function LeaveHorizonLine({
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    onMonthChange(clickRatioToMonth(ratio, leaveStart, totalDays));
+    const target = clickRatioToMonth(ratio, leaveStart, totalDays);
+    // Klikk i post-sonen → siste gyldige måned
+    const clampedTarget = target > gapEnd ? startOfMonth(gapEnd) : target;
+    onMonthChange(clampedTarget);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -153,7 +171,27 @@ export function LeaveHorizonLine({
             style={{ width: `${gapPercent}%` }}
           />
         )}
+        {postPercent > 0 && (
+          <div
+            className="h-full bg-muted/60"
+            style={{ width: `${postPercent}%` }}
+          />
+        )}
       </div>
+
+      {/* Barnehage-pinne — vertikal markering ved barnehagestart */}
+      {daycareEnabled && daycareDate && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 w-px bg-daycare z-20 pointer-events-none"
+          style={{ left: `${daycarePercent}%` }}
+        >
+          {/* Etikett over komponenten */}
+          <span className="absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 text-[9px] text-daycare font-medium whitespace-nowrap leading-none">
+            {format(daycareDate, 'd. MMM', { locale: nb })}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
