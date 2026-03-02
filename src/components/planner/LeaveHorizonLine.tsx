@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { differenceInDays, format, startOfMonth } from 'date-fns';
+import { differenceInDays, format, startOfMonth, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import {
   clickRatioToMonth,
@@ -186,14 +186,14 @@ export function LeaveHorizonLine({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(leaveStart)); }}
-          className="text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+          className="min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
         >
           Start
         </button>
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(leaveEnd)); }}
-          className="text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(subDays(leaveEnd, 1))); }}
+          className="min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
         >
           Permisjonsslutt
         </button>
@@ -201,7 +201,7 @@ export function LeaveHorizonLine({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(daycareDate)); }}
-            className="text-[10px] text-daycare hover:text-daycare/80 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none font-medium"
+            className="min-h-[44px] flex items-center text-[10px] text-daycare hover:text-daycare/80 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none font-medium"
           >
             Bhg {format(daycareDate, 'd. MMM', { locale: nb })}
           </button>
