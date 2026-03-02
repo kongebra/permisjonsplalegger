@@ -18,6 +18,9 @@ Erstattet den tidlige horisontlinjen og gap-baren med to tydeligere komponenter:
 ### Tidslinje med månedsinndeling
 Permisjonstidslinjen øverst i kalenderen viser nå måneder med etiketter og synlige skiller. Den aktive måneden er fremhevet som et felt — ikke en enkel strek. Ved lange permisjoner (over 2 år) byttes automatisk til kvartal- eller halvårsinndeling for å unngå rot.
 
+### Barnehagestart-markering og hurtignavigasjon i tidslinje
+Permisjonstidslinjen viser nå barnehagestart som en tydelig grønn markering. En liten "hale" forbi barnehagestarten gir kontekst om at planleggingsperioden er over. Under tidslinjen er det lagt til tre snarveier for å hoppe direkte til starten av permisjonen, permisjonsslutt eller barnehagestart.
+
 ## 2026-02-25
 
 ### Ny identitet og landingsside
