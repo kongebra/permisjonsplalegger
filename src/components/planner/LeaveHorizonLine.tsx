@@ -44,8 +44,10 @@ export function LeaveHorizonLine({
     const fatherDays = Math.max(0, differenceInDays(leaveEnd, leaveResult.mother.end));
     const gapDays = Math.max(0, differenceInDays(gapEnd, leaveEnd));
 
-    // displayEnd = gapEnd + 2 måneder for visuell post-sone (ikke interaktiv)
-    const displayEnd = new Date(gapEnd.getFullYear(), gapEnd.getMonth() + 2, 1);
+    // Post-sone vises kun når barnehage er aktivert
+    const displayEnd = daycareEnabled && daycareDate
+      ? new Date(gapEnd.getFullYear(), gapEnd.getMonth() + 2, 1)
+      : gapEnd;
     const displayTotal = Math.max(1, differenceInDays(displayEnd, leaveStart));
 
     // Post-sone fra gapEnd til displayEnd
@@ -85,7 +87,7 @@ export function LeaveHorizonLine({
       postPercent,
       daycarePercent,
     };
-  }, [leaveStart, leaveResult.mother.end, leaveEnd, gapEnd, activeMonth]);
+  }, [leaveStart, leaveResult.mother.end, leaveEnd, gapEnd, activeMonth, daycareEnabled, daycareDate]);
 
   const activeMonthWidthPercent = Math.max(0, activeMonthEndPercent - currentPercent);
 
@@ -93,7 +95,7 @@ export function LeaveHorizonLine({
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
     const target = clickRatioToMonth(ratio, leaveStart, totalDays);
-    // Klikk i post-sonen → siste gyldige måned
+    // Klikk i post-sonen (etter barnehagestart-måneden) → klem til barnehagestart-måneden
     const clampedTarget = target > gapEnd ? startOfMonth(gapEnd) : target;
     onMonthChange(clampedTarget);
   };
