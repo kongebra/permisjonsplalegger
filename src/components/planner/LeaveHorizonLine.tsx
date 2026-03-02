@@ -160,7 +160,7 @@ export function LeaveHorizonLine({
       </div>
 
       {/* Farget linje */}
-      <div className="relative h-2.5 rounded-full overflow-hidden bg-muted flex mb-2">
+      <div className="relative h-2.5 rounded-full overflow-hidden bg-muted flex">
         {motherPercent > 0 && (
           <div className="h-full bg-mother-base" style={{ width: `${motherPercent}%` }} />
         )}
@@ -180,6 +180,33 @@ export function LeaveHorizonLine({
           />
         )}
       </div>
+
+      {/* Milepæl-snarveier — rask navigasjon til nøkkeldatoer */}
+      <nav aria-label="Hopp til milepæl" className="flex justify-between mt-1 px-0.5">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(leaveStart)); }}
+          className="text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+        >
+          Start
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(leaveEnd)); }}
+          className="text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+        >
+          Permisjonsslutt
+        </button>
+        {daycareEnabled && daycareDate && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(daycareDate)); }}
+            className="text-[10px] text-daycare hover:text-daycare/80 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none font-medium"
+          >
+            Bhg {format(daycareDate, 'd. MMM', { locale: nb })}
+          </button>
+        )}
+      </nav>
 
       {/* Barnehage-pinne — vertikal markering ved barnehagestart */}
       {daycareEnabled && daycareDate && (
