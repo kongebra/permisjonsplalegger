@@ -52,6 +52,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const wizard = useWizard();
   const economy = useEconomy();
   const recalculateFromSettings = usePlannerStore((s) => s.recalculateFromSettings);
+  const applyMonthlyBudgetLimit = usePlannerStore((s) => s.setMonthlyBudgetLimit);
   const resetAll = usePlannerStore((s) => s.resetAll);
 
   // Local settings state (edited in sheet, applied on "Oppdater")
@@ -63,6 +64,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [daycareStartDate, setDaycareStartDate] = useState(wizard.daycareStartDate);
   const [motherEconomy, setMotherEconomy] = useState(economy.motherEconomy);
   const [fatherEconomy, setFatherEconomy] = useState(economy.fatherEconomy);
+  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(wizard.monthlyBudgetLimit);
 
   // UI state
   const [expandedSection, setExpandedSection] = useState<SettingsSection>(null);
@@ -80,6 +82,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       setDaycareStartDate(wizard.daycareStartDate);
       setMotherEconomy(economy.motherEconomy);
       setFatherEconomy(economy.fatherEconomy);
+      setMonthlyBudgetLimit(wizard.monthlyBudgetLimit);
       setExpandedSection(null);
     }
     onOpenChange(isOpen);
@@ -97,7 +100,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     daycareEnabled !== wizard.daycareEnabled ||
     daycareStartDate?.getTime() !== wizard.daycareStartDate?.getTime() ||
     JSON.stringify(motherEconomy) !== JSON.stringify(economy.motherEconomy) ||
-    JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy);
+    JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy) ||
+    monthlyBudgetLimit !== wizard.monthlyBudgetLimit;
 
   // Derive changed fields for analytics (no sensitive data)
   const changedFields = [
@@ -124,12 +128,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       motherEconomy,
       fatherEconomy,
     });
+    applyMonthlyBudgetLimit(monthlyBudgetLimit);
     setShowConfirmDialog(false);
     onOpenChange(false);
   }, [
     changedFields, dueDate, rights, coverage, sharedWeeksToMother,
     daycareStartDate, daycareEnabled, motherEconomy, fatherEconomy,
-    recalculateFromSettings, onOpenChange,
+    monthlyBudgetLimit, recalculateFromSettings, applyMonthlyBudgetLimit, onOpenChange,
   ]);
 
   const handleApply = useCallback(() => {
@@ -334,6 +339,27 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                     colorClass="text-[var(--color-father)]"
                   />
                 )}
+
+                {/* Månedlig minstegrense for budsjettindikator */}
+                <div className="space-y-1">
+                  <Label className="text-xs">Månedlig minstegrense (kr)</Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    enterKeyHint="done"
+                    value={monthlyBudgetLimit || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setMonthlyBudgetLimit(val === '' ? 0 : Math.max(0, Number(val)));
+                    }}
+                    placeholder="0 = ikke satt"
+                    className="h-8 text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Måneder under grensen vises røde i økonomi-oversikten.
+                  </p>
+                </div>
               </div>
             </SettingsRow>
 

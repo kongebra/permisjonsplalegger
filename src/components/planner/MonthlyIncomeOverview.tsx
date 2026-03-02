@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { startOfMonth, addMonths, addDays, getDaysInMonth, isAfter } from 'date-fns';
 import { useWizard, usePeriods, useEconomy, useCalculatedLeave } from '@/store/hooks';
 import { calculateBasis } from '@/lib/calculator/economy';
+import { cn } from '@/lib/utils';
 import type { CustomPeriod, Parent, Coverage, ParentEconomy } from '@/lib/types';
 
 interface ParentMonthResult {
@@ -51,9 +52,9 @@ function calcParentMonth(
     if (period) {
       if (period.type === 'permisjon') navDays++;
       else if (period.type === 'ferie') salaryDays++;
-      // ulonnet/annet → unpaid, not counted
+      // ulonnet/annet → ulønnet, telles ikke
     } else if (isGapParent && day >= gapStart && day < gapEnd) {
-      // In gap, this parent stays home → unpaid
+      // I gap hjemme uten betaling
     } else {
       salaryDays++;
     }
@@ -66,7 +67,7 @@ function calcParentMonth(
 }
 
 export function MonthlyIncomeOverview() {
-  const { coverage, rights, daycareStartDate, daycareEnabled } = useWizard();
+  const { coverage, rights, daycareStartDate, daycareEnabled, monthlyBudgetLimit } = useWizard();
   const { periods } = usePeriods();
   const { motherEconomy, fatherEconomy } = useEconomy();
   const leaveResult = useCalculatedLeave();
@@ -74,7 +75,7 @@ export function MonthlyIncomeOverview() {
   const hasSalary = motherEconomy.monthlySalary > 0 || fatherEconomy.monthlySalary > 0;
   const hasLeavePeriods = periods.some(p => p.type === 'permisjon');
 
-  // Determine who takes the gap (lower earner, matching calculateGapCost logic)
+  // Bestemmer hvem som er hjemme i gapet (lavest lønn, samme logikk som calculateGapCost)
   const gapParent = useMemo((): Parent => {
     if (rights === 'mother-only') return 'mother';
     if (rights === 'father-only') return 'father';
@@ -84,7 +85,6 @@ export function MonthlyIncomeOverview() {
   const monthlyData = useMemo((): MonthData[] => {
     if (!hasSalary || !hasLeavePeriods) return [];
 
-    // Determine range from actual periods
     const periodStarts = periods.map(p => p.startDate.getTime());
     const periodEnds = periods.map(p => p.endDate.getTime());
     const firstStart = new Date(Math.min(...periodStarts));
@@ -142,32 +142,71 @@ export function MonthlyIncomeOverview() {
       </div>
 
       <div className="space-y-1.5">
-        {monthlyData.map((m) => (
-          <div key={m.month.toISOString()} className="flex items-center gap-2">
-            <span className="w-16 text-xs text-muted-foreground shrink-0 tabular-nums">
-              {m.month.toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' })}
-            </span>
-            <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex">
-              {m.totalNav > 0 && normalIncome > 0 && (
-                <div
-                  className="h-full bg-chart-1"
-                  style={{ width: `${(m.totalNav / normalIncome) * 100}%` }}
-                />
+        {monthlyData.map((m) => {
+          // Diff vs normalt
+          const diff = m.total - normalIncome;
+          const diffLabel = diff >= 0 ? `+${formatKr(diff)}` : formatKr(diff);
+          const diffColor = diff >= 0 ? 'text-success-fg' : 'text-warning-fg';
+
+          // Feriemåned-markering: noen 'ferie'-perioder overlapper denne måneden?
+          const monthEnd = addMonths(m.month, 1);
+          const hasFerie = periods.some(
+            p => p.type === 'ferie' && p.startDate < monthEnd && p.endDate > m.month,
+          );
+
+          // Budsjettindikator på beløpet
+          const indicatorColor =
+            monthlyBudgetLimit > 0
+              ? m.total < monthlyBudgetLimit
+                ? 'text-destructive'
+                : m.total < monthlyBudgetLimit * 1.1
+                  ? 'text-warning-fg'
+                  : 'text-success-fg'
+              : '';
+
+          return (
+            <div key={m.month.toISOString()} className="flex items-center gap-2">
+              {/* Månedsnavn */}
+              <span className="w-14 text-xs text-muted-foreground shrink-0 tabular-nums">
+                {m.month.toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' })}
+              </span>
+
+              {/* Ferie-ikon */}
+              {hasFerie && (
+                <span className="text-xs" aria-label="Feriemåned">☀️</span>
               )}
-              {m.totalSalary > 0 && normalIncome > 0 && (
-                <div
-                  className="h-full bg-chart-2"
-                  style={{ width: `${(m.totalSalary / normalIncome) * 100}%` }}
-                />
-              )}
+
+              {/* Stolpediagram */}
+              <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex">
+                {m.totalNav > 0 && normalIncome > 0 && (
+                  <div
+                    className="h-full bg-chart-1"
+                    style={{ width: `${(m.totalNav / normalIncome) * 100}%` }}
+                  />
+                )}
+                {m.totalSalary > 0 && normalIncome > 0 && (
+                  <div
+                    className="h-full bg-chart-2"
+                    style={{ width: `${(m.totalSalary / normalIncome) * 100}%` }}
+                  />
+                )}
+              </div>
+
+              {/* Beløp + diff */}
+              <div className="text-right shrink-0">
+                <div className={cn('text-xs font-medium tabular-nums', indicatorColor)}>
+                  {formatKr(m.total)} kr
+                </div>
+                <div className={cn('text-[10px] tabular-nums', diffColor)}>
+                  {diffLabel}
+                </div>
+              </div>
             </div>
-            <span className="w-20 text-right text-xs font-medium tabular-nums">
-              {formatKr(m.total)} kr
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
+      {/* Forklaring */}
       <div className="flex gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-chart-1" />
@@ -178,6 +217,13 @@ export function MonthlyIncomeOverview() {
           <span>Lønn</span>
         </div>
       </div>
+
+      {/* Budsjettgrense-hjelp */}
+      {monthlyBudgetLimit > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Minstegrense: <span className="font-medium">{formatKr(monthlyBudgetLimit)} kr/mnd</span>
+        </p>
+      )}
     </div>
   );
 }

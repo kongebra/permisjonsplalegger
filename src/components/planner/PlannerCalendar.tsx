@@ -9,7 +9,9 @@ import { YearOverview } from './YearOverview';
 import { AddPeriodFab } from './AddPeriodFab';
 import { PeriodModal } from './PeriodModal';
 import { DayDetailPanel } from './DayDetailPanel';
-import { StatsBar } from './StatsBar';
+import { PlanStatusBar } from './PlanStatusBar';
+import { LeaveHorizonLine } from './LeaveHorizonLine';
+import { MiniMonthStrip } from './MiniMonthStrip';
 import posthog from 'posthog-js';
 import { useCalculatedLeave, usePeriods, useUi, useWizard } from '@/store/hooks';
 import { LEAVE_CONFIG } from '@/lib/constants';
@@ -40,6 +42,16 @@ export function PlannerCalendar() {
 
   // Month slide direction tracking — set from event handlers, not effects
   const [monthDirection, setMonthDirection] = useState<'forward' | 'backward' | null>(null);
+
+  // PostHog A/B-test: mini-måneder strip
+  const [showMiniMonths, setShowMiniMonths] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      setShowMiniMonths(posthog.isFeatureEnabled('calendar-mini-months') === true);
+    };
+    check();
+    posthog.onFeatureFlags(check);
+  }, []);
 
   const navigateMonthWithDirection = useCallback(
     (delta: number) => {
@@ -195,6 +207,33 @@ export function PlannerCalendar() {
         {srAnnouncement}
       </div>
       <div className="space-y-4">
+        {/* Permisjonshorisont — persistent tidslinje */}
+        <PlanStatusBar
+          leaveResult={leaveResult}
+          customPeriods={periods}
+          daycareEnabled={daycareEnabled}
+          daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
+        />
+        <LeaveHorizonLine
+          leaveResult={leaveResult}
+          activeMonth={activeMonth}
+          daycareEnabled={daycareEnabled}
+          daycareDate={daycareEnabled ? daycareStartDate ?? null : null}
+          onMonthChange={setActiveMonthWithDirection}
+        />
+
+        {/* A/B-test: mini-måneder strip (aktiveres via PostHog feature flag "calendar-mini-months") */}
+        {showMiniMonths && (
+          <MiniMonthStrip
+            activeMonth={activeMonth}
+            segments={leaveResult.segments}
+            customPeriods={periods}
+            dueDate={dueDate}
+            daycareStart={daycareEnabled ? daycareStartDate ?? undefined : undefined}
+            onMonthSelect={setActiveMonthWithDirection}
+          />
+        )}
+
         {/* Navigation header */}
         <div className="flex items-center justify-between">
           <Button
@@ -288,14 +327,6 @@ export function PlannerCalendar() {
             />
           </div>
         </div>
-
-        {/* Gap indicator */}
-        <StatsBar
-          leaveResult={leaveResult}
-          customPeriods={periods}
-          daycareEnabled={daycareEnabled}
-          daycareDate={daycareStartDate}
-        />
 
         {/* Aktivitetskrav-informasjon: kun synlig ved far-only */}
         {rights === 'father-only' && (

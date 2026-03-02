@@ -59,6 +59,122 @@ export function weeksBetween(start: Date, end: Date): number {
 }
 
 /**
+ * Returnerer første dag i måneden for en gitt dato
+ */
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+/**
+ * Beregner startOfMonth for måneden som tilsvarer en tap-posisjon på tidslinjen.
+ * Ratio=1 peker på siste dag i tidslinjen (totalDays - 1), ikke dagen etter.
+ * @param ratio - klikk-posisjon som andel av total bredde [0, 1]
+ * @param leaveStart - første dag i permisjonstidslinjen
+ * @param totalDays - totalt antall dager i tidslinjen
+ */
+export function clickRatioToMonth(ratio: number, leaveStart: Date, totalDays: number): Date {
+  const clampedRatio = Math.max(0, Math.min(1, ratio));
+  const targetDate = addDays(leaveStart, Math.round(clampedRatio * (totalDays - 1)));
+  return startOfMonth(targetDate);
+}
+
+/**
+ * Kalender-typer for tidslinjevisning
+ */
+export type TimelineGranularity = 'month' | 'quarter' | 'half-year';
+
+/**
+ * Bestemmer granularitet for tidslinjeruler basert på antall måneder i tidslinjen.
+ * - ≤14 måneder → month (viser individuelle måneder)
+ * - 15–24 måneder → quarter (viser kvartaler Q1–Q4)
+ * - >24 måneder → half-year (viser halvår H1/H2)
+ */
+export function getTimelineGranularity(totalMonths: number): TimelineGranularity {
+  if (totalMonths <= 14) return 'month';
+  if (totalMonths <= 24) return 'quarter';
+  return 'half-year';
+}
+
+/**
+ * Et segment i tidslinjeruler-raden
+ */
+export interface TimelineSegment {
+  start: Date;          // Segmentets startdato (for active-check i komponenten)
+  leftPercent: number;  // Avstand fra venstre kant i prosent [0–100]
+  widthPercent: number; // Segmentets bredde i prosent
+  label: string;        // Vises i ruler-raden ("J '26", "Q2", "H1 '25")
+}
+
+// Norske månedsinitaler, indeks 0 = januar
+const MONTH_INITIALS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'] as const;
+
+// Bestemmer etiketten for et ruler-segment
+function formatSegmentLabel(date: Date, granularity: TimelineGranularity): string {
+  const month = date.getMonth();
+  const shortYear = `'${String(date.getFullYear()).slice(2)}`;
+
+  if (granularity === 'month') {
+    return month === 0 ? `J ${shortYear}` : MONTH_INITIALS[month];
+  }
+  if (granularity === 'quarter') {
+    const quarter = Math.floor(month / 3) + 1;
+    return quarter === 1 ? `Q1 ${shortYear}` : `Q${quarter}`;
+  }
+  // half-year: vis alltid årstall (H1 '26, H2 '26, H1 '27, H2 '27)
+  const half = month < 6 ? 1 : 2;
+  return `H${half} ${shortYear}`;
+}
+
+/**
+ * Bygger liste med segment-objekter for tidslinjeruler basert på granularitet.
+ * Brukes av LeaveHorizonLine til å tegne måneds-/kvartal-/halvårsinndeling.
+ *
+ * @param leaveStart - Første dag i tidslinjen
+ * @param timelineEnd - Siste dag i tidslinjen (eksklusiv)
+ * @param granularity - Inndelingstype fra getTimelineGranularity
+ */
+export function buildTimelineSegments(
+  leaveStart: Date,
+  timelineEnd: Date,
+  granularity: TimelineGranularity
+): TimelineSegment[] {
+  const totalDays = Math.max(1, daysBetween(leaveStart, timelineEnd));
+
+  // Samle segmentgrenser: iterer måneder fra startOfMonth(leaveStart) til timelineEnd
+  // Stopper FØR timelineEnd slik at siste boundary ikke blir en tom sluttgrense
+  const boundaries: Date[] = [];
+  const cur = startOfMonth(leaveStart);
+  while (cur < timelineEnd) {
+    const month = cur.getMonth();
+    const shouldInclude =
+      granularity === 'month' ||
+      (granularity === 'quarter' && [0, 3, 6, 9].includes(month)) ||
+      (granularity === 'half-year' && [0, 6].includes(month));
+
+    if (shouldInclude) {
+      boundaries.push(new Date(cur));
+    }
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  // Bygg segmenter mellom par av grenser
+  return boundaries.map((segStart, i) => {
+    const segEnd = boundaries[i + 1] ?? timelineEnd;
+    const leftDays = Math.max(0, daysBetween(leaveStart, segStart));
+    // Første segment kan starte FØR leaveStart (startOfMonth), klipp til faktisk tidslinje-start
+    const effectiveStart = segStart < leaveStart ? leaveStart : segStart;
+    const widthDays = daysBetween(effectiveStart, segEnd);
+
+    return {
+      start: segStart,
+      leftPercent: (leftDays / totalDays) * 100,
+      widthPercent: Math.min(100, (widthDays / totalDays) * 100),
+      label: formatSegmentLabel(segStart, granularity),
+    };
+  });
+}
+
+/**
  * Beregner permisjonsstart (3 uker før termin)
  */
 export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {
@@ -164,6 +280,20 @@ export function calculateFatherPeriod(
 }
 
 /**
+ * Teller hverdager (man-fre ekskl. helligdager) mellom to datoer
+ */
+export function countWorkdaysInRange(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current < end) {
+    const day = current.getDay();
+    if (day >= 1 && day <= 5 && !isHoliday(current)) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+/**
  * Beregner gap mellom permisjonsslutt og barnehagestart
  */
 export function calculateGap(
@@ -172,12 +302,14 @@ export function calculateGap(
 ): GapInfo {
   const days = daysBetween(lastLeaveEnd, daycareStartDate);
   const weeks = Math.ceil(days / 7);
+  const workDays = countWorkdaysInRange(lastLeaveEnd, daycareStartDate);
 
   return {
     start: lastLeaveEnd,
     end: daycareStartDate,
     weeks: Math.max(0, weeks),
     days: Math.max(0, days),
+    workDays: Math.max(0, workDays),
   };
 }
 
@@ -767,6 +899,7 @@ export function calculateGapFromPeriods(
       end: daycareDate,
       weeks: 0,
       days: 0,
+      workDays: 0,
     };
   }
 
@@ -777,12 +910,14 @@ export function calculateGapFromPeriods(
   );
 
   const gapDays = daysBetween(latestEnd, daycareDate);
+  const gapWorkDays = countWorkdaysInRange(latestEnd, daycareDate);
 
   return {
     start: latestEnd,
     end: daycareDate,
     weeks: Math.max(0, Math.ceil(gapDays / 7)),
     days: Math.max(0, gapDays),
+    workDays: Math.max(0, gapWorkDays),
   };
 }
 

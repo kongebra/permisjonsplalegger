@@ -150,7 +150,7 @@ export function usePickerMonths({
   );
 
   // Dummy gap (picker doesn't show gap styling on day cells)
-  const dummyGap = useMemo(() => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0 }), []);
+  const dummyGap = useMemo(() => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 }), []);
   const today = useMemo(() => startOfDay(new Date()), []);
 
   // Resolve data for a single month
