@@ -31,32 +31,43 @@ function renderBand(
     }
   };
 
+  const rounding = cn(band.isStart && 'rounded-l-sm', band.isEnd && 'rounded-r-sm');
+
+  // Ytre element har en ugjennomsiktig bunn, og fargen (med ev. gjennomsiktighet for ferie og
+  // ulønnet) ligger i et eget lag under teksten. Da skinner ikke en underliggende bjelke
+  // (f.eks. permisjon) gjennom med overlappende tekst, og teksten får full kontrast i stedet
+  // for å bli blass sammen med fargen.
   return (
     <div
       key={band.id}
       role={isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? -1 : undefined}
       className={cn(
-        'absolute h-1/2 flex items-center overflow-hidden',
+        'absolute h-1/2 flex items-center overflow-hidden bg-background',
         isTop ? 'top-0' : 'bottom-0',
-        band.color,
-        band.isStart && 'rounded-l-sm',
-        band.isEnd && 'rounded-r-sm',
-        band.pattern === 'dashed' && 'border-t border-dashed border-current opacity-80',
-        band.pattern === 'hatched' && 'opacity-60',
+        rounding,
         isInteractive && 'pointer-events-auto cursor-pointer hover:brightness-90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
       )}
       style={{
         left: `${leftPercent}%`,
         width: `${widthPercent}%`,
-        ...band.inlineStyle,
       }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       title={band.label}
     >
+      <div
+        className={cn(
+          'absolute inset-0',
+          band.color,
+          rounding,
+          band.pattern === 'dashed' && 'border-t border-dashed border-current opacity-80',
+          band.pattern === 'hatched' && 'opacity-60',
+        )}
+        style={band.inlineStyle}
+      />
       {band.showLabel && (
-        <span className="pl-1 min-w-0 text-[11px] leading-[14px] font-medium text-foreground/70 whitespace-nowrap truncate">
+        <span className="relative pl-1 min-w-0 text-[11px] leading-[14px] font-medium text-foreground/70 whitespace-nowrap truncate">
           {band.label}
         </span>
       )}
