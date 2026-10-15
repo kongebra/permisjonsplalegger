@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
@@ -8,6 +8,17 @@ import AxeBuilder from '@axe-core/playwright';
  * Contrast is verified manually using WebAIM Contrast Checker.
  */
 const AXE_DISABLED_RULES = ['color-contrast'];
+
+/**
+ * Lukker velkomstsiden hvis den vises. isVisible() venter ikke (timeout-valget
+ * ignoreres), så vi bruker click() som auto-venter til siden er hydrert.
+ */
+async function dismissWelcome(page: Page) {
+  await page
+    .getByRole('button', { name: /start planleggingen/i })
+    .click({ timeout: 5000 })
+    .catch(() => {});
+}
 
 test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,10 +43,7 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
 
   test('Steg 1 (Termindato) har ingen axe-brudd', async ({ page }) => {
     // Dismiss welcome intro
-    const startButton = page.getByRole('button', { name: /start planleggingen/i });
-    if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await startButton.click();
-    }
+    await dismissWelcome(page);
 
     // Wait for step 1 to render
     await page.waitForSelector('text=Termindato', { timeout: 10000 });
@@ -58,17 +66,14 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
     await expect(skipLink).toHaveText(/hopp til hovedinnhold/i);
   });
 
-  test('HTML lang-attributt er satt til norsk', async ({ page }) => {
+  test('HTML lang-attributt er satt til norsk bokmål', async ({ page }) => {
     const lang = await page.locator('html').getAttribute('lang');
-    expect(lang).toBe('no');
+    expect(lang).toBe('nb');
   });
 
   test('Navigasjonsknapper er tilgjengelige med tastatur', async ({ page }) => {
     // Dismiss welcome
-    const startButton = page.getByRole('button', { name: /start planleggingen/i });
-    if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await startButton.click();
-    }
+    await dismissWelcome(page);
 
     await page.waitForSelector('text=Termindato', { timeout: 10000 });
 
@@ -85,17 +90,18 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
 
   test('Alert-boks har riktige ARIA-attributter', async ({ page }) => {
     // Dismiss welcome
-    const startButton = page.getByRole('button', { name: /start planleggingen/i });
-    if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await startButton.click();
-    }
+    await dismissWelcome(page);
 
     await page.waitForSelector('text=Termindato', { timeout: 10000 });
 
     // The hint alert should be visible (can't proceed without selecting date)
     // Use a more specific selector to avoid matching Next.js route announcer
     const alert = page.locator('[role="alert"].bg-warning-bg');
-    if (await alert.isVisible({ timeout: 3000 }).catch(() => false)) {
+    const alertVisible = await alert
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .then(() => true)
+      .catch(() => false);
+    if (alertVisible) {
       await expect(alert).toHaveAttribute('aria-atomic', 'true');
       await expect(alert).toHaveAttribute('aria-live', 'assertive');
     }
@@ -103,10 +109,7 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
 
   test('Wizard-navigasjon er pakket i <nav> landemerke', async ({ page }) => {
     // Dismiss welcome
-    const startButton = page.getByRole('button', { name: /start planleggingen/i });
-    if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await startButton.click();
-    }
+    await dismissWelcome(page);
 
     await page.waitForSelector('text=Termindato', { timeout: 10000 });
 
