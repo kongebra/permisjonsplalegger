@@ -384,19 +384,22 @@ function generateRecommendation(
   const commissionDiff = scenario100.breakdown.commissionLoss - scenario80.breakdown.commissionLoss;
   const feriepengeDiff = scenario100.breakdown.feriepengeDifference - scenario80.breakdown.feriepengeDifference;
 
+  // difference = total100 - total80: positiv betyr at 100% lønner seg
   if (difference > 0) {
-    if (gapDiff < 0) reasons.push('kortere udekket gap');
-    if (commissionDiff < 0) reasons.push('kortere provisjonstap');
-    if (feriepengeDiff < 0) reasons.push('bedre feriepengeopptjening');
-    const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
-    return `Selv med lavere NAV-sats gir 80%-permisjonen ${extraWeeks80} uker ekstra, som gir kortere gap.${reason}`;
-  } else {
     if (navDiff > 0) reasons.push('høyere NAV-utbetaling');
-    if (gapDiff > 0) reasons.push('lengre udekket gap med 80%');
-    if (feriepengeDiff > 0) reasons.push('lavere feriepengeopptjening');
+    if (gapDiff < 0) reasons.push('kortere udekket gap');
+    if (commissionDiff < 0) reasons.push('mindre provisjonstap');
+    if (feriepengeDiff < 0) reasons.push('mindre tapt feriepengeopptjening');
     const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
     return `100% gir høyere utbetaling per uke, og gapet er håndterbart i dette tilfellet.${reason}`;
   }
+
+  if (gapDiff > 0) reasons.push('kortere udekket gap');
+  if (navDiff < 0) reasons.push('høyere samlet NAV-utbetaling');
+  if (commissionDiff > 0) reasons.push('mindre provisjonstap');
+  if (feriepengeDiff > 0) reasons.push('mindre tapt feriepengeopptjening');
+  const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
+  return `Selv med lavere NAV-sats gir 80%-permisjonen ${extraWeeks80} uker ekstra, som gir kortere gap.${reason}`;
 }
 
 /**

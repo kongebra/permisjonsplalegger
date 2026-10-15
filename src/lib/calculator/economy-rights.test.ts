@@ -174,6 +174,33 @@ describe('compareScenarios: kun far', () => {
   });
 });
 
+describe('anbefalingstekst: retning følger hvem som lønner seg', () => {
+  const gap100 = gap(new Date(2027, 6, 22), new Date(2027, 9, 1));
+
+  test('kun far, 80% lønner seg: teksten snakker om 80% og 12 ekstra uker', () => {
+    const result = compareScenarios(NO_ECONOMY, economy(), 8, NO_GAP, gap100, 'father-only');
+    expect(result.difference).toBeLessThan(-10_000);
+    expect(result.recommendation).toContain('80%-permisjonen 12 uker ekstra');
+    expect(result.recommendation).toContain('kortere udekket gap');
+    expect(result.recommendation).not.toContain('100% gir høyere');
+  });
+
+  test('100% lønner seg: teksten snakker om 100% og høyere utbetaling', () => {
+    // 80% får et langt gap (2. aug - 27. sep = 40 arbeidsdager), 100% har ingen gap
+    const result = compareScenarios(
+      economy(),
+      undefined,
+      8,
+      gap(new Date(2027, 7, 2), new Date(2027, 8, 27)),
+      NO_GAP,
+      'mother-only',
+    );
+    expect(result.difference).toBeGreaterThan(10_000);
+    expect(result.recommendation).toContain('100% gir høyere utbetaling');
+    expect(result.recommendation).toContain('kortere udekket gap');
+  });
+});
+
 describe('compareScenarios: kun mor', () => {
   // 100%: én uke gap, mandag 2. aug til mandag 9. aug 2027 = 5 arbeidsdager = 11 520,74.
   const gap100 = gap(new Date(2027, 7, 2), new Date(2027, 7, 9));
