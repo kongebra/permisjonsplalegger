@@ -12,6 +12,8 @@
 - Legg til rad-roller i kalenderen for gyldig ARIA-grid
 - Lang-testen forventer nb, og skru av agentRules i next dev
 - Flytt milepælknapper ut av slider-rollen i horisontlinjen
+- Gi periodebjelkene nok linjehøyde så teksten ikke klippes
+- Bøy uke og dag riktig i entall (1 uke, 1 dag)
 
 ### Opprydding
 
