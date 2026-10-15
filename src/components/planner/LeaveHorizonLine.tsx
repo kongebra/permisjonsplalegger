@@ -18,6 +18,9 @@ interface LeaveHorizonLineProps {
   onMonthChange: (month: Date) => void;
 }
 
+// Minste segmentbredde (i prosent av ruleren) for å vise månedsetiketten
+const MIN_LABEL_WIDTH_PERCENT = 3;
+
 export function LeaveHorizonLine({
   leaveResult,
   activeMonth,
@@ -74,7 +77,9 @@ export function LeaveHorizonLine({
     );
 
     const granularity = getTimelineGranularity(totalMonths);
-    const segs = buildTimelineSegments(leaveStart, gapEnd, granularity);
+    // Rulerens skala må følge samme tidsakse som linjen (inkl. post-sone), ellers havner
+    // månedstikkene feil i forhold til linjen og barnehagepinnen
+    const segs = buildTimelineSegments(leaveStart, displayEnd, granularity);
 
     return {
       motherPercent: Math.max(0, Math.min(100, (motherDays / displayTotal) * 100)),
