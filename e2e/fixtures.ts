@@ -69,11 +69,15 @@ export const SEEDED_PLAN = {
 /** Inject the seeded plan into localStorage before navigation. */
 export async function seedPlan(
   page: import('@playwright/test').Page,
-  overrides: { wizard?: Partial<typeof SEEDED_PLAN.wizard> } = {},
+  overrides: {
+    wizard?: Partial<typeof SEEDED_PLAN.wizard>;
+    periods?: typeof SEEDED_PLAN.periods;
+  } = {},
 ) {
   const plan = {
     ...SEEDED_PLAN,
     wizard: { ...SEEDED_PLAN.wizard, ...overrides.wizard },
+    periods: overrides.periods ?? SEEDED_PLAN.periods,
   };
   await page.addInitScript((plan) => {
     localStorage.setItem('permisjonsplan-v1', JSON.stringify(plan));

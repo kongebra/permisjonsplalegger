@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { startOfMonth, addDays, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -176,12 +176,16 @@ export function PlannerCalendar() {
     [navigateMonthWithDirection],
   );
 
-  // Initialize periods on first render (safe: updates own component's store slice)
-  const hasInitialized = useRef<boolean | null>(null);
-  if (hasInitialized.current == null) {
-    hasInitialized.current = true;
+  // Fyll perioder fra beregningen ved første visning. Må ikke skje under
+  // render: storen oppdaterer KalenderPage, og React advarer om oppdatering av
+  // en annen komponent midt i render. Layout-effekten kjører før første paint,
+  // så kalenderen blir ikke tom et øyeblikk. initializeFromLeave gjør ingenting
+  // hvis det allerede finnes perioder.
+  useLayoutEffect(() => {
     initializeFromLeave(leaveResult);
-  }
+    // Bare ved mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Set active month after mount to avoid setState-during-render warning
   useEffect(() => {
