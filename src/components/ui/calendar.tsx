@@ -185,11 +185,19 @@ function Calendar({
         Weekday: (props) => (
           <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
         ),
+        // ARIA-roller som <tbody>/<tr> ga implisitt, slik at role="grid" får
+        // gyldige rader (aria-required-children / aria-required-parent)
         Weeks: (props) => (
-          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+          <div
+            role="rowgroup"
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
         ),
         Week: ({ week, ...props }) => (
-          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+          <div
+            role="row"
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
         ),
         Day: ({ day, modifiers, ...props }) => <div {...props} />,
         DayButton: CalendarDayButton,
