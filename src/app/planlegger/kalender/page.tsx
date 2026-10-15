@@ -67,8 +67,9 @@ export default function KalenderPage() {
       return;
     }
 
-    if (!wc && hsp) {
-      usePlannerStore.getState().loadPlan();
+    if (!wc && hsp && !usePlannerStore.getState().loadPlan()) {
+      // Planen lot seg ikke laste: start veiviseren på nytt
+      router.push('/planlegger');
     }
   }, [checkForSavedPlan, router]);
 

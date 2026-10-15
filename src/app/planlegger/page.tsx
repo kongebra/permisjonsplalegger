@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { usePlannerStore } from "@/store";
+import { loadPlanFromStorage } from "@/store/slices/persistenceSlice";
 import { WizardContainer } from "@/components/wizard";
 import { WelcomeBack } from "@/components/wizard/WelcomeBack";
 import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
@@ -12,11 +13,8 @@ import { TOTAL_WIZARD_STEPS } from "@/lib/constants";
 const emptySubscribe = () => () => {};
 
 function getHasSavedPlan(): boolean {
-  try {
-    return localStorage.getItem("permisjonsplan-v1") !== null;
-  } catch {
-    return false;
-  }
+  // Samme validering som loadPlan: ødelagt lagring regnes som ingen plan
+  return loadPlanFromStorage() !== null;
 }
 
 /** Shimmer skeleton matching WelcomeIntro layout — shown during 'checking' phase */

@@ -4,6 +4,7 @@
 
 import type { StateCreator } from 'zustand';
 import type { SavedPlan, CustomPeriod } from '@/lib/types';
+import { parseSavedPlan } from '@/lib/planner/saved-plan';
 
 const STORAGE_KEY = 'permisjonsplan-v1';
 
@@ -73,14 +74,11 @@ export const createPersistenceSlice: StateCreator<
 
   checkForSavedPlan: () => {
     if (typeof window === 'undefined') return false;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const hasSaved = saved !== null;
-      set({ hasSavedPlan: hasSaved });
-      return hasSaved;
-    } catch {
-      return false;
-    }
+    // En lagret plan som ikke kan leses regnes som ingen plan, ellers tilbys
+    // brukeren å fortsette på noe som ikke lar seg laste
+    const hasSaved = loadPlanFromStorage() !== null;
+    set({ hasSavedPlan: hasSaved });
+    return hasSaved;
   },
 
   setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
@@ -108,7 +106,7 @@ export function loadPlanFromStorage(): SavedPlan | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return null;
-    return JSON.parse(saved) as SavedPlan;
+    return parseSavedPlan(JSON.parse(saved));
   } catch {
     return null;
   }
