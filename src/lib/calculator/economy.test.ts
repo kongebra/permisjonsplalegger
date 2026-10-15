@@ -31,14 +31,14 @@ describe('calculateBasis', () => {
   });
 
   test('returns full salary when below 6G', () => {
-    const monthlySalary = 50_000; // 600k annually, below 6G (780,960)
+    const monthlySalary = 50_000; // 600k annually, below 6G (819,294)
     const result = calculateBasis(monthlySalary, false);
     expect(result).toBe(monthlySalary * 12);
   });
 
   test('6G threshold is exactly 6 * G', () => {
-    const sixG = 6 * G; // 780,960
-    const monthlyAt6G = sixG / 12; // 65,080
+    const sixG = 6 * G; // 819,294
+    const monthlyAt6G = sixG / 12; // 68,274.5
     expect(calculateBasis(monthlyAt6G, false)).toBe(sixG);
     // One krone above: still capped
     expect(calculateBasis(monthlyAt6G + 1, false)).toBe(sixG);

@@ -3,7 +3,7 @@
  * G (Grunnbeløpet) oppdateres årlig av NAV - sjekk nav.no for gjeldende verdi
  */
 
-export const G = 130_160; // Grunnbeløpet per 1. mai 2025
+export const G = 136_549; // Grunnbeløpet per 1. mai 2026
 
 export const WORK_DAYS_PER_MONTH = 21.7; // Standard for beregning av dagsats
 
