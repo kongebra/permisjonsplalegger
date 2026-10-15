@@ -3,7 +3,7 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { nb } from "date-fns/locale";
 import { subtractWeeks } from "@/lib/calculator";
 
@@ -30,6 +30,8 @@ export function DueDateStep({ value, onChange, prematureBirthDate, onPrematureCh
         onSelect={(date) => date && onChange(date)}
         locale={nb}
         captionLayout="dropdown"
+        // Åpne på valgt måned, ikke dagens måned
+        defaultMonth={value}
         startMonth={new Date(new Date().getFullYear(), 0)}
         endMonth={new Date(new Date().getFullYear() + 2, 11)}
         className="rounded-md border w-full"
@@ -70,6 +72,12 @@ export function DueDateStep({ value, onChange, prematureBirthDate, onPrematureCh
             onSelect={(date) => date && onPrematureChange(date)}
             locale={nb}
             captionLayout="dropdown"
+            // Åpne på valgt måned, ikke dagens måned
+            defaultMonth={prematureBirthDate}
+            // Uten eget intervall stopper velgeren ved slutten av inneværende år,
+            // og en prematur fødsel i året etter kan verken velges eller vises
+            startMonth={new Date(value.getFullYear() - 1, 0)}
+            endMonth={startOfMonth(subtractWeeks(value, 7))}
             disabled={(date) => date >= subtractWeeks(value, 7)}
             className="rounded-md border w-full"
           />

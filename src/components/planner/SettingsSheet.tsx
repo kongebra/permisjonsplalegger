@@ -191,6 +191,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                   onSelect={(date) => date && setDueDate(date)}
                   locale={nb}
                   captionLayout="dropdown"
+                  // Åpne på valgt måned, ikke dagens måned
+                  defaultMonth={dueDate}
                   startMonth={new Date(new Date().getFullYear(), 0)}
                   endMonth={new Date(new Date().getFullYear() + 2, 11)}
                   className="rounded-md border"
