@@ -128,8 +128,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 export {
   calculateLeave,
   countVacationDays,
-  calculateQuotaUsage,
-  validatePeriods,
   buildSegmentsFromPeriods,
   calculateGapFromPeriods,
   generatePeriodId,

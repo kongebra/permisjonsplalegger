@@ -153,25 +153,6 @@ export interface ParentPeriodConfig {
 }
 
 /**
- * Quota usage summary for display
- */
-export interface QuotaUsage {
-  type: 'mother' | 'father' | 'shared';
-  weeksUsed: number;
-  weeksAvailable: number;
-  isOverbooked: boolean;
-}
-
-/**
- * Validation result for period configuration
- */
-export interface ValidationResult {
-  isValid: boolean;
-  warnings: string[];
-  errors: string[];
-}
-
-/**
  * Norwegian holiday information
  */
 export interface Holiday {
