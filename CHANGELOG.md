@@ -36,6 +36,10 @@
 - Vis riktig antall uker for kun far i fordeling og innstillinger
 - Vis gap og siste permisjonsdag riktig i barnehagesteget
 - Bruk rettighetene for økonomi-raden i oppsummeringen
+- Gap-kostnaden teller ikke helligdager, som gapet i kalenderen
+- Økonomien bruker fellesukene i valgt dekningsgrad, som kalenderen
+- Økonomien tar med ekstra uker ved prematur fødsel
+- Kort, graf og anbefaling sammenligner 80% og 100% over samme tidsrom
 
 ### Opprydding
 
