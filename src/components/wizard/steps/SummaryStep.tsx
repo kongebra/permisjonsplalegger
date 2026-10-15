@@ -329,7 +329,7 @@ export function SummaryStep({
     : 'Ikke angitt';
 
   // Economy summary
-  const hasEconomyData = motherEconomy?.monthlySalary || fatherEconomy?.monthlySalary;
+  const hasEconomyData = hasEconomyInput(rights, motherEconomy, fatherEconomy);
   const economyLabel = hasEconomyData ? 'Lønn angitt' : 'Ikke angitt';
 
   // Calculate gaps for BOTH scenarios (80% and 100% have different leave lengths → different gaps)
@@ -341,7 +341,7 @@ export function SummaryStep({
   const leaveResult100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
 
   // Calculate economy result if data exists — now with correct per-scenario gaps
-  const economyResult = motherEconomy && hasEconomyInput(rights, motherEconomy, fatherEconomy)
+  const economyResult = hasEconomyData && motherEconomy
     ? compareScenarios(
         motherEconomy,
         fatherEconomy,
