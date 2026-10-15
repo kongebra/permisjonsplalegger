@@ -11,18 +11,76 @@
 - Bruk kalenderdager i daysBetween så vintertid ikke gir én dag for mye
 - Legg til rad-roller i kalenderen for gyldig ARIA-grid
 - Lang-testen forventer nb, og skru av agentRules i next dev
+- Flytt milepælknapper ut av slider-rollen i horisontlinjen
+- Gi periodebjelkene nok linjehøyde så teksten ikke klippes
+- Bøy uke og dag riktig i entall (1 uke, 1 dag)
 
 ### Opprydding
 
 - Samle 6G-tak og dekningsgrad i konstanter og monthlyNavPayout
 
+## 2026-03-02
+
+### Nytt
+
+- Legg til milepæl-snarveier for rask navigasjon i tidslinjen
+
+### Rettet
+
+- Skjul post-sone når barnehage ikke er aktivert
+- WCAG touch-target og korrekt permisjonssluttmåned i milepæl-snarveier
+
+## 2026-03-01
+
+### Nytt
+
+- Legg til post-sone og barnehage-pinne i tidslinjen
+
+## 2026-02-27
+
+### Rettet
+
+- Svar på Copilot-review i PR #5
+
 ## 2026-02-26
+
+### Nytt
+
+- Månedlig økonomi med vs-normal, fargeindikator og budsjettgrense
+- Legg til SiteHeader-komponent for info-sider
+- Legg til SiteHeader og fiks back-lenke på /om
+- Legg til SiteHeader og fiks back-lenke på /personvern
+- Legg til SiteHeader på landingssiden
+- Oppdater footer-navn og CHANGELOG for navigasjon
+- Slank WelcomeIntro - fjern feature-kort som dekkes av landingssiden
+- Legg til clickRatioToMonth-hjelpefunksjon for tap-navigasjon
+- Opprett LeaveHorizonLine med tap-navigasjon og månedsbadge
+- Opprett PlanStatusBar med gap-status og sammendragsrad
+- Integrer PlanStatusBar og LeaveHorizonLine i PlannerCalendar
+- Legg til getTimelineGranularity for adaptiv ruler-granularitet
+- Legg til buildTimelineSegments for ruler-segmentliste
+- Redesign LeaveHorizonLine med ruler, månedsinndeling og aktiv-måneds-felt
 
 ### Rettet
 
 - Erstatt tabell-elementer med divs for å fikse Safari kalender-overflow
+- Øk maks feriedager per år fra 50 til 99 i wizard
+- Tydeliggjør lønnsfelt med 'f.eks.' placeholder og auto-markering ved fokus
+- Vis mor og far sine permisjoner i separate farger i horisontlinjen
+- Gap teller kun hverdager, fokus-fangst i onboarding-modal
+- Legg til ARIA-attributter på slider og refaktorer coveredDays til countWorkdaysInRange
+- Korriger segmentbredde ved midt-måneds start og vis årstall på H1/H2
+- Forsvars-klemming og aria-hidden på ruler-rad
 
 ## 2026-02-25
+
+### Nytt
+
+- Ny identitet og SEO-metadata - Permisjonsplanleggeren
+- Legg til ekte landingsside på / for SEO og deling
+- Oppdater wizard-intro til kabal-framing
+- Legg til persistent permisjonshorisont-banner i kalender
+- Legg til A/B-test for mini-måneder via PostHog feature flag calendar-mini-months
 
 ### Rettet
 

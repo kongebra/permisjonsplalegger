@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Personvernerklæring",
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
 
 export default function PersonvernPage() {
   return (
-    <div className="bg-background">
+    <>
+      <SiteHeader showCta />
+      <div className="bg-background">
       <main id="main" className="container mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">Personvernerklæring</h1>
         <p className="text-sm text-muted-foreground mb-6">
@@ -154,11 +157,12 @@ export default function PersonvernPage() {
         </div>
 
         <div className="mt-8">
-          <Link href="/planlegger" className="text-primary underline text-sm">
-            &larr; Tilbake til kalkulatoren
+          <Link href="/" className="text-primary underline text-sm">
+            &larr; Forsiden
           </Link>
         </div>
       </main>
     </div>
+    </>
   );
 }

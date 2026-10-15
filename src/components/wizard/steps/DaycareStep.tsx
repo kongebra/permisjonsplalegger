@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { format, differenceInWeeks } from "date-fns";
 import { getDefaultDaycareStart } from "@/lib/calculator";
 import { nb } from "date-fns/locale";
+import { formatWeeks } from '@/lib/format';
 
 interface DaycareStepProps {
   dueDate: Date;
@@ -86,7 +87,7 @@ export function DaycareStep({
                     </div>
                     {gapWeeks > 0 ? (
                       <div className="h-full px-2 bg-warning-bg border border-dashed border-warning-fg/30 text-[10px] font-medium text-warning-fg flex items-center justify-center whitespace-nowrap">
-                        {gapWeeks} {gapWeeks === 1 ? "uke" : "uker"}
+                        {formatWeeks(gapWeeks)}
                       </div>
                     ) : null}
                     <div className="h-full flex-1 rounded-r-sm bg-success-bg text-[10px] font-medium text-success-fg flex items-center justify-center">

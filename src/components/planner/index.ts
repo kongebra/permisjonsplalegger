@@ -5,7 +5,6 @@ export { MiniMonth } from './MiniMonth';
 export { AddPeriodFab } from './AddPeriodFab';
 export { PeriodModal } from './PeriodModal';
 export { DayDetailPanel } from './DayDetailPanel';
-export { StatsBar } from './StatsBar';
 export { SaveControls } from './SaveControls';
 export { CalendarOnboarding } from './CalendarOnboarding';
 export { PlannerEconomy } from './PlannerEconomy';

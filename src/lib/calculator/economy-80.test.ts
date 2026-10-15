@@ -33,6 +33,7 @@ const NO_GAP: GapInfo = {
   end: new Date(2027, 7, 17),
   weeks: 0,
   days: 0,
+  workDays: 0,
 };
 
 // Mandag 1. februar til mandag 15. februar 2027 (eksklusiv slutt):
@@ -42,6 +43,7 @@ const TWO_WEEK_GAP: GapInfo = {
   end: new Date(2027, 1, 15),
   weeks: 2,
   days: 14,
+  workDays: 10,
 };
 
 describe('calculate80Scenario', () => {
@@ -165,6 +167,7 @@ describe('calculate80Scenario', () => {
         end: new Date(2027, 1, 8),
         weeks: 1,
         days: 2,
+        workDays: 0,
       };
       const result = calculate80Scenario(economy(), undefined, 20, 0, weekendGap);
       expect(result.breakdown.gapCost).toBe(0);

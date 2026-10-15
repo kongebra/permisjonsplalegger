@@ -35,7 +35,7 @@ function leaveResult(segments: LeaveSegment[]): LeaveResult {
     mother: { start: d(1, 1), end: d(6, 1), weeks: 20 },
     father: { start: d(6, 1), end: d(8, 1), weeks: 8 },
     overlap: null,
-    gap: { start: d(8, 1), end: gapDate, weeks: 3, days: 16 },
+    gap: { start: d(8, 1), end: gapDate, weeks: 3, days: 16, workDays: 11 },
     totalCalendarWeeks: 28,
     vacationDaysNeeded: { mother: 0, father: 0 },
   };

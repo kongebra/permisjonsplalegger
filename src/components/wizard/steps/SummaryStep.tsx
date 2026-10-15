@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import { compareScenarios } from '@/lib/calculator/economy';
 import { calculateLeave } from '@/lib/calculator';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatWeeks } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
 import { format, differenceInWeeks } from 'date-fns';
 import { nb } from 'date-fns/locale';
@@ -53,11 +53,11 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
     }
     if (favors100) {
       if (gap100Weeks > gap80Weeks) {
-        return `100% gir full lønn i 49 uker. Selv om gapet er lengre (${gap100Weeks} vs ${gap80Weeks} uker), veier den høyere NAV-utbetalingen opp.`;
+        return `100% gir full lønn i 49 uker. Selv om gapet er lengre (${gap100Weeks} vs ${formatWeeks(gap80Weeks)}), veier den høyere NAV-utbetalingen opp.`;
       }
       return '100% gir full lønn i 49 uker, noe som gir høyere total utbetaling enn 80% over 59 uker.';
     }
-    return `80% gir permisjon i 59 uker — 10 uker mer enn 100%. Det gir et kortere gap (${gap80Weeks} vs ${gap100Weeks} uker) og lavere totalkostnad.`;
+    return `80% gir permisjon i 59 uker — 10 uker mer enn 100%. Det gir et kortere gap (${gap80Weeks} vs ${formatWeeks(gap100Weeks)}) og lavere totalkostnad.`;
   };
 
   // Only show factors that actually differ meaningfully (> 500 kr)
@@ -148,21 +148,21 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
         if (totalVacationWeeks >= gapWeeks) {
           // Vacation can cover the entire gap
           if (gapWeeks <= 4) {
-            recommendation = `Gapet er på ${gapWeeks} ${gapWeeks === 1 ? 'uke' : 'uker'} — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)} — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
           } else if (bothParentsHaveVacation) {
-            recommendation = `Gapet er på ${gapWeeks} uker. Fordel ferien mellom begge foreldre (ikke ta den samtidig) for å dekke hele perioden.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Fordel ferien mellom begge foreldre (ikke ta den samtidig) for å dekke hele perioden.`;
           } else {
-            recommendation = `Gapet er på ${gapWeeks} uker — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)} — dette kan dekkes med ferie. Planlegg feriedagene i kalenderen.`;
           }
         } else if (totalVacationWeeks > 0) {
           // Vacation covers some, but not all
           const unpaidWeeks = gapWeeks - totalVacationWeeks;
-          const unpaidLabel = `${unpaidWeeks} ${unpaidWeeks === 1 ? 'uke' : 'uker'}`;
+          const unpaidLabel = formatWeeks(unpaidWeeks);
           if (gapTakenBy) {
             const lowestEarner = gapTakenBy === 'mother' ? 'Mor' : 'Far';
-            recommendation = `Gapet er på ${gapWeeks} uker. Bruk ferie til å dekke ${totalVacationWeeks} uker, og la ${lowestEarner} (lavest dagsats) ta ${unpaidLabel} ulønnet permisjon.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Bruk ferie til å dekke ${formatWeeks(totalVacationWeeks)}, og la ${lowestEarner} (lavest dagsats) ta ${unpaidLabel} ulønnet permisjon.`;
           } else {
-            recommendation = `Gapet er på ${gapWeeks} uker. Bruk ferie til å dekke ${totalVacationWeeks} uker. De resterende ${unpaidLabel} må dekkes med ulønnet permisjon.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Bruk ferie til å dekke ${formatWeeks(totalVacationWeeks)}. De resterende ${unpaidLabel} må dekkes med ulønnet permisjon.`;
           }
         } else if (gapTakenBy) {
           // No vacation data — recommend based on lowest earner
@@ -170,7 +170,7 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
           recommendation = `${lowestEarner} bør ta den ubetalte perioden (lavest dagsats = minst tapt inntekt). Vurder å bruke feriedager for å dekke deler av gapet.`;
         } else {
           // No vacation data, no earner comparison
-          recommendation = `Gapet er på ${gapWeeks} uker. Vurder å bruke feriedager for å dekke deler av eller hele perioden.`;
+          recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Vurder å bruke feriedager for å dekke deler av eller hele perioden.`;
         }
 
         return (
@@ -301,7 +301,7 @@ export function SummaryStep({
   const sharedWeeksToFather = config.shared - sharedWeeksToMother;
   const distributionLabel =
     rights === 'both'
-      ? `Mor ${sharedWeeksToMother} uker, far ${sharedWeeksToFather} uker fellesperiode`
+      ? `Mor ${formatWeeks(sharedWeeksToMother)}, far ${formatWeeks(sharedWeeksToFather)} fellesperiode`
       : 'Hele permisjonen til én forelder';
 
   // Calculate gap
@@ -414,7 +414,7 @@ export function SummaryStep({
         <div className="px-3 py-2.5 bg-[var(--color-warning-bg)] border border-[var(--color-warning-bg)] rounded-lg flex items-center gap-2.5">
           <AlertCircle className="w-4 h-4 text-[var(--color-warning-fg)] shrink-0" />
           <p className="text-sm text-[var(--color-warning-fg)]">
-            <span className="font-medium">{gapWeeks} {gapWeeks === 1 ? 'uke' : 'uker'}</span> mellom permisjonsslutt og barnehagestart
+            <span className="font-medium">{formatWeeks(gapWeeks)}</span> mellom permisjonsslutt og barnehagestart
           </p>
         </div>
       )}

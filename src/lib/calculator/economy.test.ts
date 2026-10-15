@@ -215,6 +215,7 @@ function makeGap(days: number): GapInfo {
     end: new Date(start.getTime() + days * 86400000),
     weeks: Math.ceil(days / 7),
     days,
+    workDays: Math.round((days * 5) / 7),
   };
 }
 

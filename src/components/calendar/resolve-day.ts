@@ -5,7 +5,7 @@ import type { CalendarDayData, CalendarDayPeriod } from './types';
 import { DayStatus, STATUS_COLORS, getDayStatusStyle, getSegmentPattern } from './colors';
 
 /** Tom gap for visninger uten gap-konsept (planlegger og periodevelger). */
-export const NO_GAP: GapInfo = { start: new Date(0), end: new Date(0), weeks: 0, days: 0 };
+export const NO_GAP: GapInfo = { start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 };
 
 interface ResolveDayContext {
   segments: LeaveSegment[];

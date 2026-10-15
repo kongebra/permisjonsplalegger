@@ -385,7 +385,7 @@ function PeriodModalContent({
             {/* Day count */}
             {calendarDays > 0 && (
               <p className="text-xs text-muted-foreground text-center">
-                {calendarDays} kalenderdager ({workDays} feriedager)
+                {calendarDays === 1 ? '1 kalenderdag' : `${calendarDays} kalenderdager`} ({workDays === 1 ? '1 feriedag' : `${workDays} feriedager`})
               </p>
             )}
 

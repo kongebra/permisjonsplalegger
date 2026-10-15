@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteHeader } from '@/components/SiteHeader';
 import { G } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -13,6 +14,8 @@ export const metadata: Metadata = {
 
 export default function OmPage() {
   return (
+    <>
+    <SiteHeader showCta />
     <div className="bg-background">
       <main id="main" className="container mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">Om Permisjonsøkonomi-kalkulator</h1>
@@ -141,11 +144,12 @@ export default function OmPage() {
         </div>
 
         <div className="mt-8">
-          <Link href="/planlegger" className="text-primary underline text-sm">
-            &larr; Tilbake til kalkulatoren
+          <Link href="/" className="text-primary underline text-sm">
+            &larr; Forsiden
           </Link>
         </div>
       </main>
     </div>
+    </>
   );
 }

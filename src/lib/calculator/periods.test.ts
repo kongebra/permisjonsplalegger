@@ -60,7 +60,7 @@ function weeksAfterMon(weeks: number): Date {
 // calculateVacationDaysNeeded
 // ============================================================
 describe('calculateVacationDaysNeeded', () => {
-  const gap = { start: MON, end: weeksAfterMon(3), weeks: 3, days: 21 };
+  const gap = { start: MON, end: weeksAfterMon(3), weeks: 3, days: 21, workDays: 15 };
 
   test('ingen ferieuker gir 0 dager', () => {
     expect(calculateVacationDaysNeeded(gap, [])).toEqual({ mother: 0, father: 0 });
@@ -489,6 +489,7 @@ describe('calculateGapFromPeriods', () => {
       end: daycare,
       weeks: 0,
       days: 0,
+      workDays: 0,
     });
   });
 

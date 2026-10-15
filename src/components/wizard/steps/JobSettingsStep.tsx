@@ -56,7 +56,7 @@ function ParentJobSettings({ parent, label, settings, onChange }: ParentJobSetti
   };
 
   const handleVacationDaysChange = (days: number) => {
-    onChange({ ...settings!, vacationDays: Math.max(0, Math.min(50, days)) });
+    onChange({ ...settings!, vacationDays: Math.max(0, Math.min(99, days)) });
   };
 
   const colorClass = parent === 'mother' ? 'text-[var(--color-mother)]' : 'text-[var(--color-father)]';

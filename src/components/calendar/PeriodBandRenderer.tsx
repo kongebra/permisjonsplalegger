@@ -56,7 +56,7 @@ function renderBand(
       title={band.label}
     >
       {band.showLabel && (
-        <span className="pl-1 text-[11px] leading-none font-medium text-foreground/70 whitespace-nowrap truncate">
+        <span className="pl-1 min-w-0 text-[11px] leading-[14px] font-medium text-foreground/70 whitespace-nowrap truncate">
           {band.label}
         </span>
       )}
