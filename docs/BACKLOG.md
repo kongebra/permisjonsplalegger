@@ -127,5 +127,3 @@ Mangler: funksjonelle E2E-tester for wizard til kalender, og for periodeopprette
 ## Andre åpne punkter
 
 Åpne UU-punkter (manuell axe-sjekk, High Contrast Mode, VoiceOver, tabellfallback for diagrammet) står under "Kjente begrensninger" i `docs/UU-SJEKKLISTE.md`.
-
-Plandokumentene `docs/plans/2026-02-26-horizon-line-ruler.md` og `docs/plans/2026-03-01-horizon-line-daycare-anchor.md` er ferdig implementert og kan slettes (sammen med `docs/plans/`).
