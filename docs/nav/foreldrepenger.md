@@ -35,10 +35,14 @@ Du velger mellom **100% dekning** (kortere periode) eller **80% dekning** (lengr
 
 | | 100% | 80% |
 |---|---|---|
-| **Totalt** | 49 uker | 61 uker og 1 dag |
+| **Totalt** (inkludert 3 uker før fødsel til mor) | 49 uker | 61 uker og 1 dag |
+| **Foreldrepenger før fødsel** (mor, må starte senest 3 uker før termin) | 3 uker | 3 uker |
 | **Mødrekvote** (forbeholdt mor) | 15 uker | 19 uker |
 | **Fedrekvote/Medmorkvote** (forbeholdt far/medmor) | 15 uker | 19 uker |
 | **Fellesperiode** (deles fritt) | 16 uker | 20 uker og 1 dag |
+
+De 3 ukene før fødsel er en del av totalen, ikke i tillegg: 3 + 15 + 15 + 16 = 49 og 3 + 19 + 19 + 20 uker og 1 dag = 61 uker og 1 dag.
+NAV oppgir tallene for barn født fra og med 1. juli 2024.
 
 ### Kun far eller medmor har rett
 
@@ -49,7 +53,12 @@ Hvis kun far eller medmor har rett til foreldrepenger, gjelder egne regler:
 | 100% | 40 uker | 10 uker | 30 uker |
 | 80% | 52 uker og 1 dag | 10 uker | 42 uker og 1 dag |
 
-**Startdato:** Permisjonen starter fra barnets fødsel (termindato), ikke 3 uker før som for mor.
+**Uten aktivitetskrav:** 10 uker gjelder for barn født 2. august 2024 eller senere.
+For barn født 1. juli til 1. august 2024 oppgir NAV 8 uker uten og 32 uker (100%) eller 44 uker og 1 dag (80%) med aktivitetskrav.
+Kalkulatoren bruker 10 uker.
+
+**Startdato:** Far/medmor kan tidligst ta ut foreldrepenger fra to uker før barnet ventes født, men har ikke pliktig uttak før fødsel slik mor har (3 uker).
+Kalkulatoren starter far på termindato (forenkling).
 
 **Aktivitetskravet:** For de ukene som krever aktivitet, må mor/den andre forelderen enten:
 - Være i arbeid
@@ -68,6 +77,10 @@ Flerbarnstillegg er heller ikke modellert (ingen aktivitetskrav gjelder der).
 | | 100% | 80% |
 |---|---|---|
 | **Totalt** | 49 uker | 61 uker og 1 dag |
+| **Før fødsel** (må starte senest 3 uker før termin) | 3 uker | 3 uker |
+| **Etter fødsel** | 46 uker | 58 uker og 1 dag |
+
+De 3 ukene før fødsel er en del av totalen (3 + 46 = 49 og 3 + 58 uker og 1 dag = 61 uker og 1 dag).
 
 ### Flerbarnsdager – to barn
 
