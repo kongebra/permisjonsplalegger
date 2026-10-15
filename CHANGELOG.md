@@ -11,6 +11,7 @@
 - Bruk kalenderdager i daysBetween så vintertid ikke gir én dag for mye
 - Legg til rad-roller i kalenderen for gyldig ARIA-grid
 - Lang-testen forventer nb, og skru av agentRules i next dev
+- Flytt milepælknapper ut av slider-rollen i horisontlinjen
 
 ### Opprydding
 
