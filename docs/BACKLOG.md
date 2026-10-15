@@ -84,7 +84,7 @@ Mangler tydelig tekst i UI: `DaycareStep` sier fortsatt bare at de fleste barneh
 
 ### 5. Ferie før og etter permisjon i planleggeren
 
-**Hva:** I den gamle modellen (`VacationInput`, brukt i `/gammel`) kunne man legge inn feriedager etter mors permisjon og før/etter fars permisjon.
+**Hva:** I den gamle modellen (`VacationInput` i den fjernede `/gammel`-ruten, se `git show 828af5b:src/components/input/VacationInput.tsx`) kunne man legge inn feriedager etter mors permisjon og før/etter fars permisjon.
 Hver ferieblokk hadde en avkrysning: tas den samtidig med den andres permisjon (overlapp), eller skyver den den andres permisjon?
 I planleggeren kan brukeren legge inn ferieperioder fritt, men skyving av den andres permisjon finnes ikke.
 
@@ -159,14 +159,6 @@ E2E-testene i `e2e/` dekker bare UU (axe-core).
 Mangler: funksjonelle E2E-tester for wizard til kalender, og for periodeopprettelse.
 
 **Kilde:** `git show 67144c3:docs/PROGRESS.md`, punkt 8.
-
-### 13. Fjern `/gammel` og tilhørende komponenter
-
-**Hva:** Den gamle kalkulatorsiden `/gammel` er beholdt som referanse.
-Den kan fjernes hvis wizard og planlegger dekker alt.
-`VacationInput` og noen input-komponenter brukes bare der (se punkt 5 før du fjerner `VacationInput`).
-
-**Kilde:** `git show 67144c3:docs/PROGRESS.md`, punkt 9.
 
 ## Andre åpne punkter
 
