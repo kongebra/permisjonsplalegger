@@ -118,7 +118,7 @@ export {
   calculateDailyRate,
   calculateNavPayout,
   compareScenarios,
-  generateCumulativeTimeSeries,
+  getCoverageVerdict,
 } from './economy';
 export * from '../types';
 export * from '../constants';

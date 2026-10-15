@@ -16,6 +16,9 @@ export const COVERAGE_RATE = {
 
 export const WORK_DAYS_PER_MONTH = 21.7; // Standard for beregning av dagsats
 
+// Under denne forskjellen (kr) kaller vi valget mellom 80% og 100% en liten forskjell
+export const SMALL_ECONOMY_DIFFERENCE = 10_000;
+
 export const LEAVE_CONFIG = {
   100: {
     total: 49,

@@ -6,9 +6,9 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
-import type { LeaveResult, EconomyComparisonInput, EconomyResult, TimeSeriesPoint } from '@/lib/types';
+import type { LeaveResult, EconomyComparisonInput, EconomyResult } from '@/lib/types';
 import { calculateLeave, getPrematureWeeks } from '@/lib/calculator';
-import { compareScenarios, generateCumulativeTimeSeries, hasEconomyInput } from '@/lib/calculator/economy';
+import { compareScenarios, hasEconomyInput } from '@/lib/calculator/economy';
 
 /**
  * Hook for wizard state and actions
@@ -289,19 +289,11 @@ function useEconomyInput(): EconomyComparisonInput | null {
 }
 
 /**
- * Hook for economy comparison between 80% and 100% scenarios.
+ * Hook for economy comparison between 80% and 100% scenarios, including the
+ * cumulative time series for the liquidity chart (same totals).
  * Returns null if the salary data needed for the chosen rights is missing.
  */
 export function useEconomyComparison(): EconomyResult | null {
   const input = useEconomyInput();
   return useMemo(() => (input ? compareScenarios(input) : null), [input]);
-}
-
-/**
- * Hook for cumulative time series comparing 80% vs 100% scenarios.
- * Returns null if the salary data needed for the chosen rights is missing.
- */
-export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
-  const input = useEconomyInput();
-  return useMemo(() => (input ? generateCumulativeTimeSeries(input) : null), [input]);
 }

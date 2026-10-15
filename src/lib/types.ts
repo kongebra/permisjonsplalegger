@@ -97,8 +97,9 @@ export interface LeaveResult {
 
 export interface EconomyBreakdown {
   navPayout: number;
+  salaryIncome: number; // Lønn på arbeidsdager utenfor egen permisjon, før gapet trekkes fra
   commissionLoss: number;
-  gapCost: number;
+  gapCost: number; // Lønn som tapes i det ulønnede gapet
   gapTakenBy: Parent | null;
   feriepengeDifference: number;
 }
@@ -130,6 +131,7 @@ export interface EconomyResult {
   recommendation: string;
   gap80: GapInfo; // Gapet i 80%-planen
   gap100: GapInfo; // Gapet i 100%-planen
+  timeSeries: TimeSeriesPoint[]; // Likviditetsgrafen, siste punkt = totalene over
 }
 
 export interface CalculatorResult {
