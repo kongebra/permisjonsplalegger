@@ -24,6 +24,9 @@
 - Bruk riktig permisjonsslutt for kun mor i horisontlinjen og barnehagesteget
 - Riktig retning på anbefalingsteksten i økonomisammenligningen
 - Vis hele permisjonen i kvoteoversikten for kun mor
+- Vis riktig antall uker for kun far i fordeling og innstillinger
+- Vis gap og siste permisjonsdag riktig i barnehagesteget
+- Bruk rettighetene for økonomi-raden i oppsummeringen
 
 ### Opprydding
 
