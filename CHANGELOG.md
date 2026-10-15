@@ -18,6 +18,15 @@
 - Vis aktivitetskrav-uker med riktig tekst og farge i kalenderen
 - Kun forelder med permisjon i planen kan ta gapet i anbefalingen
 - Vis lavest dagsats i gap-anbefalingen bare når begge har permisjon
+- La ruleren i permisjonslinjen følge samme tidsakse som linjen
+- Avgrens fremhevingen av aktiv måned til ruler og linje, ikke milepælknappene
+- Begrens høyden på datoceller så periodebjelkene ikke svever mellom ukene
+- Skjul etikett på 1-dagers periodebjelker som ellers blir klippet
+- La periodebjelker dekke hverandre uten at tekst skinner gjennom, og gi ferie og ulønnet full tekstkontrast
+- La stolpene i månedlig inntekt starte likt uavhengig av ferie-ikon
+- Hold aksetekst i diagrammet lesbar på mobil
+- Toppjuster månedstitlene i årsoversikten
+- Gjør årsoversikten ugjennomsiktig så kalenderen ikke skinner gjennom
 - Beregn økonomi riktig for kun mor og kun far
 - Vis riktig antall uker per rettighet i veiviser og økonomi
 - Vis gap likt i oppsummering og kalender
