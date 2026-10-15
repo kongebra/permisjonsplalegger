@@ -199,7 +199,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
       case 2:
         return <RightsStep value={rights} onChange={setRights} />;
       case 3:
-        return <CoverageStep value={coverage} onChange={setCoverage} />;
+        return <CoverageStep value={coverage} rights={rights} onChange={setCoverage} />;
       case 4:
         return (
           <DistributionStep
@@ -215,7 +215,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
             dueDate={dueDate}
             daycareDate={daycareStartDate}
             daycareEnabled={daycareEnabled}
-            leaveEndDate={leaveResult.father.end}
+            leaveEndDate={leaveResult.gap.start}
             onDateChange={setDaycareStartDate}
             onEnabledChange={setDaycareEnabled}
           />

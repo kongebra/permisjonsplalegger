@@ -12,6 +12,7 @@ import { LEAVE_CONFIG } from "@/lib/constants";
 import type { Coverage, ParentRights } from "@/lib/types";
 import { GlossaryTerm } from "@/components/ui/glossary-term";
 import { formatWeeks } from '@/lib/format';
+import { getTotalLeaveWeeks } from '@/lib/calculator';
 
 interface DistributionStepProps {
   coverage: Coverage;
@@ -47,11 +48,11 @@ export function DistributionStep({
           <CardContent className="pt-6">
             <div className="text-center p-6 bg-muted rounded-lg">
               <p className="text-lg font-semibold">
-                {config.total} uker total permisjon
+                {getTotalLeaveWeeks(coverage, rights)} uker total permisjon
               </p>
               <p className="text-sm text-muted-foreground mt-2">
                 {rights === "mother-only"
-                  ? "Inkluderer 3 uker før termin"
+                  ? `Inkluderer ${config.preBirth} uker før termin`
                   : "Far kan starte fra fødsel"}
               </p>
             </div>

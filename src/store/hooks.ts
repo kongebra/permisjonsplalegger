@@ -9,7 +9,7 @@ import { usePlannerStore } from './index';
 import type { LeaveResult, EconomyResult, TimeSeriesPoint } from '@/lib/types';
 import { calculateLeave, subtractWeeks, weeksBetween } from '@/lib/calculator';
 import { LEAVE_CONFIG } from '@/lib/constants';
-import { compareScenarios, generateCumulativeTimeSeries } from '@/lib/calculator/economy';
+import { compareScenarios, generateCumulativeTimeSeries, hasEconomyInput } from '@/lib/calculator/economy';
 
 /**
  * Hook for wizard state and actions
@@ -244,7 +244,8 @@ export function useCanProceed(): boolean {
 
 /**
  * Hook for economy comparison between 80% and 100% scenarios.
- * Returns null if no salary data is available.
+ * Returns null if the salary data needed for the chosen rights is missing
+ * (mother's salary for mother-only, father's for father-only).
  */
 export function useEconomyComparison(): EconomyResult | null {
   const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled, prematureBirthDate } =
@@ -272,7 +273,7 @@ export function useEconomyComparison(): EconomyResult | null {
   const prematureBirthDateMs = prematureBirthDate?.getTime() ?? 0;
 
   return useMemo(() => {
-    if (motherEconomy.monthlySalary <= 0) return null;
+    if (!hasEconomyInput(rights, motherEconomy, fatherEconomy)) return null;
 
     const effectiveDaycare =
       daycareEnabled && daycareStartDate
@@ -295,6 +296,7 @@ export function useEconomyComparison(): EconomyResult | null {
       sharedWeeksToMother,
       leave80.gap,
       leave100.gap,
+      rights,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, prematureBirthDateMs, motherEconomy, fatherEconomy]);
@@ -302,7 +304,7 @@ export function useEconomyComparison(): EconomyResult | null {
 
 /**
  * Hook for cumulative time series comparing 80% vs 100% scenarios.
- * Returns null if no salary data is available.
+ * Returns null if the salary data needed for the chosen rights is missing.
  */
 export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
   const { dueDate, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
@@ -327,7 +329,7 @@ export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
   const daycareDateMs = daycareStartDate?.getTime() ?? 0;
 
   return useMemo(() => {
-    if (motherEconomy.monthlySalary <= 0) return null;
+    if (!hasEconomyInput(rights, motherEconomy, fatherEconomy)) return null;
 
     const effectiveDaycare =
       daycareEnabled && daycareStartDate

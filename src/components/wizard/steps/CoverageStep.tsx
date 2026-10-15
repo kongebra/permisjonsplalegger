@@ -1,22 +1,23 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LEAVE_CONFIG, MAX_BASIS } from "@/lib/constants";
+import { MAX_BASIS } from "@/lib/constants";
+import { getTotalLeaveWeeks } from "@/lib/calculator";
 import { formatCurrency } from "@/lib/format";
-import type { Coverage } from "@/lib/types";
+import type { Coverage, ParentRights } from "@/lib/types";
 import { Percent, Clock } from "lucide-react";
 import { GlossaryTerm } from "@/components/ui/glossary-term";
 import posthog from "posthog-js";
 
 interface CoverageStepProps {
   value: Coverage;
+  rights: ParentRights;
   onChange: (value: Coverage) => void;
 }
 
 const coverageOptions: {
   value: Coverage;
   percentage: string;
-  weeks: number;
   description: string;
   pros: string[];
   cons: string[];
@@ -24,7 +25,6 @@ const coverageOptions: {
   {
     value: 100,
     percentage: "100%",
-    weeks: LEAVE_CONFIG[100].total,
     description: `Full lønn (maks 6G ≈ ${formatCurrency(MAX_BASIS)}/år)`,
     pros: ["Høyere månedlig utbetaling", "Mindre økonomisk stress"],
     cons: ["Kortere permisjon", "Større gap før barnehage"],
@@ -32,18 +32,22 @@ const coverageOptions: {
   {
     value: 80,
     percentage: "80%",
-    weeks: LEAVE_CONFIG[80].total,
     description: `80% av lønn (maks 6G ≈ ${formatCurrency(MAX_BASIS)}/år)`,
     pros: ["Lengre tid hjemme med barnet", "Mindre gap før barnehage"],
     cons: ["Lavere månedlig utbetaling", "Lavere utbetaling per måned"],
   },
 ];
 
-export function CoverageStep({ value, onChange }: CoverageStepProps) {
+export function CoverageStep({ value, rights, onChange }: CoverageStepProps) {
+  // Antall uker avhenger av rettighetene (kun far har 40/52, ellers 49/61)
+  const weeks100 = getTotalLeaveWeeks(100, rights);
+  const weeks80 = getTotalLeaveWeeks(80, rights);
+  const weeksFor = (coverage: Coverage) => (coverage === 100 ? weeks100 : weeks80);
+
   const handleCoverageSelect = (newValue: Coverage) => {
     posthog.capture("coverage_selected", {
       coverage: newValue,
-      weeks: LEAVE_CONFIG[newValue].total,
+      weeks: weeksFor(newValue),
     });
     onChange(newValue);
   };
@@ -112,7 +116,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
               {/* Duration */}
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
-                <span className="text-sm">{option.weeks} uker permisjon</span>
+                <span className="text-sm">{weeksFor(option.value)} uker permisjon</span>
               </div>
 
               {/* Description */}
@@ -161,10 +165,10 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
                 value === 100 ? "bg-primary" : "bg-muted-foreground/40",
               )}
               style={{
-                width: `${(LEAVE_CONFIG[100].total / LEAVE_CONFIG[80].total) * 100}%`,
+                width: `${(weeks100 / weeks80) * 100}%`,
               }}
             >
-              {LEAVE_CONFIG[100].total} uker
+              {weeks100} uker
             </div>
             <div className="h-full flex-1 rounded-r-sm bg-warning-bg border border-dashed border-warning-fg/30 text-[10px] flex items-center justify-center text-warning-fg">
               <GlossaryTerm term="gap">Gap</GlossaryTerm>
@@ -181,7 +185,7 @@ export function CoverageStep({ value, onChange }: CoverageStepProps) {
                 value === 80 ? "bg-primary" : "bg-muted-foreground/40",
               )}
             >
-              {LEAVE_CONFIG[80].total} uker
+              {weeks80} uker
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground">80% dekning</p>

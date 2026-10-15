@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import type { ParentRights } from '@/lib/types';
 import { Users, User } from 'lucide-react';
 import { InfoBox } from '@/components/ui/info-box';
+import { LEAVE_CONFIG } from '@/lib/constants';
 
 interface RightsStepProps {
   value: ParentRights;
@@ -52,7 +53,7 @@ export function RightsStep({ value, onChange }: RightsStepProps) {
           <p className="font-medium">Kun mor har rett</p>
           <p className="mt-1">
             Mor får hele permisjonsperioden inkludert fellesperioden –
-            totalt 49 uker (100%) eller 61 uker (80%), pluss 3 uker før termin.
+            totalt {LEAVE_CONFIG[100].total} uker (100%) eller {LEAVE_CONFIG[80].total} uker (80%), inkludert {LEAVE_CONFIG[100].preBirth} uker før termin.
           </p>
         </InfoBox>
       )}
@@ -61,8 +62,8 @@ export function RightsStep({ value, onChange }: RightsStepProps) {
         <InfoBox variant="info">
           <p className="font-medium">Kun far/medmor har rett</p>
           <p className="mt-1">
-            Som eneste forelder med rett har du 40 uker (100%) eller 52 uker (80%) foreldrepenger.
-            10 uker er uten aktivitetskrav. De resterende ukene krever at den andre forelderen
+            Som eneste forelder med rett har du {LEAVE_CONFIG[100].fatherOnly.total} uker (100%) eller {LEAVE_CONFIG[80].fatherOnly.total} uker (80%) foreldrepenger.
+            {LEAVE_CONFIG[100].fatherOnly.noRequirement} uker er uten aktivitetskrav. De resterende ukene krever at den andre forelderen
             er i godkjent aktivitet (arbeid, heltidsstudier m.m.).
           </p>
         </InfoBox>

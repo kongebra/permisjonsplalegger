@@ -21,7 +21,26 @@ import type {
   LeaveSegment,
   TimeSeriesPoint,
 } from '../types';
-import { calculateLeave } from './dates';
+import { calculateLeave, getParentLeaveWeeks } from './dates';
+
+/**
+ * Har brukeren oppgitt nok økonomi til at sammenligningen gir mening for rettighetene?
+ * Kun mor trenger mors lønn, kun far trenger fars lønn. Når begge har rett
+ * holder det at én av dem har oppgitt lønn (samme krav som oppsummeringen og
+ * månedsoversikten alltid har brukt).
+ */
+export function hasEconomyInput(
+  rights: ParentRights,
+  motherEconomy: ParentEconomy | undefined,
+  fatherEconomy: ParentEconomy | undefined,
+): boolean {
+  const motherHasSalary = (motherEconomy?.monthlySalary ?? 0) > 0;
+  const fatherHasSalary = (fatherEconomy?.monthlySalary ?? 0) > 0;
+
+  if (rights === 'mother-only') return motherHasSalary;
+  if (rights === 'father-only') return fatherHasSalary;
+  return motherHasSalary || fatherHasSalary;
+}
 
 /**
  * Teller antall arbeidsdager (man–fre) mellom to datoer.
@@ -351,7 +370,8 @@ export function calculate100Scenario(
 function generateRecommendation(
   difference: number,
   scenario80: ScenarioResult,
-  scenario100: ScenarioResult
+  scenario100: ScenarioResult,
+  extraWeeks80: number,
 ): string {
   if (Math.abs(difference) <= 10000) {
     return 'Forskjellen er liten. Vurder hva som passer best for familiens situasjon.';
@@ -364,69 +384,73 @@ function generateRecommendation(
   const commissionDiff = scenario100.breakdown.commissionLoss - scenario80.breakdown.commissionLoss;
   const feriepengeDiff = scenario100.breakdown.feriepengeDifference - scenario80.breakdown.feriepengeDifference;
 
+  // difference = total100 - total80: positiv betyr at 100% lønner seg
   if (difference > 0) {
-    if (gapDiff < 0) reasons.push('kortere udekket gap');
-    if (commissionDiff < 0) reasons.push('kortere provisjonstap');
-    if (feriepengeDiff < 0) reasons.push('bedre feriepengeopptjening');
-    const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
-    return `Selv med lavere NAV-sats gir 80%-permisjonen 10 uker ekstra, som gir kortere gap.${reason}`;
-  } else {
     if (navDiff > 0) reasons.push('høyere NAV-utbetaling');
-    if (gapDiff > 0) reasons.push('lengre udekket gap med 80%');
-    if (feriepengeDiff > 0) reasons.push('lavere feriepengeopptjening');
+    if (gapDiff < 0) reasons.push('kortere udekket gap');
+    if (commissionDiff < 0) reasons.push('mindre provisjonstap');
+    if (feriepengeDiff < 0) reasons.push('mindre tapt feriepengeopptjening');
     const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
     return `100% gir høyere utbetaling per uke, og gapet er håndterbart i dette tilfellet.${reason}`;
   }
+
+  if (gapDiff > 0) reasons.push('kortere udekket gap');
+  if (navDiff < 0) reasons.push('høyere samlet NAV-utbetaling');
+  if (commissionDiff > 0) reasons.push('mindre provisjonstap');
+  if (feriepengeDiff > 0) reasons.push('mindre tapt feriepengeopptjening');
+  const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
+  return `Selv med lavere NAV-sats gir 80%-permisjonen ${extraWeeks80} uker ekstra, som gir kortere gap.${reason}`;
 }
 
 /**
- * Sammenligner 80% og 100% scenarioer
+ * Sammenligner 80% og 100% scenarioer.
+ *
+ * Hvor mange uker hver forelder har følger av rettighetene: kun mor har hele
+ * permisjonen, kun far har fars egne uker (40/52), og når begge har rett deles
+ * kvoter og fellesperiode. `sharedWeeksToMother` oppgis i 80%-enhet og skaleres
+ * til 100% (kun relevant når begge har rett). Økonomien til en forelder uten
+ * rett i planen teller ikke med.
  */
 export function compareScenarios(
   motherEconomy: ParentEconomy,
   fatherEconomy: ParentEconomy | undefined,
   sharedWeeksToMother: number,
   gap80: GapInfo,
-  gap100: GapInfo
+  gap100: GapInfo,
+  rights: ParentRights,
 ): EconomyResult {
-  const config80 = LEAVE_CONFIG[80];
-  const config100 = LEAVE_CONFIG[100];
+  const sharedRatio = sharedWeeksToMother / LEAVE_CONFIG[80].shared;
+  const sharedWeeksToMother100 = Math.round(LEAVE_CONFIG[100].shared * sharedRatio);
 
-  // Beregn uker per forelder for 80%
-  const motherWeeks80 =
-    config80.preBirth + config80.mother + sharedWeeksToMother;
-  const fatherWeeks80 = config80.father + (config80.shared - sharedWeeksToMother);
+  const weeks80 = getParentLeaveWeeks(80, rights, sharedWeeksToMother);
+  const weeks100 = getParentLeaveWeeks(100, rights, sharedWeeksToMother100);
 
-  // Beregn uker per forelder for 100%
-  // Juster sharedWeeksToMother proporsjonalt for 100%
-  const sharedRatio = sharedWeeksToMother / config80.shared;
-  const adjustedSharedToMother100 = Math.round(config100.shared * sharedRatio);
-  const motherWeeks100 =
-    config100.preBirth + config100.mother + adjustedSharedToMother100;
-  const fatherWeeks100 =
-    config100.father + (config100.shared - adjustedSharedToMother100);
+  const entitledFatherEconomy = rights === 'mother-only' ? undefined : fatherEconomy;
 
   const scenario80 = calculate80Scenario(
     motherEconomy,
-    fatherEconomy,
-    motherWeeks80,
-    fatherWeeks80,
+    entitledFatherEconomy,
+    weeks80.mother,
+    weeks80.father,
     gap80
   );
 
   const scenario100 = calculate100Scenario(
     motherEconomy,
-    fatherEconomy,
-    motherWeeks100,
-    fatherWeeks100,
+    entitledFatherEconomy,
+    weeks100.mother,
+    weeks100.father,
     gap100
   );
 
   const difference = scenario100.total - scenario80.total;
+  const extraWeeks80 =
+    weeks80.mother + weeks80.father - (weeks100.mother + weeks100.father);
   const recommendation = generateRecommendation(
     difference,
     scenario80,
-    scenario100
+    scenario100,
+    extraWeeks80
   );
 
   return {

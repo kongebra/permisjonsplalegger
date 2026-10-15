@@ -1,14 +1,17 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { EconomyResult } from '@/lib/types';
+import type { EconomyResult, ParentRights } from '@/lib/types';
+import { FERIEPENGER_NAV_WEEKS } from '@/lib/constants';
+import { getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency } from '@/lib/format';
 
 interface EconomyComparisonProps {
   result: EconomyResult;
+  rights: ParentRights;
 }
 
-export function EconomyComparison({ result }: EconomyComparisonProps) {
+export function EconomyComparison({ result, rights }: EconomyComparisonProps) {
   const { scenario80, scenario100, difference, recommendation } = result;
   const best = difference >= 0 ? '100%' : '80%';
   const absDiff = Math.abs(difference);
@@ -52,7 +55,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
         {/* 100% scenario */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">100% dekning (49 uker)</CardTitle>
+            <CardTitle className="text-base">100% dekning ({getTotalLeaveWeeks(100, rights)} uker)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -98,7 +101,7 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
         {/* 80% scenario */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">80% dekning (59 uker)</CardTitle>
+            <CardTitle className="text-base">80% dekning ({getTotalLeaveWeeks(80, rights)} uker)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -152,8 +155,8 @@ export function EconomyComparison({ result }: EconomyComparisonProps) {
         )}
         {(scenario100.breakdown.feriepengeDifference > 0 || scenario80.breakdown.feriepengeDifference > 0) && (
           <p className="text-xs text-muted-foreground">
-            Tapt feriepengeopptjening vises i juni-lønnen året etter — NAV dekker kun
-            opptjening for de første 12–15 ukene av permisjonen.
+            Tapt feriepengeopptjening vises i juni-lønnen året etter - NAV dekker kun
+            opptjening for de første {FERIEPENGER_NAV_WEEKS[100]} ukene (100%) eller {FERIEPENGER_NAV_WEEKS[80]} ukene (80%) av permisjonen.
           </p>
         )}
       </div>

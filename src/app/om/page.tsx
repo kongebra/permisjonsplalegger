@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from '@/components/SiteHeader';
-import { G } from "@/lib/constants";
+import { G, LEAVE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Om kalkulatoren",
@@ -108,7 +108,10 @@ export default function OmPage() {
             Grunnbeløpet (G) oppdateres årlig. Beregningene tar hensyn til følgende:
           </p>
           <ul className="list-disc list-inside space-y-1">
-            <li>49 uker ved 100% dekning / 59 uker ved 80% dekning</li>
+            <li>
+              {LEAVE_CONFIG[100].total} uker ved 100% dekning / {LEAVE_CONFIG[80].total} uker ved 80% dekning
+              (kun far/medmor: {LEAVE_CONFIG[100].fatherOnly.total} / {LEAVE_CONFIG[80].fatherOnly.total} uker)
+            </li>
             <li>Inntekt opp til 6G (med mulighet for arbeidsgiverdekning utover)</li>
             <li>Feriepenger fra NAV vs. arbeidsgiver</li>
             <li>Tap av variable tillegg i permisjonsperioden</li>

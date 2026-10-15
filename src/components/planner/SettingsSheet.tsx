@@ -33,6 +33,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { LEAVE_CONFIG } from '@/lib/constants';
+import { getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Coverage, ParentRights, ParentEconomy } from '@/lib/types';
@@ -225,7 +226,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             <SettingsRow
               icon={<Percent className="w-4 h-4" />}
               label="Dekningsgrad"
-              value={`${coverage}% — ${formatWeeks(config.total)}`}
+              value={`${coverage}% - ${formatWeeks(getTotalLeaveWeeks(coverage, rights))}`}
               expanded={expandedSection === 'coverage'}
               onToggle={() => toggleSection('coverage')}
             >
@@ -247,7 +248,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                     )}
                   >
                     <div className="text-lg font-bold">{c}%</div>
-                    <div className="text-xs text-muted-foreground">{formatWeeks(LEAVE_CONFIG[c].total)}</div>
+                    <div className="text-xs text-muted-foreground">{formatWeeks(getTotalLeaveWeeks(c, rights))}</div>
                   </button>
                 ))}
               </div>

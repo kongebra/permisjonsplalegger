@@ -6,10 +6,9 @@ import { nb } from 'date-fns/locale';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { countWorkdaysInRange } from '@/lib/calculator/dates';
-import { WORK_DAYS_PER_WEEK } from '@/lib/constants';
 import { GlossaryTerm } from '@/components/ui/glossary-term';
 import type { LeaveResult, CustomPeriod } from '@/lib/types';
-import { formatDays, formatWeeks } from '@/lib/format';
+import { formatDays, formatWorkdays } from '@/lib/format';
 
 interface PlanStatusBarProps {
   leaveResult: LeaveResult;
@@ -45,15 +44,11 @@ export function PlanStatusBar({
     }, 0);
 
     const remainingDays = Math.max(0, gapDays - coveredDays);
-    const remainingWeeks = Math.floor(remainingDays / WORK_DAYS_PER_WEEK);
-    const extraDays = remainingDays % WORK_DAYS_PER_WEEK;
 
     return {
       totalDays: gapDays,
       coveredDays,
       remainingDays,
-      remainingWeeks,
-      extraDays,
       isCovered: remainingDays === 0,
     };
   }, [daycareEnabled, daycareDate, leaveResult.gap, customPeriods]);
@@ -85,9 +80,7 @@ export function PlanStatusBar({
             <>
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
-                {gapInfo.remainingWeeks > 0
-                  ? `${formatWeeks(gapInfo.remainingWeeks)}${gapInfo.extraDays > 0 ? ` ${formatDays(gapInfo.extraDays)}` : ''}`
-                  : formatDays(gapInfo.remainingDays)}
+                {formatWorkdays(gapInfo.remainingDays)}
                 {' '}udekket <GlossaryTerm term="gap">gap</GlossaryTerm>
                 {gapInfo.coveredDays > 0 && ` (${formatDays(gapInfo.coveredDays)} dekket)`}
               </span>

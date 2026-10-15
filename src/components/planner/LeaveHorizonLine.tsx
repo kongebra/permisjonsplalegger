@@ -29,7 +29,8 @@ export function LeaveHorizonLine({
   onMonthChange,
 }: LeaveHorizonLineProps) {
   const leaveStart = leaveResult.mother.start;
-  const leaveEnd = leaveResult.father.end;
+  // Siste permisjonsdag (eksklusiv). Fars periode er tom for kun mor, så gap.start brukes
+  const leaveEnd = leaveResult.gap.start;
   const gapEnd = daycareEnabled && daycareDate ? daycareDate : leaveEnd;
 
   const {
