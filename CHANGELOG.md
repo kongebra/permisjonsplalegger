@@ -18,6 +18,12 @@
 - Vis aktivitetskrav-uker med riktig tekst og farge i kalenderen
 - Kun forelder med permisjon i planen kan ta gapet i anbefalingen
 - Vis lavest dagsats i gap-anbefalingen bare når begge har permisjon
+- Beregn økonomi riktig for kun mor og kun far
+- Vis riktig antall uker per rettighet i veiviser og økonomi
+- Vis gap likt i oppsummering og kalender
+- Bruk riktig permisjonsslutt for kun mor i horisontlinjen og barnehagesteget
+- Riktig retning på anbefalingsteksten i økonomisammenligningen
+- Vis hele permisjonen i kvoteoversikten for kun mor
 
 ### Opprydding
 
