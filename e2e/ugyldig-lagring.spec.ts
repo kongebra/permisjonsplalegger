@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { SEEDED_PLAN } from './fixtures';
 
 /**
@@ -78,4 +79,49 @@ test.describe('Ødelagt lagring: delvis ugyldig plan åpner kalenderen', () => {
       await expect(page.getByText('Kvoteoversikt')).toBeVisible();
     });
   }
+});
+
+test.describe('Feilside', () => {
+  // Gyldig dato som likevel sprenger beregningene: gir en ekte render-feil i kalenderen
+  const crashingPlan = JSON.stringify({
+    ...SEEDED_PLAN,
+    wizard: {
+      ...SEEDED_PLAN.wizard,
+      dueDate: '+275760-09-13T00:00:00.000Z',
+      daycareStartDate: null,
+      daycareEnabled: false,
+    },
+  });
+
+  test('Render-feil viser norsk feilside uten axe-brudd', async ({ page }) => {
+    await seedRaw(page, crashingPlan);
+    await page.goto('/planlegger/kalender');
+
+    await expect(page.getByRole('heading', { name: 'Noe gikk galt' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Prøv igjen' })).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa'])
+      .disableRules(['color-contrast'])
+      .exclude('nextjs-portal')
+      .analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('"Start på nytt" sletter den lagrede planen og åpner veiviseren', async ({ page }) => {
+    await page.addInitScript((raw) => {
+      // Bare første lasting, slik at planen ikke legges tilbake etter at den er slettet
+      if (!sessionStorage.getItem('e2e-seeded')) {
+        localStorage.setItem('permisjonsplan-v1', raw);
+        sessionStorage.setItem('e2e-seeded', '1');
+      }
+    }, crashingPlan);
+    await page.goto('/planlegger/kalender');
+
+    await page.getByRole('button', { name: /start på nytt/i }).click();
+
+    await expect(page).toHaveURL(/\/planlegger$/);
+    await expect(page.getByRole('button', { name: /start planleggingen/i })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('permisjonsplan-v1'))).toBeNull();
+  });
 });

@@ -6,7 +6,7 @@ import type { StateCreator } from 'zustand';
 import type { SavedPlan, CustomPeriod } from '@/lib/types';
 import { parseSavedPlan } from '@/lib/planner/saved-plan';
 
-const STORAGE_KEY = 'permisjonsplan-v1';
+export const STORAGE_KEY = 'permisjonsplan-v1';
 
 export interface PersistenceSlice {
   hasSavedPlan: boolean;
