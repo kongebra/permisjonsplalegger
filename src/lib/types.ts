@@ -108,6 +108,21 @@ export interface ScenarioResult {
   breakdown: EconomyBreakdown;
 }
 
+/**
+ * Input til økonomisammenligningen: de samme valgene som kalenderen bygger
+ * permisjonen fra. `sharedWeeksToMother` er i valgt dekningsgrads enhet.
+ */
+export interface EconomyComparisonInput {
+  dueDate: Date;
+  coverage: Coverage;
+  rights: ParentRights;
+  sharedWeeksToMother: number;
+  daycareStartDate: Date;
+  prematureWeeks?: number;
+  motherEconomy: ParentEconomy;
+  fatherEconomy?: ParentEconomy;
+}
+
 export interface EconomyResult {
   scenario80: ScenarioResult;
   scenario100: ScenarioResult;

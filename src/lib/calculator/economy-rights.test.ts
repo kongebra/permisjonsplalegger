@@ -1,7 +1,8 @@
 import { describe, test, expect } from 'bun:test';
 import { compareScenarios, hasEconomyInput } from './economy';
 import { calculateLeave, getParentLeaveWeeks, getTotalLeaveWeeks } from './dates';
-import type { Coverage, GapInfo, ParentEconomy, ParentRights } from '../types';
+import { convertSharedWeeksToMother } from './leave-inputs';
+import type { Coverage, ParentEconomy, ParentRights } from '../types';
 
 /**
  * Økonomi per rettighet (kun mor, kun far, begge).
@@ -32,14 +33,6 @@ function economy(overrides: Partial<ParentEconomy> = {}): ParentEconomy {
 }
 
 const NO_ECONOMY = economy({ monthlySalary: 0 });
-
-/** Gap fra og med start til (eksklusiv) slutt. Arbeidsdager regnes av funksjonene selv. */
-function gap(start: Date, end: Date): GapInfo {
-  const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
-  return { start, end, weeks: Math.ceil(days / 7), days, workDays: 0 };
-}
-
-const NO_GAP = gap(new Date(2027, 9, 1), new Date(2027, 9, 1));
 
 describe('getTotalLeaveWeeks / getParentLeaveWeeks', () => {
   test('totalt antall uker per rettighet og dekningsgrad', () => {
@@ -106,15 +99,39 @@ describe('hasEconomyInput', () => {
   });
 });
 
+
+/** Sammenligning med samme input som kalenderen bruker (valgt dekningsgrad og fellesuker i den enheten). */
+function compare(
+  rights: ParentRights,
+  dueDate: Date,
+  daycareStartDate: Date,
+  motherEconomy: ParentEconomy,
+  fatherEconomy: ParentEconomy | undefined,
+  options: { coverage?: Coverage; sharedWeeksToMother?: number } = {},
+) {
+  return compareScenarios({
+    dueDate,
+    coverage: options.coverage ?? 100,
+    rights,
+    sharedWeeksToMother: options.sharedWeeksToMother ?? 8,
+    daycareStartDate,
+    motherEconomy,
+    fatherEconomy,
+  });
+}
+
 describe('compareScenarios: kun far', () => {
   // Termin 15. okt 2026, far starter på termin. 100%: 40 uker gir permisjonsslutt torsdag
   // 22. juli 2027, barnehagestart 1. okt 2027. 71 kalenderdager, torsdag til torsdag:
   // 10 hele uker (50 hverdager) + torsdag 30. sep = 51 arbeidsdager.
   // 80%: 52 uker gir slutt 14. okt 2027, ingen gap.
-  const gap100 = gap(new Date(2027, 6, 22), new Date(2027, 9, 1));
+  const dueDate = new Date(2026, 9, 15);
+  const daycare = new Date(2027, 9, 1);
+  const farOnly = (father: ParentEconomy, mother: ParentEconomy = NO_ECONOMY) =>
+    compare('father-only', dueDate, daycare, mother, father);
 
   test('100%: 40 uker, gapet tas av far, feriepenger etter 12 uker', () => {
-    const result = compareScenarios(NO_ECONOMY, economy(), 8, NO_GAP, gap100, 'father-only');
+    const result = farOnly(economy());
     // NAV: 40 * 11 538,46 = 461 538,46
     expect(result.scenario100.breakdown.navPayout).toBeCloseTo(461_538.46, 1);
     // Gap: 51 * 2 304,15 = 117 511,52
@@ -127,7 +144,7 @@ describe('compareScenarios: kun far', () => {
   });
 
   test('80%: 52 uker, ingen gap, feriepenger etter 15 uker', () => {
-    const result = compareScenarios(NO_ECONOMY, economy(), 8, NO_GAP, gap100, 'father-only');
+    const result = farOnly(economy());
     // NAV: 52 * 11 538,46 * 0,8 = 480 000
     expect(result.scenario80.breakdown.navPayout).toBeCloseTo(480_000, 1);
     expect(result.scenario80.breakdown.gapCost).toBe(0);
@@ -141,44 +158,28 @@ describe('compareScenarios: kun far', () => {
 
   test('mors gamle lønn fra «begge» påvirker ikke kun far', () => {
     const stale = economy({ monthlySalary: 80_000, monthlyCommissionLoss: 5_000 });
-    const withStale = compareScenarios(stale, economy(), 8, NO_GAP, gap100, 'father-only');
-    const clean = compareScenarios(NO_ECONOMY, economy(), 8, NO_GAP, gap100, 'father-only');
+    const withStale = farOnly(economy(), stale);
+    const clean = farOnly(economy());
     expect(withStale.scenario100).toEqual(clean.scenario100);
     expect(withStale.scenario80).toEqual(clean.scenario80);
     expect(withStale.scenario100.breakdown.gapTakenBy).toBe('father');
   });
 
   test('lønn over 6G kappes: 819 294 / 52 * 40 = 630 226,15', () => {
-    const result = compareScenarios(
-      NO_ECONOMY,
-      economy({ monthlySalary: 100_000 }),
-      8,
-      NO_GAP,
-      NO_GAP,
-      'father-only',
-    );
+    const result = farOnly(economy({ monthlySalary: 100_000 }));
     expect(result.scenario100.breakdown.navPayout).toBeCloseTo(630_226.15, 1);
   });
 
   test('provisjonstap følger fars uker: 40 uker / 4,33 * 10 000', () => {
-    const result = compareScenarios(
-      NO_ECONOMY,
-      economy({ monthlyCommissionLoss: 10_000 }),
-      8,
-      NO_GAP,
-      NO_GAP,
-      'father-only',
-    );
+    const result = farOnly(economy({ monthlyCommissionLoss: 10_000 }));
     expect(result.scenario100.breakdown.commissionLoss).toBeCloseTo((40 / 4.33) * 10_000, 4);
     expect(result.scenario80.breakdown.commissionLoss).toBeCloseTo((52 / 4.33) * 10_000, 4);
   });
 });
 
 describe('anbefalingstekst: retning følger hvem som lønner seg', () => {
-  const gap100 = gap(new Date(2027, 6, 22), new Date(2027, 9, 1));
-
   test('kun far, 80% lønner seg: teksten snakker om 80% og 12 ekstra uker', () => {
-    const result = compareScenarios(NO_ECONOMY, economy(), 8, NO_GAP, gap100, 'father-only');
+    const result = compare('father-only', new Date(2026, 9, 15), new Date(2027, 9, 1), NO_ECONOMY, economy());
     expect(result.difference).toBeLessThan(-10_000);
     expect(result.recommendation).toContain('80%-permisjonen 12 uker ekstra');
     expect(result.recommendation).toContain('kortere udekket gap');
@@ -186,27 +187,32 @@ describe('anbefalingstekst: retning følger hvem som lønner seg', () => {
   });
 
   test('100% lønner seg: teksten snakker om 100% og høyere utbetaling', () => {
-    // 80% får et langt gap (2. aug - 27. sep = 40 arbeidsdager), 100% har ingen gap
-    const result = compareScenarios(
-      economy(),
-      undefined,
-      8,
-      gap(new Date(2027, 7, 2), new Date(2027, 8, 27)),
-      NO_GAP,
+    // Kun mor med 12 000 i provisjon per måned. Termin 14. sep 2026 (start 24. aug 2026),
+    // barnehagestart 1. aug 2027: begge permisjonene varer forbi barnehagestart, så ingen gap.
+    //   100%: 565 384,62 - 49 / 4,33 * 12 000 (135 796,77) - 43 546,15 = 386 041,70
+    //   80%:  563 076,92 - 61 / 4,33 * 12 000 (169 053,12) - 54 138,46 = 339 885,34
+    const result = compare(
       'mother-only',
+      new Date(2026, 8, 14),
+      new Date(2027, 7, 1),
+      economy({ monthlyCommissionLoss: 12_000 }),
+      undefined,
     );
-    expect(result.difference).toBeGreaterThan(10_000);
+    expect(result.difference).toBeCloseTo(386_041.70 - 339_885.34, 0);
     expect(result.recommendation).toContain('100% gir høyere utbetaling');
-    expect(result.recommendation).toContain('kortere udekket gap');
+    expect(result.recommendation).toContain('mindre provisjonstap');
   });
 });
 
 describe('compareScenarios: kun mor', () => {
-  // 100%: én uke gap, mandag 2. aug til mandag 9. aug 2027 = 5 arbeidsdager = 11 520,74.
-  const gap100 = gap(new Date(2027, 7, 2), new Date(2027, 7, 9));
+  // Termin 14. sep 2026, permisjonsstart 24. aug 2026. 100%: 49 uker gir slutt mandag
+  // 2. aug 2027. Barnehagestart mandag 9. aug 2027: én uke gap = 5 arbeidsdager = 11 520,74.
+  // 80%: 61 uker gir slutt 25. okt 2027, ingen gap.
+  const dueDate = new Date(2026, 8, 14);
+  const daycare = new Date(2027, 7, 9);
 
   test('100%: 49 uker til mor, 37 uker uten feriepenger', () => {
-    const result = compareScenarios(economy(), undefined, 8, NO_GAP, gap100, 'mother-only');
+    const result = compare('mother-only', dueDate, daycare, economy(), undefined);
     // 49 * 11 538,46 = 565 384,62
     expect(result.scenario100.breakdown.navPayout).toBeCloseTo(565_384.62, 1);
     expect(result.scenario100.breakdown.gapCost).toBeCloseTo(11_520.74, 1);
@@ -218,7 +224,7 @@ describe('compareScenarios: kun mor', () => {
   });
 
   test('80%: 61 uker til mor, 46 uker uten feriepenger', () => {
-    const result = compareScenarios(economy(), undefined, 8, NO_GAP, gap100, 'mother-only');
+    const result = compare('mother-only', dueDate, daycare, economy(), undefined);
     // 61 * 11 538,46 * 0,8 = 563 076,92
     expect(result.scenario80.breakdown.navPayout).toBeCloseTo(563_076.92, 1);
     // (61 - 15) * 1 176,92 = 54 138,46
@@ -230,21 +236,71 @@ describe('compareScenarios: kun mor', () => {
 
   test('fars gamle lønn fra «begge» påvirker ikke kun mor', () => {
     const stale = economy({ monthlySalary: 20_000 });
-    const withStale = compareScenarios(economy(), stale, 8, NO_GAP, gap100, 'mother-only');
-    const clean = compareScenarios(economy(), undefined, 8, NO_GAP, gap100, 'mother-only');
+    const withStale = compare('mother-only', dueDate, daycare, economy(), stale);
+    const clean = compare('mother-only', dueDate, daycare, economy(), undefined);
     expect(withStale.scenario100).toEqual(clean.scenario100);
     expect(withStale.scenario80).toEqual(clean.scenario80);
     expect(withStale.scenario100.breakdown.gapTakenBy).toBe('mother');
   });
 });
 
-describe('compareScenarios: begge (uendret)', () => {
-  test('uker for begge følger fortsatt 80%-fordelingen og skalerer felles til 100%', () => {
-    // Fellesuker til mor = 9 (80%-enhet). 80%: mor 3 + 19 + 9 = 31, far 19 + 11 = 30.
-    // 100%: round(16 * 9 / 20) = 7, mor 3 + 15 + 7 = 25, far 15 + 9 = 24.
-    const result = compareScenarios(economy(), economy(), 9, NO_GAP, NO_GAP, 'both');
-    // NAV 100%: (25 + 24) * 11 538,46 = 565 384,62. NAV 80%: (31 + 30) * 11 538,46 * 0,8.
-    expect(result.scenario100.breakdown.navPayout).toBeCloseTo(565_384.62, 1);
-    expect(result.scenario80.breakdown.navPayout).toBeCloseTo(563_076.92, 1);
+describe('convertSharedWeeksToMother', () => {
+  test('beholder andelen og runder til hele uker', () => {
+    // 8 av 16 (100%) = halvparten = 10 av 20 (80%)
+    expect(convertSharedWeeksToMother(8, 100, 80)).toBe(10);
+    expect(convertSharedWeeksToMother(10, 80, 100)).toBe(8);
+    // 9 av 20 = 0,45 * 16 = 7,2 -> 7
+    expect(convertSharedWeeksToMother(9, 80, 100)).toBe(7);
+    // 5 av 16 = 0,3125 * 20 = 6,25 -> 6
+    expect(convertSharedWeeksToMother(5, 100, 80)).toBe(6);
+  });
+
+  test('samme dekningsgrad gir samme tall, og ytterpunktene beholdes', () => {
+    expect(convertSharedWeeksToMother(7, 100, 100)).toBe(7);
+    expect(convertSharedWeeksToMother(0, 100, 80)).toBe(0);
+    expect(convertSharedWeeksToMother(16, 100, 80)).toBe(20);
+    expect(convertSharedWeeksToMother(20, 80, 100)).toBe(16);
+  });
+});
+
+describe('compareScenarios: begge, fellesuker i valgt dekningsgrad', () => {
+  // Store og kalender lagrer fellesukene i valgt dekningsgrads enhet. Mor 60 000
+  // (720 000 / 52 = 13 846,15 per uke), far 40 000 (480 000 / 52 = 9 230,77 per uke).
+  const dueDate = new Date(2026, 8, 14);
+  const daycare = new Date(2028, 7, 1);
+  const mother = economy({ monthlySalary: 60_000 });
+  const father = economy({ monthlySalary: 40_000 });
+
+  test('100% valgt med 8 fellesuker: økonomien bruker 26/23 uker som kalenderen', () => {
+    const leave = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
+    expect(leave.mother.weeks).toBe(26);
+    expect(leave.father.weeks).toBe(23);
+
+    const result = compare('both', dueDate, daycare, mother, father, { coverage: 100, sharedWeeksToMother: 8 });
+    // 26 * 13 846,15 + 23 * 9 230,77 = 360 000 + 212 307,69 = 572 307,69
+    expect(result.scenario100.breakdown.navPayout).toBeCloseTo(572_307.69, 1);
+    // 80%: 8 av 16 = 10 av 20, mor 3 + 19 + 10 = 32, far 19 + 10 = 29
+    // 0,8 * (32 * 13 846,15 + 29 * 9 230,77) = 0,8 * 710 769,23 = 568 615,38
+    expect(result.scenario80.breakdown.navPayout).toBeCloseTo(568_615.38, 1);
+  });
+
+  test('80% valgt med 10 fellesuker gir samme sammenligning som 100% med 8', () => {
+    const from100 = compare('both', dueDate, daycare, mother, father, { coverage: 100, sharedWeeksToMother: 8 });
+    const from80 = compare('both', dueDate, daycare, mother, father, { coverage: 80, sharedWeeksToMother: 10 });
+    expect(from80.scenario80).toEqual(from100.scenario80);
+    expect(from80.scenario100).toEqual(from100.scenario100);
+    expect(from80.difference).toBe(from100.difference);
+  });
+
+  test('80% valgt: 80%-scenariet bruker ukene kalenderen viser', () => {
+    const leave = calculateLeave(dueDate, 80, 'both', 9, 0, daycare);
+    const result = compare('both', dueDate, daycare, mother, father, { coverage: 80, sharedWeeksToMother: 9 });
+    // Kalender: mor 3 + 19 + 9 = 31, far 19 + 11 = 30
+    expect(leave.mother.weeks).toBe(31);
+    expect(leave.father.weeks).toBe(30);
+    // 0,8 * (31 * 13 846,15 + 30 * 9 230,77) = 0,8 * 706 153,85 = 564 923,08
+    expect(result.scenario80.breakdown.navPayout).toBeCloseTo(564_923.08, 1);
+    // 100%: round(9 / 20 * 16) = 7, mor 25, far 24: 25 * 13 846,15 + 24 * 9 230,77 = 567 692,31
+    expect(result.scenario100.breakdown.navPayout).toBeCloseTo(567_692.31, 1);
   });
 });

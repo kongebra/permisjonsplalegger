@@ -14,7 +14,7 @@ import {
 } from './economy';
 import { countWorkdaysInRange } from './dates';
 import { G, MAX_BASIS, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
-import type { ParentEconomy, GapInfo } from '../types';
+import type { EconomyComparisonInput, ParentEconomy, ParentRights, GapInfo } from '../types';
 
 // ============================================================
 // calculateBasis — 6G cap
@@ -238,11 +238,32 @@ function makeGap(days: number): GapInfo {
   };
 }
 
+// Termin 14. sep 2026 (permisjonsstart 24. aug 2026), barnehagestart 1. sep 2027
+const DUE_DATE = new Date(2026, 8, 14);
+const DAYCARE = new Date(2027, 8, 1);
+
+function compareBoth(
+  motherEconomy: ParentEconomy,
+  fatherEconomy: ParentEconomy | undefined,
+  overrides: Partial<EconomyComparisonInput> = {},
+) {
+  return compareScenarios({
+    dueDate: DUE_DATE,
+    coverage: 100,
+    rights: 'both',
+    sharedWeeksToMother: 8,
+    daycareStartDate: DAYCARE,
+    motherEconomy,
+    fatherEconomy,
+    ...overrides,
+  });
+}
+
 describe('compareScenarios', () => {
   test('returns both scenarios with difference and recommendation', () => {
     const mother = makeEconomy({ monthlySalary: 50_000 });
     const father = makeEconomy({ monthlySalary: 40_000 });
-    const result = compareScenarios(mother, father, 9, makeGap(60), makeGap(90), 'both');
+    const result = compareBoth(mother, father);
 
     expect(result.scenario80).toBeDefined();
     expect(result.scenario100).toBeDefined();
@@ -254,7 +275,7 @@ describe('compareScenarios', () => {
   test('small difference gives neutral recommendation', () => {
     // Nearly equal scenarios
     const mother = makeEconomy({ monthlySalary: 30_000 });
-    const result = compareScenarios(mother, undefined, 9, makeGap(0), makeGap(0), 'both');
+    const result = compareBoth(mother, undefined);
     if (Math.abs(result.difference) <= 10000) {
       expect(result.recommendation).toContain('familiens situasjon');
     }
@@ -280,9 +301,7 @@ describe('acceptance: high earner with commission (78k + 12k)', () => {
   });
 
   test('comparison shows meaningful difference', () => {
-    const gap80 = makeGap(30); // Less gap with 80%
-    const gap100 = makeGap(90); // More gap with 100%
-    const result = compareScenarios(motherEconomy, fatherEconomy, 9, gap80, gap100, 'both');
+    const result = compareBoth(motherEconomy, fatherEconomy);
     // The difference should be significant (not near zero)
     expect(Math.abs(result.difference)).toBeGreaterThan(10_000);
   });
@@ -304,10 +323,16 @@ describe('acceptance: gap test (100% ends may, daycare aug)', () => {
   });
 
   test('80% with less gap can win over 100% with large gap', () => {
+    // Kun mor, termin 22. jun 2026 (start 1. jun 2026). 100% slutter 10. mai 2027,
+    // 80% slutter 2. aug 2027, barnehagestart 1. aug 2027: gap bare ved 100%.
     const mother = makeEconomy({ monthlySalary: 40_000 });
-    const gap80 = makeGap(0); // No gap
-    const gap100 = makeGap(92); // 3 month gap
-    const result = compareScenarios(mother, undefined, 9, gap80, gap100, 'both');
+    const result = compareBoth(mother, undefined, {
+      rights: 'mother-only',
+      dueDate: new Date(2026, 5, 22),
+      daycareStartDate: new Date(2027, 7, 1),
+    });
+    expect(result.scenario80.breakdown.gapCost).toBe(0);
+    expect(result.scenario100.breakdown.gapCost).toBeGreaterThan(0);
     // 80% should be better when gap is 0 vs 92 days
     expect(result.difference).toBeLessThan(0); // negative means 80% better
   });
@@ -393,14 +418,23 @@ describe('generateCumulativeTimeSeries', () => {
   const father = makeEconomy({ monthlySalary: 40_000 });
   const dueDate = new Date(2027, 2, 15); // March 15, 2027
   const daycare = new Date(2028, 7, 1); // August 1, 2028
+  const seriesInput = (rights: ParentRights, fatherEconomy: ParentEconomy | undefined): EconomyComparisonInput => ({
+    dueDate,
+    coverage: 80,
+    rights,
+    sharedWeeksToMother: 9,
+    daycareStartDate: daycare,
+    motherEconomy: mother,
+    fatherEconomy,
+  });
 
   test('returns non-empty array of time series points', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
+    const result = generateCumulativeTimeSeries(seriesInput('both', father));
     expect(result.length).toBeGreaterThan(0);
   });
 
   test('cumulative values are monotonically non-decreasing', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
+    const result = generateCumulativeTimeSeries(seriesInput('both', father));
     for (let i = 1; i < result.length; i++) {
       expect(result[i].cumulative80).toBeGreaterThanOrEqual(result[i - 1].cumulative80);
       expect(result[i].cumulative100).toBeGreaterThanOrEqual(result[i - 1].cumulative100);
@@ -408,7 +442,7 @@ describe('generateCumulativeTimeSeries', () => {
   });
 
   test('each point has positive monthly income', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
+    const result = generateCumulativeTimeSeries(seriesInput('both', father));
     for (const point of result) {
       expect(point.income80).toBeGreaterThanOrEqual(0);
       expect(point.income100).toBeGreaterThanOrEqual(0);
@@ -416,7 +450,7 @@ describe('generateCumulativeTimeSeries', () => {
   });
 
   test('works with mother-only rights', () => {
-    const result = generateCumulativeTimeSeries(mother, undefined, dueDate, 'mother-only', 9, daycare);
+    const result = generateCumulativeTimeSeries(seriesInput('mother-only', undefined));
     expect(result.length).toBeGreaterThan(0);
     expect(result[result.length - 1].cumulative80).toBeGreaterThan(0);
   });

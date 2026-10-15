@@ -287,17 +287,16 @@ export function useEconomyComparison(): EconomyResult | null {
         ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
         : 0;
 
-    const leave80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, effectiveDaycare, [], undefined, prematureWeeks);
-    const leave100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycare, [], undefined, prematureWeeks);
-
-    return compareScenarios(
-      motherEconomy,
-      rights !== 'mother-only' ? fatherEconomy : undefined,
-      sharedWeeksToMother,
-      leave80.gap,
-      leave100.gap,
+    return compareScenarios({
+      dueDate,
+      coverage,
       rights,
-    );
+      sharedWeeksToMother,
+      daycareStartDate: effectiveDaycare,
+      prematureWeeks,
+      motherEconomy,
+      fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, prematureBirthDateMs, motherEconomy, fatherEconomy]);
 }
@@ -307,10 +306,11 @@ export function useEconomyComparison(): EconomyResult | null {
  * Returns null if the salary data needed for the chosen rights is missing.
  */
 export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
-  const { dueDate, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
+  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
     usePlannerStore(
       useShallow((state) => ({
         dueDate: state.dueDate,
+        coverage: state.coverage,
         rights: state.rights,
         sharedWeeksToMother: state.sharedWeeksToMother,
         daycareStartDate: state.daycareStartDate,
@@ -336,14 +336,15 @@ export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
         ? daycareStartDate
         : new Date(dueDate.getFullYear() + 3, 7, 1);
 
-    return generateCumulativeTimeSeries(
-      motherEconomy,
-      rights !== 'mother-only' ? fatherEconomy : undefined,
+    return generateCumulativeTimeSeries({
       dueDate,
+      coverage,
       rights,
       sharedWeeksToMother,
-      effectiveDaycare,
-    );
+      daycareStartDate: effectiveDaycare,
+      motherEconomy,
+      fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dueDateMs, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);
+  }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);
 }

@@ -3,22 +3,13 @@
  */
 
 import { calculateLeave } from './dates';
-import { compareScenarios, hasEconomyInput } from './economy';
+import { compareScenarios, hasEconomyInput, NO_ECONOMY } from './economy';
 import { LEAVE_CONFIG } from '../constants';
 import type {
   CalculatorInput,
   CalculatorResult,
   Coverage,
-  ParentEconomy,
 } from '../types';
-
-// Brukes når en forelder uten rett i planen ikke har oppgitt økonomi
-const NO_ECONOMY: ParentEconomy = {
-  monthlySalary: 0,
-  monthlyCommissionLoss: 0,
-  employerCoversAbove6G: false,
-  employerPaysFeriepenger: false,
-};
 
 /**
  * Beregner default barnehagestart (1. august)
@@ -84,39 +75,17 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 
   // Hvis økonomi-data er tilgjengelig for rettighetene, beregn sammenligning
   if (hasEconomyInput(rights, motherEconomy, fatherEconomy)) {
-    // Beregn gap for begge scenarioer
-    const leave80 = calculateLeave(
+    // Samme sammenligning som økonomi-fanen og oppsummeringen
+    const economy = compareScenarios({
       dueDate,
-      80,
+      coverage,
       rights,
-      Math.min(sharedWeeksToMother, LEAVE_CONFIG[80].shared),
-      overlapWeeks,
-      daycareStartDate,
-      vacationWeeks,
-      vacation,
-      prematureWeeks,
-    );
-
-    const leave100 = calculateLeave(
-      dueDate,
-      100,
-      rights,
-      Math.min(sharedWeeksToMother, LEAVE_CONFIG[100].shared),
-      overlapWeeks,
-      daycareStartDate,
-      vacationWeeks,
-      vacation,
-      prematureWeeks,
-    );
-
-    const economy = compareScenarios(
-      motherEconomy ?? NO_ECONOMY,
-      fatherEconomy,
       sharedWeeksToMother,
-      leave80.gap,
-      leave100.gap,
-      rights,
-    );
+      daycareStartDate,
+      prematureWeeks,
+      motherEconomy: motherEconomy ?? NO_ECONOMY,
+      fatherEconomy,
+    });
 
     return { leave, economy };
   }
@@ -142,6 +111,7 @@ export {
   getTotalLeaveWeeks,
   countWorkdaysInRange,
 } from './dates';
+export { convertSharedWeeksToMother } from './leave-inputs';
 export {
   calculateBasis,
   hasEconomyInput,

@@ -6,7 +6,6 @@ import {
   MAX_BASIS,
   COVERAGE_RATE,
   WORK_DAYS_PER_MONTH,
-  LEAVE_CONFIG,
   FERIEPENGER_NAV_WEEKS,
   FERIEPENGER_RATE,
 } from '../constants';
@@ -16,12 +15,23 @@ import type {
   ParentEconomy,
   ParentRights,
   ScenarioResult,
+  EconomyComparisonInput,
   EconomyResult,
   GapInfo,
+  LeaveResult,
   LeaveSegment,
   TimeSeriesPoint,
 } from '../types';
 import { calculateLeave, countWorkdaysInRange, getParentLeaveWeeks } from './dates';
+import { convertSharedWeeksToMother } from './leave-inputs';
+
+// Brukes når en forelder uten rett i planen ikke har oppgitt økonomi
+export const NO_ECONOMY: ParentEconomy = {
+  monthlySalary: 0,
+  monthlyCommissionLoss: 0,
+  employerCoversAbove6G: false,
+  employerPaysFeriepenger: false,
+};
 
 /**
  * Har brukeren oppgitt nok økonomi til at sammenligningen gir mening for rettighetene?
@@ -395,26 +405,41 @@ function generateRecommendation(
 }
 
 /**
+ * Bygger permisjonen for begge dekningsgrader fra samme input som kalenderen.
+ * Valgt dekningsgrad bruker fellesukene slik de er lagret; den andre får dem
+ * omregnet med samme regel som når brukeren bytter dekningsgrad.
+ */
+export function buildScenarioLeaves(input: EconomyComparisonInput): {
+  leave80: LeaveResult;
+  leave100: LeaveResult;
+  sharedWeeksToMother80: number;
+  sharedWeeksToMother100: number;
+} {
+  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, prematureWeeks = 0 } = input;
+  const sharedWeeksToMother80 = convertSharedWeeksToMother(sharedWeeksToMother, coverage, 80);
+  const sharedWeeksToMother100 = convertSharedWeeksToMother(sharedWeeksToMother, coverage, 100);
+
+  return {
+    leave80: calculateLeave(dueDate, 80, rights, sharedWeeksToMother80, 0, daycareStartDate, [], undefined, prematureWeeks),
+    leave100: calculateLeave(dueDate, 100, rights, sharedWeeksToMother100, 0, daycareStartDate, [], undefined, prematureWeeks),
+    sharedWeeksToMother80,
+    sharedWeeksToMother100,
+  };
+}
+
+/**
  * Sammenligner 80% og 100% scenarioer.
  *
  * Hvor mange uker hver forelder har følger av rettighetene: kun mor har hele
  * permisjonen, kun far har fars egne uker (40/52), og når begge har rett deles
- * kvoter og fellesperiode. `sharedWeeksToMother` oppgis i 80%-enhet og skaleres
- * til 100% (kun relevant når begge har rett). Økonomien til en forelder uten
- * rett i planen teller ikke med.
+ * kvoter og fellesperiode. Økonomien til en forelder uten rett i planen teller
+ * ikke med.
  */
-export function compareScenarios(
-  motherEconomy: ParentEconomy,
-  fatherEconomy: ParentEconomy | undefined,
-  sharedWeeksToMother: number,
-  gap80: GapInfo,
-  gap100: GapInfo,
-  rights: ParentRights,
-): EconomyResult {
-  const sharedRatio = sharedWeeksToMother / LEAVE_CONFIG[80].shared;
-  const sharedWeeksToMother100 = Math.round(LEAVE_CONFIG[100].shared * sharedRatio);
+export function compareScenarios(input: EconomyComparisonInput): EconomyResult {
+  const { rights, motherEconomy, fatherEconomy } = input;
+  const { leave80, leave100, sharedWeeksToMother80, sharedWeeksToMother100 } = buildScenarioLeaves(input);
 
-  const weeks80 = getParentLeaveWeeks(80, rights, sharedWeeksToMother);
+  const weeks80 = getParentLeaveWeeks(80, rights, sharedWeeksToMother80);
   const weeks100 = getParentLeaveWeeks(100, rights, sharedWeeksToMother100);
 
   const entitledFatherEconomy = rights === 'mother-only' ? undefined : fatherEconomy;
@@ -424,7 +449,7 @@ export function compareScenarios(
     entitledFatherEconomy,
     weeks80.mother,
     weeks80.father,
-    gap80
+    leave80.gap
   );
 
   const scenario100 = calculate100Scenario(
@@ -432,7 +457,7 @@ export function compareScenarios(
     entitledFatherEconomy,
     weeks100.mother,
     weeks100.father,
-    gap100
+    leave100.gap
   );
 
   const difference = scenario100.total - scenario80.total;
@@ -509,23 +534,10 @@ function calcMonthIncome(
  * Genererer kumulativ tidsserie for 80% vs 100% scenario.
  * Brukes av likviditetsgrafen (§3.3.2).
  */
-export function generateCumulativeTimeSeries(
-  motherEconomy: ParentEconomy,
-  fatherEconomy: ParentEconomy | undefined,
-  dueDate: Date,
-  rights: ParentRights,
-  sharedWeeksToMother: number,
-  daycareStartDate: Date,
-): TimeSeriesPoint[] {
-  // Beregn permisjonsperioder for begge scenarioer
-  const config80 = LEAVE_CONFIG[80];
-  const config100 = LEAVE_CONFIG[100];
-
-  const sharedRatio = sharedWeeksToMother / config80.shared;
-  const sharedToMother100 = Math.round(config100.shared * sharedRatio);
-
-  const leave80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, daycareStartDate);
-  const leave100 = calculateLeave(dueDate, 100, rights, sharedToMother100, 0, daycareStartDate);
+export function generateCumulativeTimeSeries(input: EconomyComparisonInput): TimeSeriesPoint[] {
+  const { motherEconomy, fatherEconomy, rights, daycareStartDate } = input;
+  // Samme permisjon per scenario som økonomisammenligningen bruker
+  const { leave80, leave100 } = buildScenarioLeaves(input);
 
   // Determine gap parent (lower earner)
   const gapParent: Parent =

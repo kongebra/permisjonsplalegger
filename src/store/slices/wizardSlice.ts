@@ -4,8 +4,8 @@
 
 import type { StateCreator } from 'zustand';
 import type { Coverage, ParentRights } from '@/lib/types';
-import { getDefaultDaycareStart, getDefaultSharedWeeksToMother } from '@/lib/calculator';
-import { LEAVE_CONFIG, TOTAL_WIZARD_STEPS } from '@/lib/constants';
+import { convertSharedWeeksToMother, getDefaultDaycareStart, getDefaultSharedWeeksToMother } from '@/lib/calculator';
+import { TOTAL_WIZARD_STEPS } from '@/lib/constants';
 
 export interface WizardSlice {
   // Wizard state
@@ -106,12 +106,11 @@ export const createWizardSlice: StateCreator<WizardSlice, [], [], WizardSlice> =
 
   setCoverage: (coverage) => {
     const { sharedWeeksToMother, coverage: oldCoverage } = get();
-    // Preserve ratio when switching coverage
-    const oldConfig = LEAVE_CONFIG[oldCoverage];
-    const newConfig = LEAVE_CONFIG[coverage];
-    const ratio = sharedWeeksToMother / oldConfig.shared;
-    const newShared = Math.round(ratio * newConfig.shared);
-    set({ coverage, sharedWeeksToMother: newShared });
+    // Beholder andelen ved bytte, samme regel som økonomisammenligningen bruker
+    set({
+      coverage,
+      sharedWeeksToMother: convertSharedWeeksToMother(sharedWeeksToMother, oldCoverage, coverage),
+    });
   },
 
   setSharedWeeksToMother: (weeks) => set({ sharedWeeksToMother: weeks }),

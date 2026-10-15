@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG, WORK_DAYS_PER_WEEK } from '@/lib/constants';
-import { compareScenarios, hasEconomyInput } from '@/lib/calculator/economy';
-import { calculateLeave, getTotalLeaveWeeks } from '@/lib/calculator';
+import { buildScenarioLeaves, compareScenarios, hasEconomyInput, NO_ECONOMY } from '@/lib/calculator/economy';
+import { getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency, formatWeeks, formatWorkdays } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
 import { format } from 'date-fns';
@@ -337,20 +337,19 @@ export function SummaryStep({
     ? daycareDate
     : new Date(dueDate.getFullYear() + 3, 7, 1);
 
-  const leaveResult80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
-  const leaveResult100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
+  // Samme input som kalenderen og økonomi-fanen: fellesukene er i valgt dekningsgrads enhet
+  const economyInput = {
+    dueDate,
+    coverage,
+    rights,
+    sharedWeeksToMother,
+    daycareStartDate: effectiveDaycareDate,
+    motherEconomy: motherEconomy ?? NO_ECONOMY,
+    fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
+  };
+  const { leave80: leaveResult80, leave100: leaveResult100 } = buildScenarioLeaves(economyInput);
 
-  // Calculate economy result if data exists — now with correct per-scenario gaps
-  const economyResult = hasEconomyData && motherEconomy
-    ? compareScenarios(
-        motherEconomy,
-        fatherEconomy,
-        sharedWeeksToMother,
-        leaveResult80.gap,
-        leaveResult100.gap,
-        rights,
-      )
-    : null;
+  const economyResult = hasEconomyData ? compareScenarios(economyInput) : null;
 
   return (
     <div className="space-y-4">
