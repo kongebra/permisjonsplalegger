@@ -41,6 +41,7 @@ import { useWizard, useEconomy } from '@/store/hooks';
 import { usePlannerStore } from '@/store';
 import posthog from 'posthog-js';
 import { formatWeeks } from '@/lib/format';
+import { getDueDateRange } from '@/lib/planner/due-date-range';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -65,6 +66,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
 
   // Local settings state (edited in sheet, applied on "Oppdater")
   const [dueDate, setDueDate] = useState(wizard.dueDate);
+  const dueDateRange = getDueDateRange(dueDate);
   const [rights, setRights] = useState(wizard.rights);
   const [coverage, setCoverage] = useState(wizard.coverage);
   const [sharedWeeksToMother, setSharedWeeksToMother] = useState(wizard.sharedWeeksToMother);
@@ -193,8 +195,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                   captionLayout="dropdown"
                   // Åpne på valgt måned, ikke dagens måned
                   defaultMonth={dueDate}
-                  startMonth={new Date(new Date().getFullYear(), 0)}
-                  endMonth={new Date(new Date().getFullYear() + 2, 11)}
+                  startMonth={dueDateRange.startMonth}
+                  endMonth={dueDateRange.endMonth}
                   className="rounded-md border"
                 />
               </div>

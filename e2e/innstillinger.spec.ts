@@ -38,6 +38,15 @@ test.describe('Innstillinger: datovelgere åpner på valgt måned', () => {
     await expect(page.getByRole('grid', { name: 'april 2027' })).toBeVisible();
   });
 
+  test('Termindato fra i fjor kan vises (intervallet utvides)', async ({ page }) => {
+    await seedPlan(page, {
+      wizard: { dueDate: '2025-11-15T00:00:00.000Z', daycareStartDate: null, daycareEnabled: false },
+    });
+    await openSettingsSection(page, /termindato/i);
+
+    await expect(page.getByRole('grid', { name: 'november 2025' })).toBeVisible();
+  });
+
   test('Barnehagestart åpner på måneden til valgt dato', async ({ page }) => {
     await seedPlan(page, {
       wizard: { dueDate: '2027-03-01T00:00:00.000Z', daycareStartDate: '2028-08-15T00:00:00.000Z' },

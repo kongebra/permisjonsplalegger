@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { format, startOfMonth } from "date-fns";
 import { nb } from "date-fns/locale";
 import { subtractWeeks } from "@/lib/calculator";
+import { getDueDateRange } from "@/lib/planner/due-date-range";
 
 interface DueDateStepProps {
   value: Date;
@@ -15,6 +16,8 @@ interface DueDateStepProps {
 }
 
 export function DueDateStep({ value, onChange, prematureBirthDate, onPrematureChange }: DueDateStepProps) {
+  const dueDateRange = getDueDateRange(value);
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -32,8 +35,8 @@ export function DueDateStep({ value, onChange, prematureBirthDate, onPrematureCh
         captionLayout="dropdown"
         // Åpne på valgt måned, ikke dagens måned
         defaultMonth={value}
-        startMonth={new Date(new Date().getFullYear(), 0)}
-        endMonth={new Date(new Date().getFullYear() + 2, 11)}
+        startMonth={dueDateRange.startMonth}
+        endMonth={dueDateRange.endMonth}
         className="rounded-md border w-full"
       />
 

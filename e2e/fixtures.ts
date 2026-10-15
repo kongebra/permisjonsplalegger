@@ -16,7 +16,7 @@ export const SEEDED_PLAN = {
     rights: 'both' as const,
     coverage: '100' as const,
     sharedWeeksToMother: 10,
-    daycareStartDate: '2027-08-01T00:00:00.000Z',
+    daycareStartDate: '2027-08-01T00:00:00.000Z' as string | null,
     daycareEnabled: true,
   },
   jobSettings: {
