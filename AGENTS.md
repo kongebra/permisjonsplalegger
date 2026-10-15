@@ -46,8 +46,9 @@ Stack: Next.js 16 (App Router), React 19, Zustand, `date-fns` v4, Tailwind 4, bu
 - Hoved-branchen er `main`.
 - All ny funksjonalitet og feilretting skal gjøres via pull request, slik at GitHub Copilot får gjort review.
 - PR-beskrivelsen skal avsluttes med en folkelig, ikke-teknisk oppsummering av endringen.
-- Oppdater `CHANGELOG.md` i rot med en kort, ikke-teknisk beskrivelse av endringen.
-  Bruk én `## ÅÅÅÅ-MM-DD`-heading per dag, og legg nye `###`-seksjoner under en eksisterende heading for samme dag i stedet for å lage duplikate datoer.
+- `CHANGELOG.md` genereres med `bun run changelog` og skal aldri redigeres for hånd.
+  Bruk konvensjonelle commit-titler (`feat:`, `fix:`, `refactor:`) med en kort tittel som en forelder forstår, for det er teksten som havner i changelogen.
+  `bun run changelog -- --check` feiler når filen er utdatert.
 
 ## Før du er ferdig
 
@@ -56,7 +57,7 @@ Stack: Next.js 16 (App Router), React 19, Zustand, `date-fns` v4, Tailwind 4, bu
 3. Logikken stemmer med `docs/nav/*.md`.
 4. Justeringer i kalenderen fungerer sømløst, og "gapet" oppdateres riktig når brukeren legger til ferie eller flytter perioder.
 5. Disclaimer om NAV og veiledende beregninger er fortsatt synlig i UI.
-6. `CHANGELOG.md` er oppdatert, og PR-beskrivelsen har en ikke-teknisk oppsummering nederst.
+6. `bun run changelog` er kjørt, og PR-beskrivelsen har en ikke-teknisk oppsummering nederst.
 
 ## Agent skills
 
