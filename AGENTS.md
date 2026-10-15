@@ -16,6 +16,16 @@ Stack: Next.js 16 (App Router), React 19, Zustand, `date-fns` v4, Tailwind 4, bu
 - `bun run test:e2e` - Playwright-tester i `e2e/`.
 - `bun run test:a11y` - kun UU-testene i `e2e/` (axe-core).
 
+### Prosesser og porter
+
+- Flere agenter og sesjoner kan kjøre samtidig på samme maskin, så ingen prosesser er dine alene.
+- Aldri bruk `pkill`, `killall` eller `kill` på `next dev`, `next start`, `bun` eller andre prosesser du ikke selv har startet i denne kjøringen.
+- Kjør e2e og a11y med en egen port: `E2E_PORT=<ledig port> bun run test:e2e`.
+  Velg en port mellom 3100 og 3999 som ikke er i bruk (`lsof -iTCP:<port> -sTCP:LISTEN`), og bruk samme port hele kjøringen.
+- Playwright gjenbruker en server som allerede lytter på porten.
+  Hvis en kjøring ser forurenset ut, velg en annen port i stedet for å drepe prosessen som står der.
+- Stopp bare prosesser du selv har startet, via PID du fikk da du startet dem.
+
 ## Struktur
 
 - `src/app/` - ruter, `src/components/` - UI gruppert etter område.
