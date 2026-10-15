@@ -36,6 +36,9 @@
 - Vis riktig antall uker for kun far i fordeling og innstillinger
 - Vis gap og siste permisjonsdag riktig i barnehagesteget
 - Bruk rettighetene for økonomi-raden i oppsummeringen
+- Gap-kostnaden teller ikke helligdager, som gapet i kalenderen
+- Økonomien bruker fellesukene i valgt dekningsgrad, som kalenderen
+- Økonomien tar med ekstra uker ved prematur fødsel
 - Datovelgerne åpner på valgt måned og prematur fødsel kan velges neste år
 - Ikke vis Velkommen tilbake midt i veiviseren
 - Hopp over PostHog-init uten nøkkel så konsollen er stille lokalt
@@ -44,6 +47,9 @@
 - Norsk feilside som logger feilen og lar brukeren starte på nytt
 - Termindato-velgeren viser lagret termindato fra tidligere år
 - Norske månedsnavn og tilgjengelighetsetiketter i datovelgeren
+- Kort, graf og anbefaling sammenligner 80% og 100% over samme tidsrom
+- Fastlønn teller også helligdager i økonomisammenligningen
+- Anbefalingen nevner bare de to viktigste årsakene
 
 ### Opprydding
 
