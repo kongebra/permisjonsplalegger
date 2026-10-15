@@ -213,8 +213,10 @@ describe('anbefalingstekst: retning følger hvem som lønner seg', () => {
     );
     expect(result.difference).toBeCloseTo(524_290.55 - 339_885.34, 0);
     expect(result.recommendation).toContain('100% gir høyere utbetaling per uke og mest penger totalt');
-    expect(result.recommendation).toContain(
-      'Hovedårsak: mer lønn fordi dere er tilbake i jobb tidligere og mindre provisjonstap og mindre tapt feriepengeopptjening og høyere NAV-utbetaling.',
+    // Høyst to årsaker, og bare de som utgjør minst 10% av forskjellen (18 440 kr):
+    // lønn 138 249 og provisjon 33 256 tas med, feriepenger 10 592 og NAV 2 308 ikke.
+    expect(result.recommendation).toEndWith(
+      'Hovedårsak: mer lønn fordi dere er tilbake i jobb tidligere og mindre provisjonstap.',
     );
   });
 });
@@ -416,7 +418,8 @@ describe('compareScenarios: begge, hvem som er tilbake i jobb når', () => {
     // Gap 2. aug - 1. sep 2027 = 22 arbeidsdager * 1 843,32
     expect(result.scenario100.breakdown.gapCost).toBeCloseTo(22 * (40_000 / 21.7), 1);
     expect(result.recommendation).toContain('100% gir');
-    expect(result.recommendation).toContain('Hovedårsak: mer lønn fordi dere er tilbake i jobb tidligere');
+    // NAV (3 692) og feriepenger (2 919) er under 10% av forskjellen og nevnes ikke
+    expect(result.recommendation).toEndWith('Hovedårsak: mer lønn fordi dere er tilbake i jobb tidligere.');
   });
 });
 

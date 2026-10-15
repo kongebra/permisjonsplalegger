@@ -10,6 +10,7 @@ import {
   FERIEPENGER_NAV_WEEKS,
   FERIEPENGER_RATE,
   SMALL_ECONOMY_DIFFERENCE,
+  MIN_RECOMMENDATION_REASON_SHARE,
 } from '../constants';
 import type {
   Coverage,
@@ -408,10 +409,13 @@ function generateRecommendation(
     },
   ];
 
+  // Høyst to årsaker, og bare de som utgjør en merkbar del av forskjellen
   const sign = winner === 100 ? 1 : -1;
+  const minimum = Math.abs(difference) * MIN_RECOMMENDATION_REASON_SHARE;
   const reasons = contributions
-    .filter((c) => sign * c.value > 1)
+    .filter((c) => sign * c.value >= minimum)
     .sort((a, b) => sign * b.value - sign * a.value)
+    .slice(0, 2)
     .map((c) => (winner === 100 ? c.reason100 : c.reason80));
   const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
 
