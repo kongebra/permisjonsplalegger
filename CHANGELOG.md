@@ -9,6 +9,8 @@
 - Bruk lokal datonøkkel i kalenderen og samle NO_GAP og dato-sammenligning
 - Oppdater grunnbeløpet til 136 549 kr (1. mai 2026)
 - Bruk kalenderdager i daysBetween så vintertid ikke gir én dag for mye
+- Legg til rad-roller i kalenderen for gyldig ARIA-grid
+- Lang-testen forventer nb, og skru av agentRules i next dev
 
 ### Opprydding
 
