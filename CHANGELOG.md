@@ -1,5 +1,33 @@
 # Changelog
 
+<!-- Generert av `bun run changelog` (scripts/changelog.ts). Ikke rediger for hånd. -->
+
+## 2026-10-15
+
+### Rettet
+
+- Bruk lokal datonøkkel i kalenderen og samle NO_GAP og dato-sammenligning
+- Oppdater grunnbeløpet til 136 549 kr (1. mai 2026)
+- Bruk kalenderdager i daysBetween så vintertid ikke gir én dag for mye
+
+### Opprydding
+
+- Samle 6G-tak og dekningsgrad i konstanter og monthlyNavPayout
+
+## 2026-02-26
+
+### Rettet
+
+- Erstatt tabell-elementer med divs for å fikse Safari kalender-overflow
+
+## 2026-02-25
+
+### Rettet
+
+- Fjern h-full fra kalender-datoer for å fikse Safari-overflow
+
+<!-- Håndskrevet historikk fra før verktøyet. Kilde: scripts/changelog-historikk.md -->
+
 ## [Upublisert]
 
 ### Forbedringer

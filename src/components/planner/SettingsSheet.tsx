@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+import { format, isEqual } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { ChevronDown, CalendarDays, Users, Percent, Baby, Wallet, Trash2 } from 'lucide-react';
 import {
@@ -47,6 +47,12 @@ interface SettingsSheetProps {
 
 type SettingsSection = 'dueDate' | 'rights' | 'coverage' | 'distribution' | 'daycare' | 'economy' | null;
 
+/** Likhet for valgfrie datoer (begge udefinerte teller som lik). */
+function isSameOptionalDate(a?: Date | null, b?: Date | null): boolean {
+  if (!a || !b) return !a && !b;
+  return isEqual(a, b);
+}
+
 export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const router = useRouter();
   const wizard = useWizard();
@@ -87,7 +93,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
 
   // Check if changes are "destructive" (require period recalculation)
   const isDestructiveChange =
-    dueDate.getTime() !== wizard.dueDate.getTime() ||
+    !isEqual(dueDate, wizard.dueDate) ||
     coverage !== wizard.coverage ||
     rights !== wizard.rights ||
     sharedWeeksToMother !== wizard.sharedWeeksToMother;
@@ -95,13 +101,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const hasChanges =
     isDestructiveChange ||
     daycareEnabled !== wizard.daycareEnabled ||
-    daycareStartDate?.getTime() !== wizard.daycareStartDate?.getTime() ||
+    !isSameOptionalDate(daycareStartDate, wizard.daycareStartDate) ||
     JSON.stringify(motherEconomy) !== JSON.stringify(economy.motherEconomy) ||
     JSON.stringify(fatherEconomy) !== JSON.stringify(economy.fatherEconomy);
 
   // Derive changed fields for analytics (no sensitive data)
   const changedFields = [
-    dueDate.getTime() !== wizard.dueDate.getTime() && 'due_date',
+    !isEqual(dueDate, wizard.dueDate) && 'due_date',
     coverage !== wizard.coverage && 'coverage',
     rights !== wizard.rights && 'rights',
     sharedWeeksToMother !== wizard.sharedWeeksToMother && 'distribution',
@@ -366,7 +372,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             <DialogTitle>Oppdatere plan?</DialogTitle>
             <DialogDescription>
               Endring av {[
-                dueDate.getTime() !== wizard.dueDate.getTime() && 'termindato',
+                !isEqual(dueDate, wizard.dueDate) && 'termindato',
                 coverage !== wizard.coverage && 'dekningsgrad',
                 rights !== wizard.rights && 'rettigheter',
                 sharedWeeksToMother !== wizard.sharedWeeksToMother && 'fordeling',

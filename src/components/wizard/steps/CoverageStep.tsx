@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LEAVE_CONFIG, G } from "@/lib/constants";
+import { LEAVE_CONFIG, MAX_BASIS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format";
 import type { Coverage } from "@/lib/types";
 import { Percent, Clock } from "lucide-react";
@@ -25,7 +25,7 @@ const coverageOptions: {
     value: 100,
     percentage: "100%",
     weeks: LEAVE_CONFIG[100].total,
-    description: `Full lønn (maks 6G ≈ ${formatCurrency(6 * G)}/år)`,
+    description: `Full lønn (maks 6G ≈ ${formatCurrency(MAX_BASIS)}/år)`,
     pros: ["Høyere månedlig utbetaling", "Mindre økonomisk stress"],
     cons: ["Kortere permisjon", "Større gap før barnehage"],
   },
@@ -33,7 +33,7 @@ const coverageOptions: {
     value: 80,
     percentage: "80%",
     weeks: LEAVE_CONFIG[80].total,
-    description: `80% av lønn (maks 6G ≈ ${formatCurrency(6 * G)}/år)`,
+    description: `80% av lønn (maks 6G ≈ ${formatCurrency(MAX_BASIS)}/år)`,
     pros: ["Lengre tid hjemme med barnet", "Mindre gap før barnehage"],
     cons: ["Lavere månedlig utbetaling", "Lavere utbetaling per måned"],
   },

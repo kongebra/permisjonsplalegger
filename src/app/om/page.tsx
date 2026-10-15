@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { G } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Om kalkulatoren",
@@ -37,7 +38,7 @@ export default function OmPage() {
             </li>
             <li>
               <strong>6G-taket:</strong> NAV dekker kun inntekt opp til 6G
-              ({new Intl.NumberFormat("nb-NO").format(130160 * 6)} kr i 2025)
+              ({new Intl.NumberFormat("nb-NO").format(G * 6)} kr i 2026)
             </li>
             <li>
               <strong>Feriepenger:</strong> Stor reduksjon i år 2 hvis NAV betaler i

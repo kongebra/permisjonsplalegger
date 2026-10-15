@@ -1,90 +1,79 @@
 ---
 name: nav-compliant
-description: Use when checking whether app constants in src/lib/constants.ts match current NAV documentation in docs/nav/. Detects stale G-values, wrong quota durations, or other discrepancies between the codebase and official NAV rules.
+description: Sjekker at NAV-konstantene i src/lib/constants.ts (G, foreldrepengekvoter, feriepenger) og barnehagestart-logikken i src/lib/calculator/index.ts stemmer med docs/nav/*.md, og rapporterer avvik. Bruk etter nav-scrape, etter 1. mai når G endres, eller når brukeren ber om å verifisere at kalkulatoren følger NAVs regler.
 ---
 
 # nav-compliant
 
-## Overview
+Sammenlign verdiene under mot `docs/nav/` og rapporter avvik.
+Les kildefilene parallelt.
+Dette er en ren lesesjekk: rediger ikke noe uten at brukeren ber om det.
 
-Sammenligner `src/lib/constants.ts` mot `docs/nav/` og rapporterer avvik. Kjør etter `nav-scrape` eller når NAV-regler kan ha endret seg (typisk etter 1. mai hvert år).
+## 1. G-beløpet
 
-## Sjekkliste
+Kilde: `docs/nav/grunnbelopet.md`.
 
-Les begge filer parallelt og sammenlign hver verdi:
+- Gjeldende G i docs (raden med nyeste dato) er lik `G` i `src/lib/constants.ts`.
+- Datoen i kommentaren på `G` er lik effektiv dato i docs.
+- 6G-taket er ikke hardkodet: `grep -n "6 \* G" src/lib/calculator/economy.ts` skal gi treff.
 
-### G-beløpet
+## 2. Foreldrepengekvoter
 
-Kilde: `docs/nav/grunnbelopet.md` (fra https://www.nav.no/grunnbelopet)
+Kilde: `docs/nav/foreldrepenger.md`, kvotetabellene (begge dekningsgrader, og tabellen for kun-far).
+Sammenlign mot `LEAVE_CONFIG[100]` og `LEAVE_CONFIG[80]` i `constants.ts`: `total`, `mother`, `father`, `shared`, `fatherOnly.total`, `fatherOnly.noRequirement`, `fatherOnly.withRequirement`.
 
-| Sjekk | docs/nav/ | constants.ts |
+Verdier per docs ved 100 % / 80 %:
+
+| Felt | 100 % | 80 % |
 |---|---|---|
-| Gjeldende G | f.eks. 130 160 | `G = 130_160` på linje 6 |
-| Effektiv dato | 1. mai YYYY | kommentar på samme linje |
-| 6G-tak | 6 × G | beregnes i economy.ts – ikke hardkodet |
+| total | 49 | 61 (NAV: og 1 dag) |
+| mother | 15 | 19 |
+| father | 15 | 19 |
+| shared | 16 | 20 (NAV: og 1 dag) |
+| fatherOnly.total | 40 | 52 (NAV: og 1 dag) |
+| fatherOnly.noRequirement | 10 | 10 |
+| fatherOnly.withRequirement | 30 | 42 (NAV: og 1 dag) |
 
-Flagg avvik hvis: G-verdien er ulik, eller årstall i kommentaren er et år gammelt.
+Tabellen er en huskeliste.
+Docs er fasit: ved ulikhet gjelder docs, og tabellen her skal oppdateres.
 
-### Foreldrepenger-kvoter
+## 3. Feriepenger
 
-Kilde: `docs/nav/foreldrepenger.md` (fra https://www.nav.no/foreldrepenger)
+Kilde: seksjonen "Feriepenger av foreldrepenger" i `docs/nav/foreldrepenger.md`.
 
-| NAV-felt | docs/nav/ | constants.ts-sti |
-|---|---|---|
-| Totalt 100% | 49 uker | `LEAVE_CONFIG[100].total` |
-| Totalt 80% | 61 uker (og 1 dag) | `LEAVE_CONFIG[80].total` |
-| Mødrekvote 100% | 15 uker | `LEAVE_CONFIG[100].mother` |
-| Mødrekvote 80% | 19 uker | `LEAVE_CONFIG[80].mother` |
-| Fedrekvote 100% | 15 uker | `LEAVE_CONFIG[100].father` |
-| Fedrekvote 80% | 19 uker | `LEAVE_CONFIG[80].father` |
-| Fellesperiode 100% | 16 uker | `LEAVE_CONFIG[100].shared` |
-| Fellesperiode 80% | 20 uker (og 1 dag) | `LEAVE_CONFIG[80].shared` |
-| Kun-far totalt 100% | 40 uker | `LEAVE_CONFIG[100].fatherOnly.total` |
-| Kun-far totalt 80% | 52 uker (og 1 dag) | `LEAVE_CONFIG[80].fatherOnly.total` |
-| Kun-far uten krav 100% | 10 uker | `LEAVE_CONFIG[100].fatherOnly.noRequirement` |
-| Kun-far uten krav 80% | 10 uker | `LEAVE_CONFIG[80].fatherOnly.noRequirement` |
-| Kun-far med krav 100% | 30 uker | `LEAVE_CONFIG[100].fatherOnly.withRequirement` |
-| Kun-far med krav 80% | 42 uker (og 1 dag) | `LEAVE_CONFIG[80].fatherOnly.withRequirement` |
+- Sats 10,2 % er lik `FERIEPENGER_RATE` (0.102).
+- Uker som teller: 12 ved 100 % og 15 ved 80 %, lik `FERIEPENGER_NAV_WEEKS`.
 
-### Feriepenger
+## 4. Barnehagerett
 
-| Sjekk | NAV-docs | constants.ts |
-|---|---|---|
-| Sats | 10,2% | `FERIEPENGER_RATE = 0.102` |
-| Uker som teller, 100% | 12 uker | `FERIEPENGER_NAV_WEEKS[100]` |
-| Uker som teller, 80% | 15 uker | `FERIEPENGER_NAV_WEEKS[80]` |
+Kilde: `docs/nav/barnehagerett.md`, tabellen "Praktisk oppsummering for kalkulatoren".
+Sammenlign mot `getDefaultDaycareStart` i `src/lib/calculator/index.ts`:
 
-### Barnehagerett
-
-Kilde: `docs/nav/barnehagerett.md` (fra https://lovdata.no/nav/lov/2005-06-17-64/kapIV/%C2%A716)
-
-Sammenlign opptak-logikken mot `src/lib/calculator/dates.ts` (funksjonen for barnehagestart):
-- Jan–aug-fødte → 1. august år barnet er 1 år
-- Sep/okt/nov-fødte → rett til plass månedsslutt i fødselsmåneden (kalkulatoren forenkler til august)
-- Des-fødte → 1. august *neste* år (barnet ca 1 år 8 mnd)
+- Jan-aug-fødte: 1. august året etter fødsel.
+- Sep/okt/nov-fødte: fødselsmåneden året etter (koden bruker den 1. i måneden som tidligste start).
+- Des-fødte: 1. august to år etter fødselsåret.
 
 ## Rapportformat
+
+Grupper funnene slik, og list alt som er OK til slutt med ✓:
 
 ```
 ## Avvik funnet
 
 ### Kritisk (påvirker beregninger)
-- G er 130 160 i docs men XXXXX i constants.ts:6
-  → Oppdater: export const G = 130_160; // Per 1. mai 2025
+- G er <docs-verdi> i docs men <kode-verdi> i constants.ts
+  → Oppdater: export const G = <docs-verdi>; // Per 1. mai <år>
 
 ### Advarsel (avrunding/datokommentar)
-- LEAVE_CONFIG[80].shared er 20 – NAV sier "20 uker og 1 dag"
-  → Avrunding er bevisst – legg til kommentar hvis den mangler
+- LEAVE_CONFIG[80].shared er 20 - NAV sier "20 uker og 1 dag"
+  → Avrunding er bevisst - legg til kommentar hvis den mangler
 
-## Alt ser OK ut
+## OK
 - FERIEPENGER_RATE: 0.102 ✓
-- G: 130 160 ✓
 ```
 
-## Når foreslå kodeendringer
+## Regler for forslag
 
-Foreslå bare endring i `constants.ts` når docs viser en annen numerisk verdi. For "og 1 dag"-tilfeller: flagg som dokumentert, bevisst avrunding hvis det allerede finnes en kommentar på linjen.
-
-## Notat om docs/nav/-ferskhet
-
-Hvis `Hentet:`-datoer i docs/nav/ er eldre enn ~6 måneder, anbefal å kjøre `nav-scrape` først.
+- Foreslå endring i `constants.ts` bare når docs viser en annen numerisk verdi.
+- "og 1 dag"-tilfeller er bevisst avrunding til hele uker: flagg som advarsel bare hvis kommentar mangler på linjen.
+- Hvis `Hentet:`-datoen i `docs/nav/*.md` er eldre enn ca. 6 måneder, anbefal å kjøre `nav-scrape` først, siden docs da kan være utdatert.

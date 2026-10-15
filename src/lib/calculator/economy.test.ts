@@ -3,6 +3,7 @@ import {
   calculateBasis,
   calculateDailyRate,
   calculateNavPayout,
+  monthlyNavPayout,
   calculateCommissionLoss,
   calculateGapCost,
   calculateFeriepengeDifference,
@@ -11,7 +12,7 @@ import {
   generateCumulativeTimeSeries,
   countWorkingDaysInGap,
 } from './economy';
-import { G, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
+import { G, MAX_BASIS, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
 import type { ParentEconomy, GapInfo } from '../types';
 
 // ============================================================
@@ -31,14 +32,14 @@ describe('calculateBasis', () => {
   });
 
   test('returns full salary when below 6G', () => {
-    const monthlySalary = 50_000; // 600k annually, below 6G (780,960)
+    const monthlySalary = 50_000; // 600k annually, below 6G (819,294)
     const result = calculateBasis(monthlySalary, false);
     expect(result).toBe(monthlySalary * 12);
   });
 
   test('6G threshold is exactly 6 * G', () => {
-    const sixG = 6 * G; // 780,960
-    const monthlyAt6G = sixG / 12; // 65,080
+    const sixG = 6 * G; // 819,294
+    const monthlyAt6G = sixG / 12; // 68,274.5
     expect(calculateBasis(monthlyAt6G, false)).toBe(sixG);
     // One krone above: still capped
     expect(calculateBasis(monthlyAt6G + 1, false)).toBe(sixG);
@@ -366,5 +367,24 @@ describe('generateCumulativeTimeSeries', () => {
     const result = generateCumulativeTimeSeries(mother, undefined, dueDate, 'mother-only', 9, daycare);
     expect(result.length).toBeGreaterThan(0);
     expect(result[result.length - 1].cumulative80).toBeGreaterThan(0);
+  });
+});
+
+// ============================================================
+// monthlyNavPayout
+// ============================================================
+describe('monthlyNavPayout', () => {
+  test('100% dekning gir grunnlag / 12', () => {
+    expect(monthlyNavPayout(600_000, 100)).toBe(50_000);
+  });
+
+  test('80% dekning gir 80% av grunnlag / 12', () => {
+    expect(monthlyNavPayout(600_000, 80)).toBeCloseTo(40_000, 6);
+  });
+
+  test('grunnlag begrenset til 6G gir maks månedlig utbetaling', () => {
+    const basis = calculateBasis(100_000, false);
+    expect(monthlyNavPayout(basis, 100)).toBe(MAX_BASIS / 12);
+    expect(monthlyNavPayout(basis, 80)).toBeCloseTo((MAX_BASIS * 0.8) / 12, 6);
   });
 });

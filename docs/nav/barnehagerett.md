@@ -37,28 +37,13 @@ Barnehageloven kapittel IV regulerer kommunenes oppgaver, inkludert retten til b
 
 ## Implementasjon i kalkulatoren
 
-Kalkulatoren bruker en forenklet modell med to regler (se `CLAUDE.md` avsnitt 10):
+`getDefaultDaycareStart(dueDate)` i `src/lib/calculator/index.ts` følger tabellen over:
 
-```typescript
-// src/lib/calculator/dates.ts
-function calcDaycareStart(dueDate: Date): Date {
-  const year = dueDate.getFullYear();
-  const augustFirst = new Date(year, 7, 1); // August = måned 7 (0-indeksert)
+- Født januar til august: 1. august året etter.
+- Født september til november: 1. i fødselsmåneden året etter (tidligst mulige start innenfor lovens frist).
+- Født desember: 1. august to år frem.
 
-  if (dueDate >= augustFirst) {
-    // Født i august–desember → neste august-opptak er 2 år frem
-    return new Date(year + 2, 7, 1);
-  }
-  // Født januar–juli → august-opptak neste år
-  return new Date(year + 1, 7, 1);
-}
-```
-
-> **Forenkling:** Kalkulatoren skiller ikke mellom september/oktober/november-fødte
-> (som teknisk kan starte en måned eller to tidligere). Denne forenklingen aksepteres fordi:
-> 1. Disse foreldrene velger vanligvis august-opptak uansett (søknadsfrist passer)
-> 2. Avviket er maksimalt 3 måneder ekstra «gap» i worst case
-> 3. Økt kompleksitet er ikke verdt det for MVP
+Brukeren kan overstyre datoen i wizarden.
 
 ---
 

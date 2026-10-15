@@ -1,7 +1,7 @@
 # Foreldrepenger – NAV
 
 > Kilde: https://www.nav.no/foreldrepenger
-> Hentet: 2026-02-25
+> Hentet: 2026-10-15
 
 ## Relaterte filer i dette dokumentet
 
@@ -20,7 +20,7 @@ Foreldrepenger erstatter inntekten din når du skal være hjemme med barnet ved 
 **Tre hovedkrav:**
 
 1. Hatt inntekt minst 6 av de 10 siste månedene
-2. Tjent minst 1/2 grunnbeløp (G) årlig – ca. 65 080 kroner
+2. Tjent minst 1/2 grunnbeløp (G) årlig – ca. 68 275 kroner
 3. Medlem av norsk folketrygd
 
 Du må være registrert som eller dokumentere at du er forelder til barnet.
@@ -79,7 +79,7 @@ Flerbarnstillegg er heller ikke modellert (ingen aktivitetskrav gjelder der).
 
 ## Hvor mye kan du få?
 
-Foreldrepengene dekker inntekten din opptil **780 960 kroner** (6 × grunnbeløpet, G).
+Foreldrepengene dekker inntekten din opptil **819 294 kroner** (6 × grunnbeløpet, G).
 
 ### Beregningsgrunnlag
 
@@ -127,7 +127,7 @@ Feriepengene utbetales i **mai året etter**.
 
 | Fase | Saksbehandlingstid |
 |---|---|
-| Søknad | 6 uker |
+| Søknad | 8 uker |
 | Klage til Nav-enhet | 15 uker |
 | Klage til Nav klageinstans | 3 måneder |
 

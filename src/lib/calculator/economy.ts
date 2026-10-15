@@ -3,7 +3,8 @@
  */
 
 import {
-  G,
+  MAX_BASIS,
+  COVERAGE_RATE,
   WORK_DAYS_PER_MONTH,
   LEAVE_CONFIG,
   FERIEPENGER_NAV_WEEKS,
@@ -40,6 +41,13 @@ export function countWorkingDaysInGap(start: Date, end: Date): number {
 }
 
 /**
+ * Månedlig NAV-utbetaling ut fra grunnlag og dekningsgrad
+ */
+export function monthlyNavPayout(basis: number, coverage: Coverage): number {
+  return (basis * COVERAGE_RATE[coverage]) / 12;
+}
+
+/**
  * Beregner grunnlaget for NAV-utbetaling
  * Begrenset til 6G med mindre arbeidsgiver dekker over 6G
  */
@@ -48,13 +56,11 @@ export function calculateBasis(
   employerCoversAbove6G: boolean
 ): number {
   const annualSalary = monthlySalary * 12;
-  const sixG = 6 * G;
-
   if (employerCoversAbove6G) {
     return annualSalary;
   }
 
-  return Math.min(annualSalary, sixG);
+  return Math.min(annualSalary, MAX_BASIS);
 }
 
 /**
@@ -162,7 +168,7 @@ export function calculate80Scenario(
     motherEconomy.monthlySalary,
     motherEconomy.employerCoversAbove6G
   );
-  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, 0.8);
+  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, COVERAGE_RATE[80]);
   const motherCommissionLoss = calculateCommissionLoss(
     motherEconomy.monthlyCommissionLoss,
     motherWeeks
@@ -185,7 +191,7 @@ export function calculate80Scenario(
       fatherEconomy.monthlySalary,
       fatherEconomy.employerCoversAbove6G
     );
-    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, 0.8);
+    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, COVERAGE_RATE[80]);
     fatherCommissionLoss = calculateCommissionLoss(
       fatherEconomy.monthlyCommissionLoss,
       fatherWeeks
@@ -246,7 +252,7 @@ export function calculate100Scenario(
     motherEconomy.monthlySalary,
     motherEconomy.employerCoversAbove6G
   );
-  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, 1.0);
+  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, COVERAGE_RATE[100]);
   const motherCommissionLoss = calculateCommissionLoss(
     motherEconomy.monthlyCommissionLoss,
     motherWeeks
@@ -269,7 +275,7 @@ export function calculate100Scenario(
       fatherEconomy.monthlySalary,
       fatherEconomy.employerCoversAbove6G
     );
-    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, 1.0);
+    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, COVERAGE_RATE[100]);
     fatherCommissionLoss = calculateCommissionLoss(
       fatherEconomy.monthlyCommissionLoss,
       fatherWeeks
@@ -424,8 +430,7 @@ function calcMonthIncome(
   if (economy.monthlySalary <= 0) return 0;
 
   const basis = calculateBasis(economy.monthlySalary, economy.employerCoversAbove6G);
-  const coverageRate = coverage === 80 ? 0.8 : 1.0;
-  const monthlyNav = (basis * coverageRate) / 12;
+  const monthlyNav = monthlyNavPayout(basis, coverage);
   const monthlySalary = economy.monthlySalary;
 
   const parentSegments = segments.filter(s => s.parent === parent);
