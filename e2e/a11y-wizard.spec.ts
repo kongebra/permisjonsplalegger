@@ -79,7 +79,7 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
 
     // The "Tilbake" and "Neste" buttons should exist
     const tilbakeButton = page.getByRole('button', { name: /tilbake/i });
-    const nesteButton = page.getByRole('button', { name: /neste/i });
+    const nesteButton = page.getByRole('button', { name: 'Neste', exact: true });
 
     await expect(tilbakeButton).toBeVisible();
     await expect(nesteButton).toBeVisible();

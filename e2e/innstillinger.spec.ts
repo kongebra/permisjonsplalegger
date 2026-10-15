@@ -31,11 +31,24 @@ test.describe('Innstillinger: datovelgere åpner på valgt måned', () => {
     await expect(page.getByRole('grid', { name: 'mars 2027' })).toBeVisible();
 
     // Ny dato i neste måned: visningen og raden følger valget
-    await page.getByRole('button', { name: /neste måned|next month/i }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Gå til neste måned' }).click();
     await expect(page.getByRole('grid', { name: 'april 2027' })).toBeVisible();
     await page.getByRole('button', { name: /14\. april 2027/ }).click();
     await expect(page.getByRole('button', { name: /termindato/i })).toContainText('14. apr');
     await expect(page.getByRole('grid', { name: 'april 2027' })).toBeVisible();
+  });
+
+  test('Datovelgeren er på norsk (månedsnavn og tilgjengelighetsetiketter)', async ({ page }) => {
+    await seedPlan(page, { wizard: { dueDate: '2027-03-01T00:00:00.000Z' } });
+    await openSettingsSection(page, /termindato/i);
+
+    const sheet = page.getByRole('dialog');
+    await expect(sheet.getByRole('combobox', { name: 'Velg måned' })).toHaveValue('2');
+    await expect(sheet.getByRole('combobox', { name: 'Velg år' })).toHaveValue('2027');
+    await expect(sheet.getByRole('button', { name: 'Gå til forrige måned' })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: /1\. mars 2027, valgt/ })).toBeVisible();
+    // Kort månedsnavn på norsk i stedet for nettleserens språk ("Mar")
+    await expect(sheet.locator('.rdp-caption_label').first()).toHaveText('mars');
   });
 
   test('Termindato fra i fjor kan vises (intervallet utvides)', async ({ page }) => {

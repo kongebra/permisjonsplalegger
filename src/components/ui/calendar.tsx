@@ -15,6 +15,27 @@ import {
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 
+// Appen er norsk: tilgjengelighetsetikettene i react-day-picker er engelske
+// som standard, og må oversettes selv (locale påvirker bare datoformatering).
+const norwegianLabels: NonNullable<
+  React.ComponentProps<typeof DayPicker>["labels"]
+> = {
+  labelMonthDropdown: () => "Velg måned",
+  labelYearDropdown: () => "Velg år",
+  labelNext: () => "Gå til neste måned",
+  labelPrevious: () => "Gå til forrige måned",
+  labelDayButton: (date, modifiers, _options, dateLib) => {
+    let label = dateLib ? dateLib.format(date, "PPPP") : date.toDateString();
+    if (modifiers.today) label = `I dag, ${label}`;
+    if (modifiers.selected) label = `${label}, valgt`;
+    return label;
+  },
+  labelGridcell: (date, modifiers, _options, dateLib) => {
+    const label = dateLib ? dateLib.format(date, "PPPP") : date.toDateString();
+    return modifiers?.today ? `I dag, ${label}` : label;
+  },
+};
+
 function Calendar({
   className,
   classNames,
@@ -23,6 +44,7 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  labels,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
@@ -40,10 +62,14 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+        // Kort månedsnavn på valgt språk (nb), ikke nettleserens språk
+        formatMonthDropdown: (date, dateLib) =>
+          dateLib
+            ? dateLib.format(date, "LLL")
+            : date.toLocaleString("nb-NO", { month: "short" }),
         ...formatters,
       }}
+      labels={{ ...norwegianLabels, ...labels }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
