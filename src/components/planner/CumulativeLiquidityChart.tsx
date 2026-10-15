@@ -1,10 +1,16 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useCumulativeTimeSeries } from '@/store/hooks';
 import type { TimeSeriesPoint } from '@/lib/types';
 
 const CHART_HEIGHT = 200;
 const PADDING = { top: 16, right: 12, bottom: 32, left: 56 };
+// Bredde brukt før containeren er målt (SSR og første render)
+const DEFAULT_WIDTH = 600;
+// Aksetekst i faktiske px - viewBox følger containerbredden, så teksten krymper ikke på mobil
+const Y_LABEL_SIZE = 11;
+const X_LABEL_SIZE = 10;
 
 function formatKr(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -17,8 +23,20 @@ function Chart({ data }: { data: TimeSeriesPoint[] }) {
   const minVal = 0;
   const valueRange = maxVal - minVal || 1;
 
-  const chartWidth = '100%';
-  const viewBoxWidth = 600;
+  // Mål containerbredden og bruk den som viewBox-bredde (1 enhet = 1 px)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewBoxWidth, setViewBoxWidth] = useState(DEFAULT_WIDTH);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      if (width > 0) setViewBoxWidth(width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const plotWidth = viewBoxWidth - PADDING.left - PADDING.right;
   const plotHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
@@ -43,81 +61,84 @@ function Chart({ data }: { data: TimeSeriesPoint[] }) {
   const labelInterval = data.length > 12 ? 2 : 1;
 
   return (
-    <svg
-      viewBox={`0 0 ${viewBoxWidth} ${CHART_HEIGHT}`}
-      width={chartWidth}
-      className="w-full"
-      role="img"
-      aria-label="Kumulativt inntektsdiagram: 80% vs 100% dekningsgrad"
-    >
-      {/* Grid lines */}
-      {yTicks.map((tick) => (
-        <g key={tick}>
-          <line
-            x1={PADDING.left}
-            y1={toY(tick)}
-            x2={viewBoxWidth - PADDING.right}
-            y2={toY(tick)}
-            stroke="currentColor"
-            strokeOpacity={0.1}
-            strokeDasharray="4 4"
-          />
-          <text
-            x={PADDING.left - 6}
-            y={toY(tick) + 3}
-            textAnchor="end"
-            className="fill-muted-foreground"
-            fontSize="9"
-          >
-            {formatKr(tick)}
-          </text>
-        </g>
-      ))}
+    <div ref={containerRef} className="w-full">
+      <svg
+        viewBox={`0 0 ${viewBoxWidth} ${CHART_HEIGHT}`}
+        width={viewBoxWidth}
+        height={CHART_HEIGHT}
+        className="block"
+        role="img"
+        aria-label="Kumulativt inntektsdiagram: 80% vs 100% dekningsgrad"
+      >
+        {/* Grid lines */}
+        {yTicks.map((tick) => (
+          <g key={tick}>
+            <line
+              x1={PADDING.left}
+              y1={toY(tick)}
+              x2={viewBoxWidth - PADDING.right}
+              y2={toY(tick)}
+              stroke="currentColor"
+              strokeOpacity={0.1}
+              strokeDasharray="4 4"
+            />
+            <text
+              x={PADDING.left - 6}
+              y={toY(tick) + Y_LABEL_SIZE / 3}
+              textAnchor="end"
+              className="fill-muted-foreground"
+              fontSize={Y_LABEL_SIZE}
+            >
+              {formatKr(tick)}
+            </text>
+          </g>
+        ))}
 
-      {/* X-axis labels */}
-      {data.map((d, i) =>
-        i % labelInterval === 0 ? (
-          <text
-            key={d.month.toISOString()}
-            x={toX(i)}
-            y={CHART_HEIGHT - 4}
-            textAnchor="middle"
-            className="fill-muted-foreground"
-            fontSize="8"
-          >
-            {d.month.toLocaleDateString('nb-NO', { month: 'short' })}
-          </text>
-        ) : null
-      )}
+        {/* X-axis labels */}
+        {data.map((d, i) =>
+          i % labelInterval === 0 ? (
+            <text
+              key={d.month.toISOString()}
+              x={toX(i)}
+              y={CHART_HEIGHT - 4}
+              textAnchor="middle"
+              className="fill-muted-foreground"
+              fontSize={X_LABEL_SIZE}
+            >
+              {d.month.toLocaleDateString('nb-NO', { month: 'short' })}
+            </text>
+          ) : null
+        )}
 
-      {/* 80% line */}
-      <polyline
-        points={points80}
-        fill="none"
-        stroke="var(--color-mother)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+        {/* 80% line */}
+        <polyline
+          points={points80}
+          fill="none"
+          stroke="var(--color-mother)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
-      {/* 100% line */}
-      <polyline
-        points={points100}
-        fill="none"
-        stroke="var(--color-father)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+        {/* 100% line */}
+        <polyline
+          points={points100}
+          fill="none"
+          stroke="var(--color-father)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
-      {/* Data point dots */}
-      {data.map((d, i) => (
-        <g key={`dots-${i}`}>
-          <circle cx={toX(i)} cy={toY(d.cumulative80)} r="3" fill="var(--color-mother)" />
-          <circle cx={toX(i)} cy={toY(d.cumulative100)} r="3" fill="var(--color-father)" />
-        </g>
-      ))}
-    </svg>
+        {/* Data point dots */}
+        {data.map((d, i) => (
+          <g key={`dots-${i}`}>
+            <circle cx={toX(i)} cy={toY(d.cumulative80)} r="3" fill="var(--color-mother)" />
+            <circle cx={toX(i)} cy={toY(d.cumulative100)} r="3" fill="var(--color-father)" />
+          </g>
+        ))}
+      </svg>
+    </div>
   );
 }
 
