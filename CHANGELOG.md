@@ -14,6 +14,15 @@
 - Flytt milepælknapper ut av slider-rollen i horisontlinjen
 - Gi periodebjelkene nok linjehøyde så teksten ikke klippes
 - Bøy uke og dag riktig i entall (1 uke, 1 dag)
+- La ruleren i permisjonslinjen følge samme tidsakse som linjen
+- Avgrens fremhevingen av aktiv måned til ruler og linje, ikke milepælknappene
+- Begrens høyden på datoceller så periodebjelkene ikke svever mellom ukene
+- Skjul etikett på 1-dagers periodebjelker som ellers blir klippet
+- La periodebjelker dekke hverandre uten at tekst skinner gjennom, og gi ferie og ulønnet full tekstkontrast
+- La stolpene i månedlig inntekt starte likt uavhengig av ferie-ikon
+- Hold aksetekst i diagrammet lesbar på mobil
+- Toppjuster månedstitlene i årsoversikten
+- Gjør årsoversikten ugjennomsiktig så kalenderen ikke skinner gjennom
 
 ### Opprydding
 
