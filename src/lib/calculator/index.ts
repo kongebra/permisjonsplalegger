@@ -3,13 +3,22 @@
  */
 
 import { calculateLeave } from './dates';
-import { compareScenarios } from './economy';
+import { compareScenarios, hasEconomyInput } from './economy';
 import { LEAVE_CONFIG } from '../constants';
 import type {
   CalculatorInput,
   CalculatorResult,
   Coverage,
+  ParentEconomy,
 } from '../types';
+
+// Brukes når en forelder uten rett i planen ikke har oppgitt økonomi
+const NO_ECONOMY: ParentEconomy = {
+  monthlySalary: 0,
+  monthlyCommissionLoss: 0,
+  employerCoversAbove6G: false,
+  employerPaysFeriepenger: false,
+};
 
 /**
  * Beregner default barnehagestart (1. august)
@@ -73,8 +82,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     prematureWeeks,
   );
 
-  // Hvis økonomi-data er tilgjengelig, beregn sammenligning
-  if (motherEconomy) {
+  // Hvis økonomi-data er tilgjengelig for rettighetene, beregn sammenligning
+  if (hasEconomyInput(rights, motherEconomy, fatherEconomy)) {
     // Beregn gap for begge scenarioer
     const leave80 = calculateLeave(
       dueDate,
@@ -101,11 +110,12 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     );
 
     const economy = compareScenarios(
-      motherEconomy,
+      motherEconomy ?? NO_ECONOMY,
       fatherEconomy,
       sharedWeeksToMother,
       leave80.gap,
-      leave100.gap
+      leave100.gap,
+      rights,
     );
 
     return { leave, economy };
@@ -128,9 +138,12 @@ export {
   subtractWeeks,
   daysBetween,
   weeksBetween,
+  getParentLeaveWeeks,
+  getTotalLeaveWeeks,
 } from './dates';
 export {
   calculateBasis,
+  hasEconomyInput,
   calculateDailyRate,
   calculateNavPayout,
   compareScenarios,

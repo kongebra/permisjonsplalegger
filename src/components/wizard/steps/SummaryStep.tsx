@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG } from '@/lib/constants';
-import { compareScenarios } from '@/lib/calculator/economy';
+import { compareScenarios, hasEconomyInput } from '@/lib/calculator/economy';
 import { calculateLeave } from '@/lib/calculator';
 import { formatCurrency, formatWeeks } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
@@ -338,13 +338,14 @@ export function SummaryStep({
   const leaveResult100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
 
   // Calculate economy result if data exists — now with correct per-scenario gaps
-  const economyResult = hasEconomyData && motherEconomy
+  const economyResult = motherEconomy && hasEconomyInput(rights, motherEconomy, fatherEconomy)
     ? compareScenarios(
         motherEconomy,
-        rights !== 'mother-only' ? fatherEconomy : undefined,
+        fatherEconomy,
         sharedWeeksToMother,
         leaveResult80.gap,
-        leaveResult100.gap
+        leaveResult100.gap,
+        rights,
       )
     : null;
 

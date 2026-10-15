@@ -163,6 +163,48 @@ describe('calculate() integration', () => {
     expect(result.economy!.scenario100).toBeDefined();
   });
 
+  test('kun far: økonomi beregnes ut fra fars lønn, mors lønn trengs ikke', () => {
+    const fatherEconomy: ParentEconomy = {
+      monthlySalary: 50_000,
+      monthlyCommissionLoss: 0,
+      employerCoversAbove6G: false,
+      employerPaysFeriepenger: false,
+    };
+    const result = calculate({
+      dueDate,
+      coverage: 100,
+      rights: 'father-only',
+      sharedWeeksToMother: 8,
+      overlapWeeks: 0,
+      daycareStartDate,
+      fatherEconomy,
+      vacationWeeks: [],
+    });
+    expect(result.economy).toBeDefined();
+    // 40 uker * 600 000 / 52 (fars egne uker, ikke 49/61 for begge foreldre)
+    expect(result.economy!.scenario100.breakdown.navPayout).toBeCloseTo(461_538.46, 1);
+  });
+
+  test('kun far uten fars lønn gir ingen økonomi, selv om mor har lønn', () => {
+    const motherEconomy: ParentEconomy = {
+      monthlySalary: 50_000,
+      monthlyCommissionLoss: 0,
+      employerCoversAbove6G: false,
+      employerPaysFeriepenger: false,
+    };
+    const result = calculate({
+      dueDate,
+      coverage: 100,
+      rights: 'father-only',
+      sharedWeeksToMother: 8,
+      overlapWeeks: 0,
+      daycareStartDate,
+      motherEconomy,
+      vacationWeeks: [],
+    });
+    expect(result.economy).toBeUndefined();
+  });
+
   test('leave result contains mother, father, gap', () => {
     const result = calculate({
       dueDate,

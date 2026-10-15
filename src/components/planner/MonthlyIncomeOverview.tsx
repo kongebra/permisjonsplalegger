@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { startOfMonth, addMonths, addDays, getDaysInMonth, isAfter } from 'date-fns';
 import { useWizard, usePeriods, useEconomy, useCalculatedLeave } from '@/store/hooks';
-import { calculateBasis, monthlyNavPayout } from '@/lib/calculator/economy';
+import { calculateBasis, hasEconomyInput, monthlyNavPayout } from '@/lib/calculator/economy';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, Parent, Coverage, ParentEconomy } from '@/lib/types';
 
@@ -71,7 +71,7 @@ export function MonthlyIncomeOverview() {
   const { motherEconomy, fatherEconomy } = useEconomy();
   const leaveResult = useCalculatedLeave();
 
-  const hasSalary = motherEconomy.monthlySalary > 0 || fatherEconomy.monthlySalary > 0;
+  const hasSalary = hasEconomyInput(rights, motherEconomy, fatherEconomy);
   const hasLeavePeriods = periods.some(p => p.type === 'permisjon');
 
   // Bestemmer hvem som er hjemme i gapet (lavest lønn, samme logikk som calculateGapCost)

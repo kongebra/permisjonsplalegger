@@ -184,6 +184,41 @@ export function calculateLeaveStart(dueDate: Date, coverage: Coverage): Date {
 }
 
 /**
+ * Totalt antall uker med foreldrepenger for hele familien.
+ * Kun far/medmor har egne uker (40 ved 100%, 52 ved 80%), ellers gjelder
+ * totalen for begge foreldre (49 / 61) som også er det kun mor får.
+ */
+export function getTotalLeaveWeeks(coverage: Coverage, rights: ParentRights): number {
+  const config = LEAVE_CONFIG[coverage];
+  return rights === 'father-only' ? config.fatherOnly.total : config.total;
+}
+
+/**
+ * Antall uker med foreldrepenger per forelder i en gitt dekningsgrad.
+ * `sharedWeeksToMother` er antall fellesuker til mor i samme dekningsgrad
+ * og brukes kun når begge har rett.
+ */
+export function getParentLeaveWeeks(
+  coverage: Coverage,
+  rights: ParentRights,
+  sharedWeeksToMother: number,
+): { mother: number; father: number } {
+  const config = LEAVE_CONFIG[coverage];
+
+  if (rights === 'mother-only') {
+    return { mother: config.total, father: 0 };
+  }
+  if (rights === 'father-only') {
+    return { mother: 0, father: config.fatherOnly.total };
+  }
+
+  return {
+    mother: config.preBirth + config.mother + sharedWeeksToMother,
+    father: config.father + (config.shared - sharedWeeksToMother),
+  };
+}
+
+/**
  * Beregner mors permisjonsperiode
  */
 export function calculateMotherPeriod(

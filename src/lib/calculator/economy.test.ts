@@ -223,7 +223,7 @@ describe('compareScenarios', () => {
   test('returns both scenarios with difference and recommendation', () => {
     const mother = makeEconomy({ monthlySalary: 50_000 });
     const father = makeEconomy({ monthlySalary: 40_000 });
-    const result = compareScenarios(mother, father, 9, makeGap(60), makeGap(90));
+    const result = compareScenarios(mother, father, 9, makeGap(60), makeGap(90), 'both');
 
     expect(result.scenario80).toBeDefined();
     expect(result.scenario100).toBeDefined();
@@ -235,7 +235,7 @@ describe('compareScenarios', () => {
   test('small difference gives neutral recommendation', () => {
     // Nearly equal scenarios
     const mother = makeEconomy({ monthlySalary: 30_000 });
-    const result = compareScenarios(mother, undefined, 9, makeGap(0), makeGap(0));
+    const result = compareScenarios(mother, undefined, 9, makeGap(0), makeGap(0), 'both');
     if (Math.abs(result.difference) <= 10000) {
       expect(result.recommendation).toContain('familiens situasjon');
     }
@@ -263,7 +263,7 @@ describe('acceptance: high earner with commission (78k + 12k)', () => {
   test('comparison shows meaningful difference', () => {
     const gap80 = makeGap(30); // Less gap with 80%
     const gap100 = makeGap(90); // More gap with 100%
-    const result = compareScenarios(motherEconomy, fatherEconomy, 9, gap80, gap100);
+    const result = compareScenarios(motherEconomy, fatherEconomy, 9, gap80, gap100, 'both');
     // The difference should be significant (not near zero)
     expect(Math.abs(result.difference)).toBeGreaterThan(10_000);
   });
@@ -288,7 +288,7 @@ describe('acceptance: gap test (100% ends may, daycare aug)', () => {
     const mother = makeEconomy({ monthlySalary: 40_000 });
     const gap80 = makeGap(0); // No gap
     const gap100 = makeGap(92); // 3 month gap
-    const result = compareScenarios(mother, undefined, 9, gap80, gap100);
+    const result = compareScenarios(mother, undefined, 9, gap80, gap100, 'both');
     // 80% should be better when gap is 0 vs 92 days
     expect(result.difference).toBeLessThan(0); // negative means 80% better
   });
