@@ -215,7 +215,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
             dueDate={dueDate}
             daycareDate={daycareStartDate}
             daycareEnabled={daycareEnabled}
-            leaveEndDate={leaveResult.father.end}
+            leaveEndDate={leaveResult.gap.start}
             onDateChange={setDaycareStartDate}
             onEnabledChange={setDaycareEnabled}
           />
