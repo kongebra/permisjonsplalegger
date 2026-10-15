@@ -51,8 +51,9 @@ export function resolveBands(
 
     const isStart = isSameDay(visibleStart, segmentStart);
     const span = endDayIndex - startDayIndex;
-    // Show label at true start if wide enough, or on first Monday continuation
-    const showLabel = (isStart && span >= 2) || (!isStart && startDayIndex === 0);
+    // Vis etikett ved selve starten, eller på første mandag i en fortsettelse - men aldri på
+    // 1-dagers bjelker, der teksten ikke får plass og bare blir klippet
+    const showLabel = span >= 2 && (isStart || startDayIndex === 0);
 
     bands.push({
       id: `segment-${segment.parent}-${segment.type}-${segment.start.toISOString()}`,
@@ -85,7 +86,7 @@ export function resolveBands(
 
       const isStart = isSameDay(visibleStart, periodStart);
       const span = endDayIndex - startDayIndex;
-      const showLabel = (isStart && span >= 2) || (!isStart && startDayIndex === 0);
+      const showLabel = span >= 2 && (isStart || startDayIndex === 0);
 
       bands.push({
         id: period.id,

@@ -42,7 +42,7 @@ export function YearOverview({
   };
 
   return (
-    <div className="fixed inset-0 bg-background/95 z-50 flex flex-col">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
       <div className="border-b p-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Årsoversikt</h2>

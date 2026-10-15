@@ -18,6 +18,9 @@ interface LeaveHorizonLineProps {
   onMonthChange: (month: Date) => void;
 }
 
+// Minste segmentbredde (i prosent av ruleren) for å vise månedsetiketten
+const MIN_LABEL_WIDTH_PERCENT = 3;
+
 export function LeaveHorizonLine({
   leaveResult,
   activeMonth,
@@ -74,7 +77,9 @@ export function LeaveHorizonLine({
     );
 
     const granularity = getTimelineGranularity(totalMonths);
-    const segs = buildTimelineSegments(leaveStart, gapEnd, granularity);
+    // Rulerens skala må følge samme tidsakse som linjen (inkl. post-sone), ellers havner
+    // månedstikkene feil i forhold til linjen og barnehagepinnen
+    const segs = buildTimelineSegments(leaveStart, displayEnd, granularity);
 
     return {
       motherPercent: Math.max(0, Math.min(100, (motherDays / displayTotal) * 100)),
@@ -119,57 +124,64 @@ export function LeaveHorizonLine({
     // søsken (ikke barn) av den. Interaktive elementer kan ikke ligge inni role="slider"
     // (axe: nested-interactive).
     <div className="relative select-none">
-      {/* Aktiv måneds fremhevede felt — strekker seg over ruler og linje */}
-      {activeMonthWidthPercent > 0 && (
-        <div
-          className="absolute inset-y-0 bg-foreground/8 border-l-2 border-r-2 border-foreground/30 rounded-sm pointer-events-none z-10"
-          style={{
-            left: `${currentPercent}%`,
-            width: `${activeMonthWidthPercent}%`,
-          }}
-        />
-      )}
-
-      {/* Ruler-rad med tikkmerker og etiketter */}
-      <div aria-hidden="true" className="relative h-5 mb-0.5">
-        {segments.map((seg, i) => (
+      {/* Ruler og linje i egen beholder, slik at fremhevingen av aktiv måned kun dekker disse
+          og ikke milepælknappene under */}
+      <div className="relative">
+        {/* Aktiv måneds fremhevede felt — strekker seg over ruler og linje */}
+        {activeMonthWidthPercent > 0 && (
           <div
-            key={i}
-            className="absolute top-0 bottom-0"
-            style={{ left: `${seg.leftPercent}%`, width: `${seg.widthPercent}%` }}
-          >
-            {/* Tikkemerk ved segment-start */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-foreground/20" />
-            {/* Etikett sentrert i segmentet */}
-            <span className="absolute inset-0 flex items-center justify-center text-[9px] text-muted-foreground leading-none select-none">
-              {seg.label}
-            </span>
-          </div>
-        ))}
-        {/* Avsluttende tikkemerk */}
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-foreground/20" />
-      </div>
-
-      {/* Farget linje */}
-      <div className="relative h-2.5 rounded-full overflow-hidden bg-muted flex">
-        {motherPercent > 0 && (
-          <div className="h-full bg-mother-base" style={{ width: `${motherPercent}%` }} />
-        )}
-        {fatherPercent > 0 && (
-          <div className="h-full bg-father-base" style={{ width: `${fatherPercent}%` }} />
-        )}
-        {gapPercent > 0 && (
-          <div
-            className="h-full bg-gap border border-dashed border-gap-border"
-            style={{ width: `${gapPercent}%` }}
+            className="absolute inset-y-0 bg-foreground/8 border-l-2 border-r-2 border-foreground/30 rounded-sm pointer-events-none z-10"
+            style={{
+              left: `${currentPercent}%`,
+              width: `${activeMonthWidthPercent}%`,
+            }}
           />
         )}
-        {postPercent > 0 && (
-          <div
-            className="h-full bg-muted/60"
-            style={{ width: `${postPercent}%` }}
-          />
-        )}
+
+        {/* Ruler-rad med tikkmerker og etiketter */}
+        <div aria-hidden="true" className="relative h-5 mb-0.5">
+          {segments.map((seg, i) => (
+            <div
+              key={i}
+              className="absolute top-0 bottom-0"
+              style={{ left: `${seg.leftPercent}%`, width: `${seg.widthPercent}%` }}
+            >
+              {/* Tikkemerk ved segment-start */}
+              <div className="absolute left-0 top-0 bottom-0 w-px bg-foreground/20" />
+              {/* Etikett sentrert i segmentet. Skjules i smale segmenter (delvis måned i
+                  kanten) der den ellers ville blitt klippet eller lagt oppå tikkemerket. */}
+              {seg.widthPercent >= MIN_LABEL_WIDTH_PERCENT && (
+                <span className="absolute inset-0 flex items-center justify-center text-[9px] text-muted-foreground leading-none select-none">
+                  {seg.label}
+                </span>
+              )}
+            </div>
+          ))}
+          {/* Avsluttende tikkemerk */}
+          <div className="absolute right-0 top-0 bottom-0 w-px bg-foreground/20" />
+        </div>
+
+        {/* Farget linje */}
+        <div className="relative h-2.5 rounded-full overflow-hidden bg-muted flex">
+          {motherPercent > 0 && (
+            <div className="h-full bg-mother-base" style={{ width: `${motherPercent}%` }} />
+          )}
+          {fatherPercent > 0 && (
+            <div className="h-full bg-father-base" style={{ width: `${fatherPercent}%` }} />
+          )}
+          {gapPercent > 0 && (
+            <div
+              className="h-full bg-gap border border-dashed border-gap-border"
+              style={{ width: `${gapPercent}%` }}
+            />
+          )}
+          {postPercent > 0 && (
+            <div
+              className="h-full bg-muted/60"
+              style={{ width: `${postPercent}%` }}
+            />
+          )}
+        </div>
       </div>
 
       {/* Slider-overlegg — dekker hele komponenten og tar imot klikk og tastatur */}

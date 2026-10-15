@@ -165,15 +165,15 @@ export function MonthlyIncomeOverview() {
 
           return (
             <div key={m.month.toISOString()} className="flex items-center gap-2">
-              {/* Månedsnavn */}
-              <span className="w-14 text-xs text-muted-foreground shrink-0 tabular-nums">
-                {m.month.toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' })}
-              </span>
-
-              {/* Ferie-ikon */}
-              {hasFerie && (
-                <span className="text-xs" aria-label="Feriemåned">☀️</span>
-              )}
+              {/* Månedsnavn + ferie-ikon i fast bredde, slik at stolpene starter likt på alle rader */}
+              <div className="w-[4.5rem] shrink-0 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {m.month.toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' })}
+                </span>
+                {hasFerie && (
+                  <span className="text-xs" aria-label="Feriemåned">☀️</span>
+                )}
+              </div>
 
               {/* Stolpediagram */}
               <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex">
