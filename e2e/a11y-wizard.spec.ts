@@ -66,9 +66,9 @@ test.describe('Tilgjengelighet: Wizard (/planlegger)', () => {
     await expect(skipLink).toHaveText(/hopp til hovedinnhold/i);
   });
 
-  test('HTML lang-attributt er satt til norsk', async ({ page }) => {
+  test('HTML lang-attributt er satt til norsk bokmål', async ({ page }) => {
     const lang = await page.locator('html').getAttribute('lang');
-    expect(lang).toBe('no');
+    expect(lang).toBe('nb');
   });
 
   test('Navigasjonsknapper er tilgjengelige med tastatur', async ({ page }) => {

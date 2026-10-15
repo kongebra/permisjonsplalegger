@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Hindrer at next dev skriver egne regler inn i AGENTS.md
+  agentRules: false,
   experimental: {
     optimizePackageImports: ['lucide-react', 'date-fns', 'radix-ui'],
   },
