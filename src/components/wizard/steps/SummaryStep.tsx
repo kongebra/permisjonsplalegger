@@ -36,8 +36,9 @@ interface SummaryRowProps {
   onEdit: (step: number) => void;
 }
 
-function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
+function ExplanationPanel({ result, rights, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
   result: EconomyResult;
+  rights: ParentRights;
   gap80Weeks: number;
   gap100Weeks: number;
   motherVacationDays: number;
@@ -142,6 +143,8 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
         const totalVacationWeeks = Math.floor((motherVacationDays + fatherVacationDays) / 5);
         const bothParentsHaveVacation = motherVacationDays > 0 && fatherVacationDays > 0;
         const gapTakenBy = result.scenario100.breakdown.gapTakenBy;
+        // Kun når begge har permisjon er det lavest dagsats som avgjør hvem som tar gapet
+        const lowestRateNote = rights === 'both' ? ' (lavest dagsats)' : '';
 
         let recommendation: string;
 
@@ -160,14 +163,14 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
           const unpaidLabel = formatWeeks(unpaidWeeks);
           if (gapTakenBy) {
             const lowestEarner = gapTakenBy === 'mother' ? 'Mor' : 'Far';
-            recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Bruk ferie til å dekke ${formatWeeks(totalVacationWeeks)}, og la ${lowestEarner} (lavest dagsats) ta ${unpaidLabel} ulønnet permisjon.`;
+            recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Bruk ferie til å dekke ${formatWeeks(totalVacationWeeks)}, og la ${lowestEarner}${lowestRateNote} ta ${unpaidLabel} ulønnet permisjon.`;
           } else {
             recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Bruk ferie til å dekke ${formatWeeks(totalVacationWeeks)}. De resterende ${unpaidLabel} må dekkes med ulønnet permisjon.`;
           }
         } else if (gapTakenBy) {
           // No vacation data — recommend based on lowest earner
           const lowestEarner = gapTakenBy === 'mother' ? 'Mor' : 'Far';
-          recommendation = `${lowestEarner} bør ta den ubetalte perioden (lavest dagsats = minst tapt inntekt). Vurder å bruke feriedager for å dekke deler av gapet.`;
+          recommendation = `${lowestEarner} bør ta den ubetalte perioden${rights === 'both' ? ' (lavest dagsats = minst tapt inntekt)' : ''}. Vurder å bruke feriedager for å dekke deler av gapet.`;
         } else {
           // No vacation data, no earner comparison
           recommendation = `Gapet er på ${formatWeeks(gapWeeks)}. Vurder å bruke feriedager for å dekke deler av eller hele perioden.`;
@@ -191,8 +194,9 @@ function ExplanationPanel({ result, gap80Weeks, gap100Weeks, motherVacationDays,
   );
 }
 
-function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
+function RecommendationBox({ economyResult, rights, gap80Weeks, gap100Weeks, motherVacationDays, fatherVacationDays }: {
   economyResult: EconomyResult;
+  rights: ParentRights;
   gap80Weeks: number;
   gap100Weeks: number;
   motherVacationDays: number;
@@ -244,6 +248,7 @@ function RecommendationBox({ economyResult, gap80Weeks, gap100Weeks, motherVacat
       {showExplanation && (
         <ExplanationPanel
           result={economyResult}
+          rights={rights}
           gap80Weeks={gap80Weeks}
           gap100Weeks={gap100Weeks}
           motherVacationDays={motherVacationDays}
@@ -423,6 +428,7 @@ export function SummaryStep({
       {economyResult && (
         <RecommendationBox
           economyResult={economyResult}
+          rights={rights}
           gap80Weeks={leaveResult80.gap.weeks}
           gap100Weeks={leaveResult100.gap.weeks}
           motherVacationDays={motherJobSettings?.vacationDays ?? 0}
