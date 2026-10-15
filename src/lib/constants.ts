@@ -5,6 +5,15 @@
 
 export const G = 136_549; // Grunnbeløpet per 1. mai 2026
 
+// Maks beregningsgrunnlag for NAV (6G)
+export const MAX_BASIS = 6 * G;
+
+// Dekningsgrad som andel av lønn
+export const COVERAGE_RATE = {
+  100: 1.0,
+  80: 0.8,
+} as const;
+
 export const WORK_DAYS_PER_MONTH = 21.7; // Standard for beregning av dagsats
 
 export const LEAVE_CONFIG = {
