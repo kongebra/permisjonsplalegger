@@ -140,6 +140,7 @@ export {
   weeksBetween,
   getParentLeaveWeeks,
   getTotalLeaveWeeks,
+  countWorkdaysInRange,
 } from './dates';
 export {
   calculateBasis,

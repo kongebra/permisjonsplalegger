@@ -3,10 +3,10 @@
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { format, differenceInWeeks } from "date-fns";
-import { getDefaultDaycareStart } from "@/lib/calculator";
+import { format, subDays } from "date-fns";
+import { getDefaultDaycareStart, countWorkdaysInRange } from "@/lib/calculator";
 import { nb } from "date-fns/locale";
-import { formatWeeks } from '@/lib/format';
+import { formatWorkdays } from '@/lib/format';
 
 interface DaycareStepProps {
   dueDate: Date;
@@ -74,10 +74,8 @@ export function DaycareStep({
           {/* Summary with gap indicator */}
           {daycareDate &&
             (() => {
-              const gapWeeks = Math.max(
-                0,
-                differenceInWeeks(daycareDate, leaveEndDate),
-              );
+              // Gap i arbeidsdager, samme tall som i kalenderen og oppsummeringen
+              const gapWorkDays = countWorkdaysInRange(leaveEndDate, daycareDate);
               return (
                 <div className="space-y-3">
                   {/* Visual gap indicator */}
@@ -85,9 +83,9 @@ export function DaycareStep({
                     <div className="h-full flex-1 rounded-l-sm bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
                       Permisjon
                     </div>
-                    {gapWeeks > 0 ? (
+                    {gapWorkDays > 0 ? (
                       <div className="h-full px-2 bg-warning-bg border border-dashed border-warning-fg/30 text-[10px] font-medium text-warning-fg flex items-center justify-center whitespace-nowrap">
-                        {formatWeeks(gapWeeks)}
+                        {formatWorkdays(gapWorkDays)}
                       </div>
                     ) : null}
                     <div className="h-full flex-1 rounded-r-sm bg-success-bg text-[10px] font-medium text-success-fg flex items-center justify-center">
@@ -102,7 +100,8 @@ export function DaycareStep({
                         Permisjon slutter
                       </p>
                       <p className="font-semibold text-sm">
-                        {format(leaveEndDate, "d. MMM yyyy", { locale: nb })}
+                        {/* leaveEndDate er eksklusiv, UI viser siste permisjonsdag */}
+                        {format(subDays(leaveEndDate, 1), "d. MMM yyyy", { locale: nb })}
                       </p>
                     </div>
                     <div className="p-3 bg-muted rounded-lg">
