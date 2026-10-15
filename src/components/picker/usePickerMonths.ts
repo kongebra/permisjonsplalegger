@@ -37,7 +37,7 @@ function eventsToResolverData(events: CalendarEvent[]): {
     // Wizard-generated segments use segment type names
     const isSegment = [
       'preBirth', 'mandatory', 'quota', 'shared',
-      'overlap', 'vacation', 'unpaid', 'gap',
+      'overlap', 'vacation', 'unpaid', 'gap', 'activity-required',
     ].includes(event.type);
 
     if (isSegment) {

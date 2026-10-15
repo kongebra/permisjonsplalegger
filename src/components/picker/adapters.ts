@@ -10,6 +10,7 @@ const SEGMENT_LABELS: Record<string, Record<'mother' | 'father', string>> = {
   overlap: { mother: 'Overlapp (mor)', father: 'Overlapp (far)' },
   vacation: { mother: 'Ferie (mor)', father: 'Ferie (far)' },
   unpaid: { mother: 'Ulønnet (mor)', father: 'Ulønnet (far)' },
+  'activity-required': { mother: 'Mor med aktivitetskrav', father: 'Far med aktivitetskrav' },
   gap: { mother: 'Gap', father: 'Gap' },
 };
 
