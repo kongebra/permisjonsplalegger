@@ -93,7 +93,8 @@ test.describe('Tilgjengelighet: Kalender (/planlegger/kalender)', () => {
 
   test('Fargeprøver har role="img" og aria-label', async ({ page }) => {
     const colorSwatches = page.locator('[role="img"][aria-label*="farge"]');
-    expect(await colorSwatches.count()).toBeGreaterThanOrEqual(4);
+    // Poll: fargeprøvene rendres etter første paint, og count() venter ikke selv
+    await expect.poll(() => colorSwatches.count()).toBeGreaterThanOrEqual(4);
   });
 
   test('Månedsnavigasjon fungerer med tastatur', async ({ page }) => {

@@ -115,19 +115,10 @@ export function LeaveHorizonLine({
   };
 
   return (
-    // min-h-[44px] sikrer WCAG touch-target
-    <div
-      role="slider"
-      tabIndex={0}
-      aria-label="Naviger i permisjonstidslinjen"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(currentPercent)}
-      aria-valuetext={format(activeMonth, 'MMMM yyyy', { locale: nb })}
-      className="relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded select-none"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-    >
+    // Slideren ligger som et eget, tomt overlegg over ruler og linje, og milepælknappene er
+    // søsken (ikke barn) av den. Interaktive elementer kan ikke ligge inni role="slider"
+    // (axe: nested-interactive).
+    <div className="relative select-none">
       {/* Aktiv måneds fremhevede felt — strekker seg over ruler og linje */}
       {activeMonthWidthPercent > 0 && (
         <div
@@ -181,27 +172,45 @@ export function LeaveHorizonLine({
         )}
       </div>
 
-      {/* Milepæl-snarveier — rask navigasjon til nøkkeldatoer */}
-      <nav aria-label="Hopp til milepæl" className="flex justify-between mt-1 px-0.5">
+      {/* Slider-overlegg — dekker hele komponenten og tar imot klikk og tastatur */}
+      <div
+        role="slider"
+        tabIndex={0}
+        aria-label="Naviger i permisjonstidslinjen"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(currentPercent)}
+        aria-valuetext={format(activeMonth, 'MMMM yyyy', { locale: nb })}
+        className="absolute inset-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+      />
+
+      {/* Milepæl-snarveier — rask navigasjon til nøkkeldatoer.
+          Ligger over slider-overlegget; kun knappene tar imot pekerhendelser. */}
+      <nav
+        aria-label="Hopp til milepæl"
+        className="relative pointer-events-none flex justify-between mt-1 px-0.5"
+      >
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(leaveStart)); }}
-          className="min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+          onClick={() => { onMonthChange(startOfMonth(leaveStart)); }}
+          className="pointer-events-auto min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
         >
           Start
         </button>
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(subDays(leaveEnd, 1))); }}
-          className="min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
+          onClick={() => { onMonthChange(startOfMonth(subDays(leaveEnd, 1))); }}
+          className="pointer-events-auto min-h-[44px] flex items-center text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none"
         >
           Permisjonsslutt
         </button>
         {daycareEnabled && daycareDate && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onMonthChange(startOfMonth(daycareDate)); }}
-            className="min-h-[44px] flex items-center text-[10px] text-daycare hover:text-daycare/80 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none font-medium"
+            onClick={() => { onMonthChange(startOfMonth(daycareDate)); }}
+            className="pointer-events-auto min-h-[44px] flex items-center text-[10px] text-daycare hover:text-daycare/80 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0 leading-none font-medium"
           >
             Bhg {format(daycareDate, 'd. MMM', { locale: nb })}
           </button>
