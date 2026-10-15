@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG } from '@/lib/constants';
 import { compareScenarios, hasEconomyInput } from '@/lib/calculator/economy';
-import { calculateLeave } from '@/lib/calculator';
+import { calculateLeave, getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency, formatWeeks } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
 import { format, differenceInWeeks } from 'date-fns';
@@ -47,6 +47,10 @@ function ExplanationPanel({ result, rights, gap80Weeks, gap100Weeks, motherVacat
   const { scenario80, scenario100, difference } = result;
   const favors100 = difference > 0;
 
+  // Antall uker avhenger av rettighetene (kun far har 40/52, ellers 49/61)
+  const weeks100 = getTotalLeaveWeeks(100, rights);
+  const weeks80 = getTotalLeaveWeeks(80, rights);
+
   // Build short explanation based on which scenario wins and why
   const getExplanation = () => {
     if (Math.abs(difference) <= 5000) {
@@ -54,11 +58,11 @@ function ExplanationPanel({ result, rights, gap80Weeks, gap100Weeks, motherVacat
     }
     if (favors100) {
       if (gap100Weeks > gap80Weeks) {
-        return `100% gir full lønn i 49 uker. Selv om gapet er lengre (${gap100Weeks} vs ${formatWeeks(gap80Weeks)}), veier den høyere NAV-utbetalingen opp.`;
+        return `100% gir full lønn i ${weeks100} uker. Selv om gapet er lengre (${gap100Weeks} vs ${formatWeeks(gap80Weeks)}), veier den høyere NAV-utbetalingen opp.`;
       }
-      return '100% gir full lønn i 49 uker, noe som gir høyere total utbetaling enn 80% over 59 uker.';
+      return `100% gir full lønn i ${weeks100} uker, noe som gir høyere total utbetaling enn 80% over ${weeks80} uker.`;
     }
-    return `80% gir permisjon i 59 uker — 10 uker mer enn 100%. Det gir et kortere gap (${gap80Weeks} vs ${formatWeeks(gap100Weeks)}) og lavere totalkostnad.`;
+    return `80% gir permisjon i ${weeks80} uker - ${formatWeeks(weeks80 - weeks100)} mer enn 100%. Det gir et kortere gap (${gap80Weeks} vs ${formatWeeks(gap100Weeks)}) og lavere totalkostnad.`;
   };
 
   // Only show factors that actually differ meaningfully (> 500 kr)
@@ -377,7 +381,7 @@ export function SummaryStep({
         <SummaryRow
           icon={<Percent className="w-4 h-4" />}
           label="Dekningsgrad"
-          value={`${coverage}% - ${config.total} uker`}
+          value={`${coverage}% - ${getTotalLeaveWeeks(coverage, rights)} uker`}
           step={3}
           onEdit={onGoBack}
         />

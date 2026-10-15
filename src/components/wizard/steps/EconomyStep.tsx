@@ -13,7 +13,7 @@ import { HelpCircle } from 'lucide-react';
 import { InfoBox } from '@/components/ui/info-box';
 import { formatCurrency } from '@/lib/format';
 import type { ParentEconomy, ParentRights, Coverage } from '@/lib/types';
-import { G, MAX_BASIS } from '@/lib/constants';
+import { FERIEPENGER_NAV_WEEKS, G, MAX_BASIS } from '@/lib/constants';
 import posthog from 'posthog-js';
 
 interface EconomyStepProps {
@@ -173,7 +173,7 @@ function ParentEconomySection({
               <p><strong>Ja</strong> = Arbeidsgiver betaler lønnen din under permisjon.
               Du opptjener feriepenger som normalt (10,2% av årslønn).</p>
               <p><strong>Nei</strong> = NAV utbetaler foreldrepengene. Da opptjenes feriepenger
-              kun for de første {coverage === 100 ? '12' : '15'} ukene.</p>
+              kun for de første {FERIEPENGER_NAV_WEEKS[coverage]} ukene.</p>
               <p className="text-muted-foreground">Usikker? Spør arbeidsgiveren din.</p>
             </div>
           </HelpButton>
@@ -237,7 +237,7 @@ function ParentEconomySection({
             <p className="font-medium">Hvorfor trekkes jeg i lønn i juni?</p>
             <p className="mt-1">I juni utbetales feriepenger basert på forrige års inntekt.
             Når NAV betaler foreldrepenger, opptjener du kun feriepenger
-            for de første {coverage === 100 ? '12' : '15'} ukene.
+            for de første {FERIEPENGER_NAV_WEEKS[coverage]} ukene.
             Resten av permisjonen gir ingen opptjening — så juni-lønnen
             året etter blir lavere enn normalt.</p>
           </InfoBox>

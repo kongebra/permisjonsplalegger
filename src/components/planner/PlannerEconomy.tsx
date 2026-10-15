@@ -126,6 +126,7 @@ function QuotaOverview() {
 
 export function PlannerEconomy() {
   const economyResult = useEconomyComparison();
+  const { rights } = useWizard();
   const setShowSettings = usePlannerStore((s) => s.setShowSettings);
 
   return (
@@ -157,7 +158,7 @@ export function PlannerEconomy() {
           </Button>
         </div>
       ) : (
-        <EconomyComparison result={economyResult} />
+        <EconomyComparison result={economyResult} rights={rights} />
       )}
     </div>
   );

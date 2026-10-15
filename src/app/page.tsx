@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle, Clock, Shield } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
+import { LEAVE_CONFIG } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Permisjonsplanleggeren — få kabalen til å gå opp',
@@ -23,7 +24,7 @@ const benefits = [
   {
     icon: CheckCircle,
     heading: 'Burde vi velge 80% eller 100%?',
-    body: '80% gir 10 uker lengre permisjon, 100% gir høyere månedlig utbetaling. Vi viser hva som faktisk lønner seg for dere.',
+    body: `80% gir ${LEAVE_CONFIG[80].total - LEAVE_CONFIG[100].total} uker lengre permisjon, 100% gir høyere månedlig utbetaling. Vi viser hva som faktisk lønner seg for dere.`,
   },
 ];
 

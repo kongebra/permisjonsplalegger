@@ -199,7 +199,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
       case 2:
         return <RightsStep value={rights} onChange={setRights} />;
       case 3:
-        return <CoverageStep value={coverage} onChange={setCoverage} />;
+        return <CoverageStep value={coverage} rights={rights} onChange={setCoverage} />;
       case 4:
         return (
           <DistributionStep
