@@ -1,5 +1,21 @@
 # Changelog
 
+<!-- Generert av `bun run changelog` (scripts/changelog.ts). Ikke rediger for hånd. -->
+
+## 2026-02-26
+
+### Rettet
+
+- Erstatt tabell-elementer med divs for å fikse Safari kalender-overflow
+
+## 2026-02-25
+
+### Rettet
+
+- Fjern h-full fra kalender-datoer for å fikse Safari-overflow
+
+<!-- Håndskrevet historikk fra før verktøyet. Kilde: scripts/changelog-historikk.md -->
+
 ## [Upublisert]
 
 ### Forbedringer
