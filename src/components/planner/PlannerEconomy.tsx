@@ -12,6 +12,7 @@ import { GlossaryTerm } from '@/components/ui/glossary-term';
 import { cn } from '@/lib/utils';
 import { MonthlyIncomeOverview } from './MonthlyIncomeOverview';
 import { CumulativeLiquidityChart } from './CumulativeLiquidityChart';
+import { formatWeeks } from '@/lib/format';
 
 function daysToWeeks(days: number) {
   return Math.ceil(days / 7);
@@ -94,8 +95,8 @@ function QuotaOverview() {
             </span>
             <span className="font-medium">
               {quota.sharedMother !== undefined
-                ? `Mor ${quota.sharedMother} + Far ${quota.sharedFather} / ${quota.total} uker`
-                : `${quota.used}/${quota.total} uker`}
+                ? `Mor ${quota.sharedMother} + Far ${quota.sharedFather} / ${formatWeeks(quota.total)}`
+                : `${quota.used}/${formatWeeks(quota.total)}`}
             </span>
           </div>
           {quota.sharedMother !== undefined ? (

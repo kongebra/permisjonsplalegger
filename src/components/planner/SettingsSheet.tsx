@@ -39,6 +39,7 @@ import type { Coverage, ParentRights, ParentEconomy } from '@/lib/types';
 import { useWizard, useEconomy } from '@/store/hooks';
 import { usePlannerStore } from '@/store';
 import posthog from 'posthog-js';
+import { formatWeeks } from '@/lib/format';
 
 interface SettingsSheetProps {
   open: boolean;
@@ -224,7 +225,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             <SettingsRow
               icon={<Percent className="w-4 h-4" />}
               label="Dekningsgrad"
-              value={`${coverage}% — ${config.total} uker`}
+              value={`${coverage}% — ${formatWeeks(config.total)}`}
               expanded={expandedSection === 'coverage'}
               onToggle={() => toggleSection('coverage')}
             >
@@ -246,7 +247,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                     )}
                   >
                     <div className="text-lg font-bold">{c}%</div>
-                    <div className="text-xs text-muted-foreground">{LEAVE_CONFIG[c].total} uker</div>
+                    <div className="text-xs text-muted-foreground">{formatWeeks(LEAVE_CONFIG[c].total)}</div>
                   </button>
                 ))}
               </div>
@@ -257,7 +258,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
               <SettingsRow
                 icon={<Users className="w-4 h-4" />}
                 label="Fordeling"
-                value={`Mor ${sharedWeeksToMother} + Far ${config.shared - sharedWeeksToMother} uker felles`}
+                value={`Mor ${sharedWeeksToMother} + Far ${formatWeeks(config.shared - sharedWeeksToMother)} felles`}
                 expanded={expandedSection === 'distribution'}
                 onToggle={() => toggleSection('distribution')}
               >
@@ -271,10 +272,10 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                   />
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--color-mother)] font-medium">
-                      Mor: {sharedWeeksToMother} uker
+                      Mor: {formatWeeks(sharedWeeksToMother)}
                     </span>
                     <span className="text-[var(--color-father)] font-medium">
-                      Far: {config.shared - sharedWeeksToMother} uker
+                      Far: {formatWeeks(config.shared - sharedWeeksToMother)}
                     </span>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import { countWorkdaysInRange } from '@/lib/calculator/dates';
 import { WORK_DAYS_PER_WEEK } from '@/lib/constants';
 import { GlossaryTerm } from '@/components/ui/glossary-term';
 import type { LeaveResult, CustomPeriod } from '@/lib/types';
+import { formatDays, formatWeeks } from '@/lib/format';
 
 interface PlanStatusBarProps {
   leaveResult: LeaveResult;
@@ -85,10 +86,10 @@ export function PlanStatusBar({
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
                 {gapInfo.remainingWeeks > 0
-                  ? `${gapInfo.remainingWeeks} uker${gapInfo.extraDays > 0 ? ` ${gapInfo.extraDays} dager` : ''}`
-                  : `${gapInfo.remainingDays} dager`}
+                  ? `${formatWeeks(gapInfo.remainingWeeks)}${gapInfo.extraDays > 0 ? ` ${formatDays(gapInfo.extraDays)}` : ''}`
+                  : formatDays(gapInfo.remainingDays)}
                 {' '}udekket <GlossaryTerm term="gap">gap</GlossaryTerm>
-                {gapInfo.coveredDays > 0 && ` (${gapInfo.coveredDays} dager dekket)`}
+                {gapInfo.coveredDays > 0 && ` (${formatDays(gapInfo.coveredDays)} dekket)`}
               </span>
             </>
           )}

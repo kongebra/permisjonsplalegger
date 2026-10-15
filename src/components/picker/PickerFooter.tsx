@@ -25,7 +25,7 @@ export function PickerFooter({ startDate, endDate, onConfirm, jobType = 'office'
           {format(startDate, 'EEE d. MMM', { locale: nb })} —{' '}
           {format(subDays(endDate, 1), 'EEE d. MMM', { locale: nb })}
           {' · '}
-          {days} kalenderdager ({workDays} feriedager)
+          {days === 1 ? '1 kalenderdag' : `${days} kalenderdager`} ({workDays === 1 ? '1 feriedag' : `${workDays} feriedager`})
         </p>
       )}
       <Button

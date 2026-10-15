@@ -11,6 +11,7 @@ import {
 import { LEAVE_CONFIG } from "@/lib/constants";
 import type { Coverage, ParentRights } from "@/lib/types";
 import { GlossaryTerm } from "@/components/ui/glossary-term";
+import { formatWeeks } from '@/lib/format';
 
 interface DistributionStepProps {
   coverage: Coverage;
@@ -115,12 +116,12 @@ export function DistributionStep({
           <div className="flex justify-between text-sm">
             <div className="text-center">
               <div className="text-mother font-semibold">
-                Mor: {sharedWeeksToMother} uker
+                Mor: {formatWeeks(sharedWeeksToMother)}
               </div>
             </div>
             <div className="text-center">
               <div className="text-father font-semibold">
-                Far: {sharedWeeksToFather} uker
+                Far: {formatWeeks(sharedWeeksToFather)}
               </div>
             </div>
           </div>
@@ -134,7 +135,7 @@ export function DistributionStep({
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Mor totalt</p>
               <p className="text-2xl font-bold text-mother">
-                {motherTotal} uker
+                {formatWeeks(motherTotal)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {config.preBirth} før + {motherQuota}{" "}
@@ -151,7 +152,7 @@ export function DistributionStep({
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Far totalt</p>
               <p className="text-2xl font-bold text-father">
-                {fatherTotal} uker
+                {formatWeeks(fatherTotal)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {fatherQuota} <GlossaryTerm term="kvote">kvote</GlossaryTerm> +{" "}

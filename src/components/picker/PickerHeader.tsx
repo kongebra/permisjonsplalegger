@@ -3,6 +3,7 @@
 import { format, differenceInDays, subDays } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { X } from 'lucide-react';
+import { formatDays } from '@/lib/format';
 
 interface PickerHeaderProps {
   startDate: Date | null;
@@ -23,7 +24,7 @@ export function PickerHeader({ startDate, endDate, phase, onClose }: PickerHeade
     case 'range-selected': {
       const days = endDate ? differenceInDays(endDate, startDate!) : 0;
       const inclusiveEnd = endDate ? subDays(endDate, 1) : startDate!;
-      prompt = `${format(startDate!, 'd. MMM', { locale: nb })} – ${format(inclusiveEnd, 'd. MMM', { locale: nb })} (${days} dager)`;
+      prompt = `${format(startDate!, 'd. MMM', { locale: nb })} – ${format(inclusiveEnd, 'd. MMM', { locale: nb })} (${formatDays(days)})`;
       break;
     }
   }
