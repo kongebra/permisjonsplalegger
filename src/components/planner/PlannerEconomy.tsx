@@ -49,7 +49,15 @@ function QuotaOverview() {
       }
     }
 
-    if (rights !== 'father-only') {
+    if (rights === 'mother-only') {
+      // Mor har hele permisjonen alene (49/61 uker), ikke bare mødrekvoten
+      result.push({
+        label: 'Mors permisjon',
+        used: Math.min(motherQuotaWeeks + sharedWeeksMother, config.total),
+        total: config.total,
+        color: 'bg-mother-strong',
+      });
+    } else if (rights === 'both') {
       result.push({
         label: 'Mors kvote',
         used: Math.min(motherQuotaWeeks, config.mother),
@@ -58,12 +66,18 @@ function QuotaOverview() {
       });
     }
 
-    if (rights !== 'mother-only') {
-      const fatherTotal = rights === 'father-only' ? config.fatherOnly.total : config.father;
+    if (rights === 'father-only') {
       result.push({
         label: 'Fars kvote',
-        used: Math.min(fatherQuotaWeeks, fatherTotal),
-        total: fatherTotal,
+        used: Math.min(fatherQuotaWeeks, config.fatherOnly.total),
+        total: config.fatherOnly.total,
+        color: 'bg-father-strong',
+      });
+    } else if (rights === 'both') {
+      result.push({
+        label: 'Fars kvote',
+        used: Math.min(fatherQuotaWeeks, config.father),
+        total: config.father,
         color: 'bg-father-strong',
       });
     }
@@ -90,6 +104,7 @@ function QuotaOverview() {
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">
               {quota.label === 'Mors kvote' && <>Mors <GlossaryTerm term="kvote">kvote</GlossaryTerm></>}
+              {quota.label === 'Mors permisjon' && 'Mors permisjon'}
               {quota.label === 'Fars kvote' && <>Fars <GlossaryTerm term="kvote">kvote</GlossaryTerm></>}
               {quota.label === 'Fellesperiode' && <GlossaryTerm term="fellesperiode">Fellesperiode</GlossaryTerm>}
             </span>
