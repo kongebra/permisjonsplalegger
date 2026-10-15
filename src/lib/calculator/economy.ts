@@ -152,6 +152,40 @@ export function calculateFeriepengeDifference(
 }
 
 /**
+ * Beregner gap-kostnad for ett scenario og velger hvem som tar gapet.
+ *
+ * Kun en forelder som har permisjon i planen (uker > 0) kan ta gapet.
+ * Gapet er tiden etter at permisjonen er brukt opp, og samme regel brukes
+ * i månedsoversikten og likviditetsgrafen (kun mor -> mor, kun far -> far).
+ * Har ingen av dem uker, faller vi tilbake på alle med oppgitt økonomi.
+ * Gap teller kun arbeidsdager (man-fre), ikke helgedager.
+ */
+export function calculateScenarioGapCost(
+  motherEconomy: ParentEconomy,
+  fatherEconomy: ParentEconomy | undefined,
+  motherWeeks: number,
+  fatherWeeks: number,
+  gap: GapInfo
+): { cost: number; takenBy: Parent | null } {
+  const anyoneOnLeave = motherWeeks > 0 || (!!fatherEconomy && fatherWeeks > 0);
+  const motherCanTake = !anyoneOnLeave || motherWeeks > 0;
+  const fatherCanTake = !!fatherEconomy && (!anyoneOnLeave || fatherWeeks > 0);
+
+  const motherDailyRate = motherCanTake
+    ? calculateDailyRate(motherEconomy.monthlySalary)
+    : Infinity;
+  const fatherDailyRate = fatherCanTake
+    ? calculateDailyRate(fatherEconomy.monthlySalary)
+    : Infinity;
+
+  return calculateGapCost(
+    motherDailyRate,
+    fatherDailyRate,
+    countWorkingDaysInGap(gap.start, gap.end)
+  );
+}
+
+/**
  * Beregner totaløkonomi for 80%-scenariet
  */
 export function calculate80Scenario(
@@ -205,16 +239,12 @@ export function calculate80Scenario(
     );
   }
 
-  // Gap-kostnad: teller kun arbeidsdager (man–fre), ikke helgedager
-  const motherDailyRate = calculateDailyRate(motherEconomy.monthlySalary);
-  const fatherDailyRate = fatherEconomy
-    ? calculateDailyRate(fatherEconomy.monthlySalary)
-    : Infinity;
-  const gapWorkingDays = countWorkingDaysInGap(gap.start, gap.end);
-  const { cost: gapCost, takenBy } = calculateGapCost(
-    motherDailyRate,
-    fatherDailyRate,
-    gapWorkingDays
+  const { cost: gapCost, takenBy } = calculateScenarioGapCost(
+    motherEconomy,
+    fatherEconomy,
+    motherWeeks,
+    fatherWeeks,
+    gap
   );
 
   const navPayout = motherNavPayout + fatherNavPayout;
@@ -289,16 +319,12 @@ export function calculate100Scenario(
     );
   }
 
-  // Gap-kostnad: teller kun arbeidsdager (man–fre), ikke helgedager
-  const motherDailyRate = calculateDailyRate(motherEconomy.monthlySalary);
-  const fatherDailyRate = fatherEconomy
-    ? calculateDailyRate(fatherEconomy.monthlySalary)
-    : Infinity;
-  const gapWorkingDays = countWorkingDaysInGap(gap.start, gap.end);
-  const { cost: gapCost, takenBy } = calculateGapCost(
-    motherDailyRate,
-    fatherDailyRate,
-    gapWorkingDays
+  const { cost: gapCost, takenBy } = calculateScenarioGapCost(
+    motherEconomy,
+    fatherEconomy,
+    motherWeeks,
+    fatherWeeks,
+    gap
   );
 
   const navPayout = motherNavPayout + fatherNavPayout;

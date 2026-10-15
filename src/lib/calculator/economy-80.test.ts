@@ -233,13 +233,50 @@ describe('calculate80Scenario', () => {
       expect(result.breakdown.commissionLoss).toBe(0);
     });
 
-    test('far-økonomi uten uker kan fortsatt ta gapet hvis dagsatsen er lavest', () => {
-      // Dokumenterer dagens oppførsel: gap-fordeling ser på fars lønn selv
-      // om far ikke har uker i planen.
+    // Gapet er tiden etter at permisjonen er brukt opp, og anbefalingen om hvem
+    // som tar den ulønnede permisjonen skal gå til en forelder som faktisk har
+    // permisjon i planen. Samme regel brukes i månedsoversikten og likviditets-
+    // grafen (kun mor -> mor, kun far -> far).
+    test('far uten uker i planen tar ikke gapet, selv om dagsatsen hans er lavest', () => {
       const result = calculate80Scenario(
         economy({ monthlySalary: 60_000 }),
         economy({ monthlySalary: 30_000 }),
         20,
+        0,
+        TWO_WEEK_GAP
+      );
+      expect(result.breakdown.gapTakenBy).toBe('mother');
+      expect(result.breakdown.gapCost).toBeCloseTo((60_000 / 21.7) * 10, 2);
+    });
+
+    test('mor uten uker i planen (kun far) tar ikke gapet, selv om dagsatsen hennes er lavest', () => {
+      const result = calculate80Scenario(
+        economy({ monthlySalary: 30_000 }),
+        economy({ monthlySalary: 60_000 }),
+        0,
+        40,
+        TWO_WEEK_GAP
+      );
+      expect(result.breakdown.gapTakenBy).toBe('father');
+      expect(result.breakdown.gapCost).toBeCloseTo((60_000 / 21.7) * 10, 2);
+    });
+
+    test('når begge har uker velges lavest dagsats som før', () => {
+      const result = calculate80Scenario(
+        economy({ monthlySalary: 60_000 }),
+        economy({ monthlySalary: 30_000 }),
+        20,
+        10,
+        TWO_WEEK_GAP
+      );
+      expect(result.breakdown.gapTakenBy).toBe('father');
+    });
+
+    test('ingen har uker: faller tilbake på lavest dagsats blant dem som har oppgitt økonomi', () => {
+      const result = calculate80Scenario(
+        economy({ monthlySalary: 60_000 }),
+        economy({ monthlySalary: 30_000 }),
+        0,
         0,
         TWO_WEEK_GAP
       );

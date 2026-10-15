@@ -306,6 +306,38 @@ describe('acceptance: gap optimization (lower earner takes gap)', () => {
   });
 });
 
+describe('calculate100Scenario: gap går til forelder med permisjon i planen', () => {
+  const gap: GapInfo = {
+    start: new Date(2027, 1, 1),
+    end: new Date(2027, 1, 15),
+    weeks: 2,
+    days: 14,
+    workDays: 10,
+  };
+  const highEarner: ParentEconomy = {
+    monthlySalary: 60_000,
+    monthlyCommissionLoss: 0,
+    employerCoversAbove6G: false,
+    employerPaysFeriepenger: true,
+  };
+  const lowEarner: ParentEconomy = { ...highEarner, monthlySalary: 30_000 };
+
+  test('far uten uker tar ikke gapet selv om han tjener minst', () => {
+    const result = calculate100Scenario(highEarner, lowEarner, 40, 0, gap);
+    expect(result.breakdown.gapTakenBy).toBe('mother');
+  });
+
+  test('mor uten uker (kun far) tar ikke gapet selv om hun tjener minst', () => {
+    const result = calculate100Scenario(lowEarner, highEarner, 0, 40, gap);
+    expect(result.breakdown.gapTakenBy).toBe('father');
+  });
+
+  test('begge har uker: lavest dagsats tar gapet', () => {
+    const result = calculate100Scenario(highEarner, lowEarner, 20, 15, gap);
+    expect(result.breakdown.gapTakenBy).toBe('father');
+  });
+});
+
 // ============================================================
 // Feriepengegrunnlag — explicit basis override
 // ============================================================
