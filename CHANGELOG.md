@@ -14,6 +14,10 @@
 - Flytt milepælknapper ut av slider-rollen i horisontlinjen
 - Gi periodebjelkene nok linjehøyde så teksten ikke klippes
 - Bøy uke og dag riktig i entall (1 uke, 1 dag)
+- Ta med fars uker med aktivitetskrav i planleggeren
+- Vis aktivitetskrav-uker med riktig tekst og farge i kalenderen
+- Kun forelder med permisjon i planen kan ta gapet i anbefalingen
+- Vis lavest dagsats i gap-anbefalingen bare når begge har permisjon
 
 ### Opprydding
 
