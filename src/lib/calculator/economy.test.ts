@@ -12,6 +12,7 @@ import {
   generateCumulativeTimeSeries,
   countWorkingDaysInGap,
 } from './economy';
+import { countWorkdaysInRange } from './dates';
 import { G, MAX_BASIS, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
 import type { ParentEconomy, GapInfo } from '../types';
 
@@ -125,6 +126,24 @@ describe('countWorkingDaysInGap', () => {
   test('samme dato = 0 arbeidsdager', () => {
     const date = new Date(2026, 7, 17);
     expect(countWorkingDaysInGap(date, date)).toBe(0);
+  });
+
+  // Gapet i kalenderen, banneret og oppsummeringen (gap.workDays) teller ikke
+  // helligdager. Gap-kostnaden må bruke samme tall.
+  test('helligdager teller ikke: man 1. mai til man 8. mai 2028 = 4 arbeidsdager', () => {
+    const labourDay = new Date(2028, 4, 1); // man 1. mai 2028 (Arbeidernes dag)
+    const nextMonday = new Date(2028, 4, 8);
+    expect(countWorkingDaysInGap(labourDay, nextMonday)).toBe(4);
+  });
+
+  test('gap-kostnaden bruker samme arbeidsdager som gap.workDays', () => {
+    const start = new Date(2028, 4, 1);
+    const end = new Date(2028, 4, 8);
+    const gap: GapInfo = { start, end, weeks: 1, days: 7, workDays: countWorkdaysInRange(start, end) };
+    const scenario = calculate100Scenario(makeEconomy({ monthlySalary: 50_000 }), undefined, 26, 0, gap);
+    // 4 arbeidsdager x 50 000 / 21,7 = 9 216,59
+    expect(gap.workDays).toBe(4);
+    expect(scenario.breakdown.gapCost).toBeCloseTo(9_216.59, 2);
   });
 });
 

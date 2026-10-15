@@ -21,7 +21,7 @@ import type {
   LeaveSegment,
   TimeSeriesPoint,
 } from '../types';
-import { calculateLeave, getParentLeaveWeeks } from './dates';
+import { calculateLeave, countWorkdaysInRange, getParentLeaveWeeks } from './dates';
 
 /**
  * Har brukeren oppgitt nok økonomi til at sammenligningen gir mening for rettighetene?
@@ -43,20 +43,12 @@ export function hasEconomyInput(
 }
 
 /**
- * Teller antall arbeidsdager (man–fre) mellom to datoer.
- * Brukes for å beregne reelt inntektstap i et gap – helgedager teller ikke.
+ * Teller arbeidsdager (man-fre, uten helligdager) mellom to datoer.
+ * Brukes for å beregne reelt inntektstap i et gap. Bruker samme telling som
+ * gap.workDays, slik at gap-kostnaden, banneret og oppsummeringen er enige.
  */
 export function countWorkingDaysInGap(start: Date, end: Date): number {
-  let count = 0;
-  const current = new Date(start);
-  while (current < end) {
-    const day = current.getDay();
-    if (day >= 1 && day <= 5) { // Mandag (1) til fredag (5)
-      count++;
-    }
-    current.setDate(current.getDate() + 1);
-  }
-  return count;
+  return countWorkdaysInRange(start, end);
 }
 
 /**
@@ -177,7 +169,7 @@ export function calculateFeriepengeDifference(
  * Gapet er tiden etter at permisjonen er brukt opp, og samme regel brukes
  * i månedsoversikten og likviditetsgrafen (kun mor -> mor, kun far -> far).
  * Har ingen av dem uker, faller vi tilbake på alle med oppgitt økonomi.
- * Gap teller kun arbeidsdager (man-fre), ikke helgedager.
+ * Gap teller kun arbeidsdager (man-fre uten helligdager), ikke helgedager.
  */
 export function calculateScenarioGapCost(
   motherEconomy: ParentEconomy,
