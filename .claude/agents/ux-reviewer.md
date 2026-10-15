@@ -1,5 +1,5 @@
 ---
-name: ux-researcher
+name: ux-reviewer
 description: "Read-only UX and accessibility reviewer for the permisjonsplanlegger. Use proactively when a change touches the wizard, calendar, period picker, dialogs or results UI, or when asked whether a flow is understandable for parents or meets WCAG. It reviews source code and docs; it cannot run the app or talk to real users."
 tools: Read, Grep, Glob, WebFetch
 model: sonnet
