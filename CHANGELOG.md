@@ -36,6 +36,14 @@
 - Vis riktig antall uker for kun far i fordeling og innstillinger
 - Vis gap og siste permisjonsdag riktig i barnehagesteget
 - Bruk rettighetene for økonomi-raden i oppsummeringen
+- Datovelgerne åpner på valgt måned og prematur fødsel kan velges neste år
+- Ikke vis Velkommen tilbake midt i veiviseren
+- Hopp over PostHog-init uten nøkkel så konsollen er stille lokalt
+- Fyll kalenderperioder i layout-effekt i stedet for under render
+- Valider lagret plan så ødelagt localStorage ikke gir feilside
+- Norsk feilside som logger feilen og lar brukeren starte på nytt
+- Termindato-velgeren viser lagret termindato fra tidligere år
+- Norske månedsnavn og tilgjengelighetsetiketter i datovelgeren
 
 ### Opprydding
 
