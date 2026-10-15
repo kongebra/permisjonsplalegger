@@ -57,3 +57,20 @@ Stack: Next.js 16 (App Router), React 19, Zustand, `date-fns` v4, Tailwind 4, bu
 4. Justeringer i kalenderen fungerer sømløst, og "gapet" oppdateres riktig når brukeren legger til ferie eller flytter perioder.
 5. Disclaimer om NAV og veiledende beregninger er fortsatt synlig i UI.
 6. `CHANGELOG.md` er oppdatert, og PR-beskrivelsen har en ikke-teknisk oppsummering nederst.
+
+## Agent skills
+
+### Issue tracker
+
+Issues og spesifikasjoner ligger som GitHub-issues i `kongebra/permisjonsplalegger` (bruk `gh`).
+Se `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Standard triage-vokabular: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`.
+Se `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: én `GLOSSARY.md` og `docs/adr/` i rot.
+Se `docs/agents/domain.md`.
