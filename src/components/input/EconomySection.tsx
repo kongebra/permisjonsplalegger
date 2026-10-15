@@ -17,7 +17,7 @@ import {
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { ParentEconomy, ParentRights } from '@/lib/types';
-import { G } from '@/lib/constants';
+import { MAX_BASIS } from '@/lib/constants';
 import { formatCurrency } from '@/lib/format';
 
 interface EconomySectionProps {
@@ -41,7 +41,7 @@ function ParentEconomyInput({
   onChange,
   colorClass,
 }: ParentEconomyInputProps) {
-  const sixG = 6 * G;
+  const sixG = MAX_BASIS;
 
   return (
     <div className="space-y-4">
