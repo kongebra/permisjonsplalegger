@@ -111,7 +111,7 @@ export {
   getTotalLeaveWeeks,
   countWorkdaysInRange,
 } from './dates';
-export { convertSharedWeeksToMother } from './leave-inputs';
+export { convertSharedWeeksToMother, getPrematureWeeks } from './leave-inputs';
 export {
   calculateBasis,
   hasEconomyInput,

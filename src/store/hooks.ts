@@ -6,9 +6,8 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from './index';
-import type { LeaveResult, EconomyResult, TimeSeriesPoint } from '@/lib/types';
-import { calculateLeave, subtractWeeks, weeksBetween } from '@/lib/calculator';
-import { LEAVE_CONFIG } from '@/lib/constants';
+import type { LeaveResult, EconomyComparisonInput, EconomyResult, TimeSeriesPoint } from '@/lib/types';
+import { calculateLeave, getPrematureWeeks } from '@/lib/calculator';
 import { compareScenarios, generateCumulativeTimeSeries, hasEconomyInput } from '@/lib/calculator/economy';
 
 /**
@@ -193,13 +192,7 @@ export function useCalculatedLeave(): LeaveResult {
         ? daycareStartDate
         : new Date(dueDate.getFullYear() + 3, 7, 1);
 
-    // Premature weeks = weeks between actual birth and planned leave start.
-    // NAV only extends leave when born more than 7 weeks before due date (before uke 33).
-    const normalLeaveStart = subtractWeeks(dueDate, LEAVE_CONFIG[coverage].preBirth);
-    const prematureWeeks =
-      prematureBirthDate && prematureBirthDate < subtractWeeks(dueDate, 7)
-        ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
-        : 0;
+    const prematureWeeks = getPrematureWeeks(dueDate, coverage, prematureBirthDate);
 
     return calculateLeave(
       dueDate,
@@ -243,11 +236,12 @@ export function useCanProceed(): boolean {
 }
 
 /**
- * Hook for economy comparison between 80% and 100% scenarios.
- * Returns null if the salary data needed for the chosen rights is missing
- * (mother's salary for mother-only, father's for father-only).
+ * Felles input til økonomisammenligningen, bygget fra de samme valgene som
+ * kalenderen (inkludert prematur fødsel). Returns null if the salary data
+ * needed for the chosen rights is missing (mother's salary for mother-only,
+ * father's for father-only).
  */
-export function useEconomyComparison(): EconomyResult | null {
+function useEconomyInput(): EconomyComparisonInput | null {
   const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled, prematureBirthDate } =
     usePlannerStore(
       useShallow((state) => ({
@@ -280,25 +274,27 @@ export function useEconomyComparison(): EconomyResult | null {
         ? daycareStartDate
         : new Date(dueDate.getFullYear() + 3, 7, 1);
 
-    // preBirth is 3 for both 80% and 100%, so prematureWeeks is the same for both scenarios
-    const normalLeaveStart = subtractWeeks(dueDate, LEAVE_CONFIG[coverage].preBirth);
-    const prematureWeeks =
-      prematureBirthDate && prematureBirthDate < subtractWeeks(dueDate, 7)
-        ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
-        : 0;
-
-    return compareScenarios({
+    return {
       dueDate,
       coverage,
       rights,
       sharedWeeksToMother,
       daycareStartDate: effectiveDaycare,
-      prematureWeeks,
+      prematureWeeks: getPrematureWeeks(dueDate, coverage, prematureBirthDate),
       motherEconomy,
       fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
-    });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, prematureBirthDateMs, motherEconomy, fatherEconomy]);
+}
+
+/**
+ * Hook for economy comparison between 80% and 100% scenarios.
+ * Returns null if the salary data needed for the chosen rights is missing.
+ */
+export function useEconomyComparison(): EconomyResult | null {
+  const input = useEconomyInput();
+  return useMemo(() => (input ? compareScenarios(input) : null), [input]);
 }
 
 /**
@@ -306,45 +302,6 @@ export function useEconomyComparison(): EconomyResult | null {
  * Returns null if the salary data needed for the chosen rights is missing.
  */
 export function useCumulativeTimeSeries(): TimeSeriesPoint[] | null {
-  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, daycareEnabled } =
-    usePlannerStore(
-      useShallow((state) => ({
-        dueDate: state.dueDate,
-        coverage: state.coverage,
-        rights: state.rights,
-        sharedWeeksToMother: state.sharedWeeksToMother,
-        daycareStartDate: state.daycareStartDate,
-        daycareEnabled: state.daycareEnabled,
-      }))
-    );
-
-  const { motherEconomy, fatherEconomy } = usePlannerStore(
-    useShallow((state) => ({
-      motherEconomy: state.motherEconomy,
-      fatherEconomy: state.fatherEconomy,
-    }))
-  );
-
-  const dueDateMs = dueDate.getTime();
-  const daycareDateMs = daycareStartDate?.getTime() ?? 0;
-
-  return useMemo(() => {
-    if (!hasEconomyInput(rights, motherEconomy, fatherEconomy)) return null;
-
-    const effectiveDaycare =
-      daycareEnabled && daycareStartDate
-        ? daycareStartDate
-        : new Date(dueDate.getFullYear() + 3, 7, 1);
-
-    return generateCumulativeTimeSeries({
-      dueDate,
-      coverage,
-      rights,
-      sharedWeeksToMother,
-      daycareStartDate: effectiveDaycare,
-      motherEconomy,
-      fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dueDateMs, coverage, rights, sharedWeeksToMother, daycareDateMs, daycareEnabled, motherEconomy, fatherEconomy]);
+  const input = useEconomyInput();
+  return useMemo(() => (input ? generateCumulativeTimeSeries(input) : null), [input]);
 }

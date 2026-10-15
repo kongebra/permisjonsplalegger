@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { compareScenarios, hasEconomyInput } from './economy';
 import { calculateLeave, getParentLeaveWeeks, getTotalLeaveWeeks } from './dates';
-import { convertSharedWeeksToMother } from './leave-inputs';
+import { convertSharedWeeksToMother, getPrematureWeeks } from './leave-inputs';
 import type { Coverage, ParentEconomy, ParentRights } from '../types';
 
 /**
@@ -241,6 +241,66 @@ describe('compareScenarios: kun mor', () => {
     expect(withStale.scenario100).toEqual(clean.scenario100);
     expect(withStale.scenario80).toEqual(clean.scenario80);
     expect(withStale.scenario100.breakdown.gapTakenBy).toBe('mother');
+  });
+});
+
+describe('compareScenarios: prematur fødsel', () => {
+  // Termin 14. sep 2026. Med 4 premature uker får mor 4 ekstra uker i kalenderen
+  // (calculateLeave legger dem til mors periode), og økonomien må bruke de samme ukene.
+  const dueDate = new Date(2026, 8, 14);
+  const daycare = new Date(2028, 7, 1);
+
+  test('kun mor: 49 + 4 = 53 uker ved 100%, 61 + 4 = 65 uker ved 80%', () => {
+    const leave100 = calculateLeave(dueDate, 100, 'mother-only', 8, 0, daycare, [], undefined, 4);
+    expect(leave100.mother.weeks).toBe(53);
+
+    const result = compareScenarios({
+      dueDate,
+      coverage: 100,
+      rights: 'mother-only',
+      sharedWeeksToMother: 8,
+      daycareStartDate: daycare,
+      prematureWeeks: 4,
+      motherEconomy: economy(),
+    });
+    // 53 * 11 538,46 = 611 538,46
+    expect(result.scenario100.breakdown.navPayout).toBeCloseTo(611_538.46, 1);
+    // 65 * 11 538,46 * 0,8 = 600 000
+    expect(result.scenario80.breakdown.navPayout).toBeCloseTo(600_000, 1);
+    // Feriepenger: (53 - 12) * 1 176,92 = 48 253,85
+    expect(result.scenario100.breakdown.feriepengeDifference).toBeCloseTo(48_253.85, 1);
+  });
+
+  test('begge: mor får de premature ukene, far er uendret', () => {
+    const result = compareScenarios({
+      dueDate,
+      coverage: 100,
+      rights: 'both',
+      sharedWeeksToMother: 8,
+      daycareStartDate: daycare,
+      prematureWeeks: 2,
+      motherEconomy: economy({ monthlySalary: 60_000 }),
+      fatherEconomy: economy({ monthlySalary: 40_000 }),
+    });
+    // Mor 26 + 2 = 28, far 23: 28 * 13 846,15 + 23 * 9 230,77 = 387 692,31 + 212 307,69 = 600 000
+    expect(result.scenario100.breakdown.navPayout).toBeCloseTo(600_000, 1);
+  });
+});
+
+describe('getPrematureWeeks', () => {
+  // Termin 14. sep 2026, ordinær permisjonsstart 24. aug 2026 (3 uker før termin).
+  const dueDate = new Date(2026, 8, 14);
+
+  test('ingen fødselsdato eller fødsel etter uke 33 gir 0', () => {
+    expect(getPrematureWeeks(dueDate, 100, null)).toBe(0);
+    // 7 uker før termin = 27. jul 2026, ikke før grensen
+    expect(getPrematureWeeks(dueDate, 100, new Date(2026, 6, 27))).toBe(0);
+  });
+
+  test('født 8 uker før termin: uker fra fødsel til ordinær permisjonsstart', () => {
+    // 20. jul 2026 til 24. aug 2026 = 5 uker
+    expect(getPrematureWeeks(dueDate, 100, new Date(2026, 6, 20))).toBe(5);
+    expect(getPrematureWeeks(dueDate, 80, new Date(2026, 6, 20))).toBe(5);
   });
 });
 

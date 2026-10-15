@@ -4,6 +4,26 @@
 
 import { LEAVE_CONFIG } from '../constants';
 import type { Coverage } from '../types';
+import { subtractWeeks, weeksBetween } from './dates';
+
+// NAV utvider permisjonen ved fødsel før svangerskapsuke 33, dvs. mer enn 7 uker før termin
+const PREMATURE_WEEKS_BEFORE_DUE_DATE = 7;
+
+/**
+ * Antall ekstra uker permisjon ved prematur fødsel, slik kalenderen regner dem:
+ * hele uker fra fødselsdato til ordinær permisjonsstart (3 uker før termin).
+ * Gir 0 uten fødselsdato, eller når barnet er født i uke 33 eller senere.
+ */
+export function getPrematureWeeks(
+  dueDate: Date,
+  coverage: Coverage,
+  prematureBirthDate: Date | null | undefined,
+): number {
+  if (!prematureBirthDate) return 0;
+  if (prematureBirthDate >= subtractWeeks(dueDate, PREMATURE_WEEKS_BEFORE_DUE_DATE)) return 0;
+  const normalLeaveStart = subtractWeeks(dueDate, LEAVE_CONFIG[coverage].preBirth);
+  return Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)));
+}
 
 /**
  * Gjør om fellesuker til mor fra én dekningsgrad til en annen.

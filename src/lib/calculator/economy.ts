@@ -22,7 +22,7 @@ import type {
   LeaveSegment,
   TimeSeriesPoint,
 } from '../types';
-import { calculateLeave, countWorkdaysInRange, getParentLeaveWeeks } from './dates';
+import { calculateLeave, countWorkdaysInRange } from './dates';
 import { convertSharedWeeksToMother } from './leave-inputs';
 
 // Brukes når en forelder uten rett i planen ikke har oppgitt økonomi
@@ -437,10 +437,12 @@ export function buildScenarioLeaves(input: EconomyComparisonInput): {
  */
 export function compareScenarios(input: EconomyComparisonInput): EconomyResult {
   const { rights, motherEconomy, fatherEconomy } = input;
-  const { leave80, leave100, sharedWeeksToMother80, sharedWeeksToMother100 } = buildScenarioLeaves(input);
+  const { leave80, leave100 } = buildScenarioLeaves(input);
 
-  const weeks80 = getParentLeaveWeeks(80, rights, sharedWeeksToMother80);
-  const weeks100 = getParentLeaveWeeks(100, rights, sharedWeeksToMother100);
+  // Ukene per forelder hentes fra samme permisjon som kalenderen viser,
+  // inkludert ekstra uker ved prematur fødsel
+  const weeks80 = { mother: leave80.mother.weeks, father: leave80.father.weeks };
+  const weeks100 = { mother: leave100.mother.weeks, father: leave100.father.weeks };
 
   const entitledFatherEconomy = rights === 'mother-only' ? undefined : fatherEconomy;
 
@@ -475,6 +477,8 @@ export function compareScenarios(input: EconomyComparisonInput): EconomyResult {
     scenario100,
     difference,
     recommendation,
+    gap80: leave80.gap,
+    gap100: leave100.gap,
   };
 }
 

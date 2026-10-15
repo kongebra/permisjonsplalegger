@@ -19,6 +19,7 @@ import {
   useJobSettings,
   useEconomy,
   useCalculatedLeave,
+  useEconomyComparison,
   useCanProceed,
 } from "@/store/hooks";
 import { usePlannerStore } from "@/store";
@@ -139,6 +140,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
 
   // Calculate leave result
   const leaveResult = useCalculatedLeave();
+  const economyResult = useEconomyComparison();
 
   // Check if we can proceed to next step
   const canProceed = useCanProceed();
@@ -255,6 +257,7 @@ export function WizardContainer({ skipIntro = false }: WizardContainerProps) {
             motherEconomy={motherEconomy}
             fatherEconomy={fatherEconomy}
             leaveResult={leaveResult}
+            economyResult={economyResult}
             onGoBack={handleGoBackFromSummary}
             onComplete={handleComplete}
           />

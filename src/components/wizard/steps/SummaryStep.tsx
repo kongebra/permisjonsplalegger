@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG, WORK_DAYS_PER_WEEK } from '@/lib/constants';
-import { buildScenarioLeaves, compareScenarios, hasEconomyInput, NO_ECONOMY } from '@/lib/calculator/economy';
+import { hasEconomyInput } from '@/lib/calculator/economy';
 import { getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency, formatWeeks, formatWorkdays } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
@@ -24,6 +24,7 @@ interface SummaryStepProps {
   motherEconomy?: ParentEconomy;
   fatherEconomy?: ParentEconomy;
   leaveResult: LeaveResult;
+  economyResult: EconomyResult | null; // Fra useEconomyComparison, samme tall som økonomi-fanen
   onGoBack: (step: number) => void;
   onComplete: () => void;
 }
@@ -294,6 +295,7 @@ export function SummaryStep({
   motherEconomy,
   fatherEconomy,
   leaveResult,
+  economyResult,
   onGoBack,
   onComplete,
 }: SummaryStepProps) {
@@ -331,25 +333,6 @@ export function SummaryStep({
   // Economy summary
   const hasEconomyData = hasEconomyInput(rights, motherEconomy, fatherEconomy);
   const economyLabel = hasEconomyData ? 'Lønn angitt' : 'Ikke angitt';
-
-  // Calculate gaps for BOTH scenarios (80% and 100% have different leave lengths → different gaps)
-  const effectiveDaycareDate = daycareEnabled && daycareDate
-    ? daycareDate
-    : new Date(dueDate.getFullYear() + 3, 7, 1);
-
-  // Samme input som kalenderen og økonomi-fanen: fellesukene er i valgt dekningsgrads enhet
-  const economyInput = {
-    dueDate,
-    coverage,
-    rights,
-    sharedWeeksToMother,
-    daycareStartDate: effectiveDaycareDate,
-    motherEconomy: motherEconomy ?? NO_ECONOMY,
-    fatherEconomy: rights !== 'mother-only' ? fatherEconomy : undefined,
-  };
-  const { leave80: leaveResult80, leave100: leaveResult100 } = buildScenarioLeaves(economyInput);
-
-  const economyResult = hasEconomyData ? compareScenarios(economyInput) : null;
 
   return (
     <div className="space-y-4">
@@ -432,8 +415,8 @@ export function SummaryStep({
         <RecommendationBox
           economyResult={economyResult}
           rights={rights}
-          gap80WorkDays={leaveResult80.gap.workDays}
-          gap100WorkDays={leaveResult100.gap.workDays}
+          gap80WorkDays={economyResult.gap80.workDays}
+          gap100WorkDays={economyResult.gap100.workDays}
           motherVacationDays={rights !== 'father-only' ? motherJobSettings?.vacationDays ?? 0 : 0}
           fatherVacationDays={rights !== 'mother-only' ? fatherJobSettings?.vacationDays ?? 0 : 0}
         />

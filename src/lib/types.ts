@@ -128,6 +128,8 @@ export interface EconomyResult {
   scenario100: ScenarioResult;
   difference: number; // Positiv = 100% lønner seg, negativ = 80% lønner seg
   recommendation: string;
+  gap80: GapInfo; // Gapet i 80%-planen
+  gap100: GapInfo; // Gapet i 100%-planen
 }
 
 export interface CalculatorResult {
