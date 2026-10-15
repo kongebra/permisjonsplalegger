@@ -6,6 +6,7 @@ const SEGMENT_TO_PERIOD_TYPE: Record<string, PlannerPeriodType> = {
   quota: 'permisjon',
   shared: 'permisjon',
   overlap: 'permisjon',
+  'activity-required': 'permisjon',
   vacation: 'ferie',
   unpaid: 'ulonnet',
 };
@@ -22,7 +23,7 @@ function generateWizardPeriodId(segment: LeaveSegment): string {
  * Convert wizard LeaveResult segments into editable CustomPeriods.
  *
  * - preBirth and mandatory → locked (not editable)
- * - quota, shared, overlap → editable permisjon
+ * - quota, shared, overlap, activity-required → editable permisjon
  * - vacation → editable ferie
  * - unpaid → editable ulønnet
  * - gap → NOT converted (shown as warning in StatsBar)

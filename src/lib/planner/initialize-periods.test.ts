@@ -3,6 +3,7 @@ import {
   initializePeriodsFromLeave,
   reinitializePreservingUserPeriods,
 } from './initialize-periods';
+import { calculateLeave } from '../calculator';
 import type {
   CustomPeriod,
   LeaveResult,
@@ -13,7 +14,7 @@ import type {
 
 // Forventet oppførsel er hentet fra dokumentasjonen i initialize-periods.ts:
 //   preBirth og mandatory -> låst permisjon
-//   quota, shared, overlap -> redigerbar permisjon
+//   quota, shared, overlap, activity-required -> redigerbar permisjon
 //   vacation -> redigerbar ferie, unpaid -> redigerbar ulønnet
 //   gap -> konverteres ikke
 
@@ -103,13 +104,27 @@ describe('initializePeriodsFromLeave', () => {
     expect(periods[0].segmentType).toBe('quota');
   });
 
-  test('activity-required har ingen mapping og hoppes over', () => {
-    // Dokumenterer dagens oppførsel: segmenttypen finnes i LeaveSegmentType,
-    // men mangler i SEGMENT_TO_PERIOD_TYPE, så segmentet forsvinner stille.
+  test('activity-required blir redigerbar permisjon (fars uker med aktivitetskrav)', () => {
     const periods = initializePeriodsFromLeave(
       leaveResult([segment('activity-required', 'father', d(3, 5), d(5, 1))])
     );
-    expect(periods).toEqual([]);
+    expect(periods).toHaveLength(1);
+    expect(periods[0].type).toBe('permisjon');
+    expect(periods[0].parent).toBe('father');
+    expect(periods[0].isLocked).toBe(false);
+    expect(periods[0].isFromWizard).toBe(true);
+    expect(periods[0].segmentType).toBe('activity-required');
+  });
+
+  test('kun far: alle 40 ukene (10 + 30) fra beregningen havner i planleggeren', () => {
+    const dueDate = new Date(2026, 9, 15);
+    const result = calculateLeave(dueDate, 100, 'father-only', 0, 0, new Date(2027, 7, 1));
+    const periods = initializePeriodsFromLeave(result);
+    expect(periods.map((p) => p.segmentType)).toEqual(['quota', 'activity-required']);
+    expect(periods.every((p) => p.type === 'permisjon' && p.parent === 'father')).toBe(true);
+    expect(periods[0].startDate).toEqual(result.father.start);
+    expect(periods[1].endDate).toEqual(result.father.end);
+    expect(periods[0].endDate).toEqual(periods[1].startDate);
   });
 
   test('start- og sluttdato (eksklusiv slutt) og forelder kopieres uendret', () => {
