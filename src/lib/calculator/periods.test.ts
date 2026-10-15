@@ -23,10 +23,8 @@ import type {
 // Alle sluttdatoer i testene er EKSKLUSIVE (dagen etter siste permisjonsdag),
 // slik prosjektet bruker dem internt (se CLAUDE.md).
 //
-// Datoene ligger i 2027 (februar til september) med vilje: vinter- til
-// sommertid (28. mars 2027) gir riktig dagantall med dagens ceil-avrunding,
-// mens overgangen til vintertid i slutten av oktober gir feil (se
-// test.todo nederst i filen).
+// Datoene ligger i 2027 (februar til september). Tidsomstillingene er
+// dekket av egne tester nederst i filen.
 //
 // Forventede verdier er regnet ut for hånd fra LEAVE_CONFIG (NAV-kvoter i
 // docs/nav/foreldrepenger.md: 100 % = 15 + 15 + 16 uker, 80 % = 19 + 19 + 20)
@@ -582,19 +580,26 @@ describe('calculateGapFromPeriods', () => {
 });
 
 // ============================================================
-// Kjente feil (ikke fikset her, kun dokumentert)
+// Tidsomstilling (vinter-/sommertid)
 // ============================================================
 describe('daysBetween ved overgang til vintertid', () => {
   // I Europe/Oslo er døgnet ved overgang til vintertid (siste søndag i
-  // oktober, 25. oktober 2026) 25 timer langt, og
-  // Math.ceil((slutt - start) / 86 400 000) gir da én dag for mye.
-  // Eksempel: daysBetween(20. okt 2026, 3. nov 2026) skal være 14 men gir 15
-  // (og weeksBetween 3 i stedet for 2) når testene kjøres i TZ=Europe/Oslo.
-  // Dette gir feil kvotebruk og gap for planer som krysser siste søndag i
-  // oktober. Rettes i dates.ts (f.eks. ved å bruke differenceInCalendarDays
-  // fra date-fns v4), ikke her.
-  test.todo('daysBetween gir 14 dager mellom 20. okt og 3. nov 2026 (DST-feil i Europe/Oslo)');
-  test.todo('weeksBetween gir 2 uker mellom 20. okt og 3. nov 2026 (DST-feil i Europe/Oslo)');
+  // oktober, 25. oktober 2026) 25 timer langt. Dagsdifferansen må derfor
+  // regnes i kalenderdager, ikke millisekunder, ellers blir antall dager
+  // (og uker) én for høyt når planen krysser tidsomstillingen.
+  test('daysBetween gir 14 dager mellom 20. okt og 3. nov 2026', () => {
+    expect(daysBetween(new Date(2026, 9, 20), new Date(2026, 10, 3))).toBe(14);
+  });
+  test('weeksBetween gir 2 uker mellom 20. okt og 3. nov 2026', () => {
+    expect(weeksBetween(new Date(2026, 9, 20), new Date(2026, 10, 3))).toBe(2);
+  });
+  test('daysBetween er riktig over overgang til sommertid (28. mars 2027)', () => {
+    expect(daysBetween(new Date(2027, 2, 20), new Date(2027, 3, 3))).toBe(14);
+  });
+  test('daysBetween ignorerer klokkeslett og gir negativt tall bakover', () => {
+    expect(daysBetween(new Date(2026, 9, 20, 18), new Date(2026, 10, 3, 6))).toBe(14);
+    expect(daysBetween(new Date(2026, 10, 3), new Date(2026, 9, 20))).toBe(-14);
+  });
 
   test('sanity: ordinær periode uten tidsomstilling gir hele dager', () => {
     expect(daysBetween(new Date(2027, 1, 1), new Date(2027, 1, 15))).toBe(14);
