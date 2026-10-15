@@ -77,7 +77,9 @@ export function MiniMonth({
     <button
       onClick={onClick}
       className={cn(
-        'p-2 rounded-lg border-2 transition-all text-left',
+        // flex-col: en <button> sentrerer innholdet vertikalt, noe som flytter tittelen opp i
+        // måneder med 6 ukerader. Toppjuster slik at titlene ligger på samme linje i hele rutenettet.
+        'flex flex-col justify-start p-2 rounded-lg border-2 transition-all text-left',
         'hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary',
         isActive ? 'border-primary bg-primary/5' : 'border-muted'
       )}
