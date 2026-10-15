@@ -58,7 +58,6 @@ export function CalendarOnboarding() {
       document.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldShow, dismissed]);
 
   if (!shouldShow || dismissed) return null;

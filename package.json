@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "bun test",
+    "test": "bun test src",
     "test:e2e": "playwright test",
-    "test:a11y": "playwright test e2e/a11y"
+    "test:a11y": "playwright test e2e/a11y",
+    "changelog": "bun scripts/changelog.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -29,6 +30,7 @@
     "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.4.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

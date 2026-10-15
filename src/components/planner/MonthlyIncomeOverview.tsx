@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { startOfMonth, addMonths, addDays, getDaysInMonth, isAfter } from 'date-fns';
 import { useWizard, usePeriods, useEconomy, useCalculatedLeave } from '@/store/hooks';
-import { calculateBasis } from '@/lib/calculator/economy';
+import { calculateBasis, monthlyNavPayout } from '@/lib/calculator/economy';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, Parent, Coverage, ParentEconomy } from '@/lib/types';
 
@@ -36,8 +36,7 @@ function calcParentMonth(
   }
 
   const basis = calculateBasis(economy.monthlySalary, economy.employerCoversAbove6G);
-  const coverageRate = coverage === 80 ? 0.8 : 1.0;
-  const monthlyNav = (basis * coverageRate) / 12;
+  const monthlyNav = monthlyNavPayout(basis, coverage);
   const monthlySalary = economy.monthlySalary;
 
   let navDays = 0;

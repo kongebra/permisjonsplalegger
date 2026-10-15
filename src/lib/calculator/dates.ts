@@ -2,6 +2,7 @@
  * Datoberegninger for foreldrepermisjon
  */
 
+import { differenceInCalendarDays } from 'date-fns';
 import { LEAVE_CONFIG, WORK_DAYS_PER_WEEK } from '../constants';
 import { isHoliday } from '../holidays';
 import type {
@@ -46,8 +47,8 @@ export function subtractWeeks(date: Date, weeks: number): Date {
  * Beregner antall dager mellom to datoer
  */
 export function daysBetween(start: Date, end: Date): number {
-  const diffTime = end.getTime() - start.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Kalenderdager, ikke millisekunder: døgnet ved overgang til vintertid er 25 timer
+  return differenceInCalendarDays(end, start);
 }
 
 /**

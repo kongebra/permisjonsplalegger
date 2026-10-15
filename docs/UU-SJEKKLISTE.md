@@ -2,8 +2,6 @@
 
 Kilde: https://www.uutilsynet.no/wcag-standarden/wcag-standarden/86
 
-Sist oppdatert: 2026-02-10
-
 ---
 
 ## Verktøy og automatisering
@@ -12,7 +10,8 @@ Sist oppdatert: 2026-02-10
 |---------|--------|-------------|
 | `eslint-plugin-jsx-a11y` | Installert | Kjører med `bun run lint`. Recommended-regler aktivert. |
 | `bun run build` | Bestått | Verifiserer gyldig HTML og ingen kompileringsfeil. |
-| axe DevTools | SJEKK | Kjør manuelt i Chrome på `/planlegger` og `/planlegger/kalender`. |
+| `bun run test:a11y` | Finnes | Playwright med axe-core (`e2e/a11y-*.spec.ts`) på wizard, kalender, årsoversikt og periode-modal. |
+| axe DevTools | Ikke gjort | Kjør manuelt i Chrome på `/planlegger` og `/planlegger/kalender`. |
 
 ---
 
@@ -23,6 +22,7 @@ For hver ny feature SKAL følgende verifiseres før push:
 ### Automatisert
 - [ ] `bun run lint` passerer (inkl. jsx-a11y)
 - [ ] `bun run build` passerer
+- [ ] `bun run test:a11y` passerer
 
 ### Tastatur
 - [ ] Alle nye interaktive elementer er tilgjengelige med Tab, Enter, Space, Escape
@@ -69,4 +69,4 @@ Disse mønstrene er etablert i kodebasen og SKAL gjenbrukes:
 
 - **High Contrast Mode**: Ikke testet. Bør verifiseres manuelt.
 - **VoiceOver**: Ikke systematisk testet. Bør gjøres for wizard-flow og periode-opprettelse.
-- **Diagrammer (Recharts)**: SVG-basert. Kan ha begrenset skjermleserstøtte. Vurder `aria-label` på `<svg>` og tabellfallback.
+- **Likviditetsgrafen** (`CumulativeLiquidityChart`): håndlaget SVG med `role="img"` og `aria-label`, men uten tabellfallback. Skjermleserbrukere får ikke tallene.

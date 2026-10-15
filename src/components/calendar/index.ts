@@ -5,7 +5,7 @@ export { MonthGrid } from './MonthGrid';
 export { CalendarLegend } from './CalendarLegend';
 
 // Pure resolver functions
-export { resolveDayData, computeDayStatus, buildDayTooltip, buildDayAriaLabel } from './resolve-day';
+export { resolveDayData, dateKey, NO_GAP, computeDayStatus, buildDayTooltip, buildDayAriaLabel } from './resolve-day';
 export { resolveBands } from './resolve-bands';
 
 // Color system

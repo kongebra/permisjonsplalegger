@@ -13,7 +13,7 @@ import {
 } from 'date-fns';
 import { nb } from 'date-fns/locale';
 import { MonthGrid } from '@/components/calendar';
-import { resolveDayData, resolveBands } from '@/components/calendar';
+import { resolveDayData, resolveBands, NO_GAP } from '@/components/calendar';
 import type { PeriodBandData } from '@/components/calendar';
 import { getHolidayMap } from '@/lib/holidays';
 import type { CustomPeriod, LeaveSegment } from '@/lib/types';
@@ -55,19 +55,13 @@ export function MonthView({
     return getHolidayMap(calendarRange.start, calendarRange.end);
   }, [calendarRange]);
 
-  // Dummy gap for planner (no gap concept in planner mode)
-  const dummyGap = useMemo(
-    () => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 }),
-    [],
-  );
-
   // Compute all day data
   const days = useMemo(() => {
     const allDays = eachDayOfInterval(calendarRange);
     return allDays.map((date) =>
       resolveDayData(date, {
         segments,
-        gap: dummyGap,
+        gap: NO_GAP,
         dueDate,
         daycareStart: daycareStart ?? new Date(0),
         holidayMap,
@@ -77,7 +71,7 @@ export function MonthView({
         lockedDates,
       }),
     );
-  }, [calendarRange, segments, dummyGap, dueDate, daycareStart, holidayMap, month, today, customPeriods, lockedDates]);
+  }, [calendarRange, segments, dueDate, daycareStart, holidayMap, month, today, customPeriods, lockedDates]);
 
   // Week bands
   const weekBands = useMemo(() => {

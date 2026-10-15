@@ -7,6 +7,7 @@ import { X, Baby, GraduationCap, AlertTriangle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, LeaveResult } from '@/lib/types';
+import { dateKey } from '@/components/calendar';
 import { getHolidayMap } from '@/lib/holidays';
 
 interface DayDetailPanelProps {
@@ -61,7 +62,7 @@ export function DayDetailPanel({
   // Holiday check
   const holidayName = useMemo(() => {
     const map = getHolidayMap(date, date);
-    return map.get(date.toISOString().split('T')[0]);
+    return map.get(dateKey(date));
   }, [date]);
 
   // Find overlapping periods (endDate is exclusive)

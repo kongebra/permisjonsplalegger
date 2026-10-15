@@ -1,36 +1,94 @@
 # Changelog
 
+<!-- Generert av `bun run changelog` (scripts/changelog.ts). Ikke rediger for hånd. -->
+
+## 2026-10-15
+
+### Rettet
+
+- Bruk lokal datonøkkel i kalenderen og samle NO_GAP og dato-sammenligning
+- Oppdater grunnbeløpet til 136 549 kr (1. mai 2026)
+- Bruk kalenderdager i daysBetween så vintertid ikke gir én dag for mye
+
+### Opprydding
+
+- Samle 6G-tak og dekningsgrad i konstanter og monthlyNavPayout
+
+## 2026-03-02
+
+### Nytt
+
+- Legg til milepæl-snarveier for rask navigasjon i tidslinjen
+
+### Rettet
+
+- Skjul post-sone når barnehage ikke er aktivert
+- WCAG touch-target og korrekt permisjonssluttmåned i milepæl-snarveier
+
+## 2026-03-01
+
+### Nytt
+
+- Legg til post-sone og barnehage-pinne i tidslinjen
+
+## 2026-02-27
+
+### Rettet
+
+- Svar på Copilot-review i PR #5
+
+## 2026-02-26
+
+### Nytt
+
+- Månedlig økonomi med vs-normal, fargeindikator og budsjettgrense
+- Legg til SiteHeader-komponent for info-sider
+- Legg til SiteHeader og fiks back-lenke på /om
+- Legg til SiteHeader og fiks back-lenke på /personvern
+- Legg til SiteHeader på landingssiden
+- Oppdater footer-navn og CHANGELOG for navigasjon
+- Slank WelcomeIntro - fjern feature-kort som dekkes av landingssiden
+- Legg til clickRatioToMonth-hjelpefunksjon for tap-navigasjon
+- Opprett LeaveHorizonLine med tap-navigasjon og månedsbadge
+- Opprett PlanStatusBar med gap-status og sammendragsrad
+- Integrer PlanStatusBar og LeaveHorizonLine i PlannerCalendar
+- Legg til getTimelineGranularity for adaptiv ruler-granularitet
+- Legg til buildTimelineSegments for ruler-segmentliste
+- Redesign LeaveHorizonLine med ruler, månedsinndeling og aktiv-måneds-felt
+
+### Rettet
+
+- Erstatt tabell-elementer med divs for å fikse Safari kalender-overflow
+- Øk maks feriedager per år fra 50 til 99 i wizard
+- Tydeliggjør lønnsfelt med 'f.eks.' placeholder og auto-markering ved fokus
+- Vis mor og far sine permisjoner i separate farger i horisontlinjen
+- Gap teller kun hverdager, fokus-fangst i onboarding-modal
+- Legg til ARIA-attributter på slider og refaktorer coveredDays til countWorkdaysInRange
+- Korriger segmentbredde ved midt-måneds start og vis årstall på H1/H2
+- Forsvars-klemming og aria-hidden på ruler-rad
+
+## 2026-02-25
+
+### Nytt
+
+- Ny identitet og SEO-metadata - Permisjonsplanleggeren
+- Legg til ekte landingsside på / for SEO og deling
+- Oppdater wizard-intro til kabal-framing
+- Legg til persistent permisjonshorisont-banner i kalender
+- Legg til A/B-test for mini-måneder via PostHog feature flag calendar-mini-months
+
+### Rettet
+
+- Fjern h-full fra kalender-datoer for å fikse Safari-overflow
+
+<!-- Håndskrevet historikk fra før verktøyet. Kilde: scripts/changelog-historikk.md -->
+
 ## [Upublisert]
 
 ### Forbedringer
 - Barnehagerett rettet for barn født i september, oktober og november: disse barna kan starte barnehage i fødselsmåneden (ikke august), og kalkulatoren viser nå riktig gap.
 - Støtte for prematur fødsel i wizard: legg inn faktisk fødselsdato og permisjonen forlenges automatisk i tråd med NAV-regelverket.
 - Informasjon om aktivitetskravet vises nå i oppsummeringen når far planlegger å ta fellesperioden.
-
-## 2026-02-26
-
-### Navigasjon på info-sider
-Landingssiden, "Om oss" og personvernsiden har nå en tydelig header som tar deg tilbake til forsiden. Tilbake-lenkene på disse sidene peker nå riktig til forsiden i stedet for inn i planleggeren.
-
-### Kalender-topprad redesign
-Erstattet den tidlige horisontlinjen og gap-baren med to tydeligere komponenter: én som viser status (gap dekket/udekket + Mor/Far/Bhg-sammendrag) og én ren orienteringslinje du kan trykke på for å hoppe direkte til en måned i kalenderen.
-
-### Tidslinje med månedsinndeling
-Permisjonstidslinjen øverst i kalenderen viser nå måneder med etiketter og synlige skiller. Den aktive måneden er fremhevet som et felt — ikke en enkel strek. Ved lange permisjoner (over 2 år) byttes automatisk til kvartal- eller halvårsinndeling for å unngå rot.
-
-### Barnehagestart-markering og hurtignavigasjon i tidslinje
-Permisjonstidslinjen viser nå barnehagestart som en tydelig grønn markering. En liten "hale" forbi barnehagestarten gir kontekst om at planleggingsperioden er over. Under tidslinjen er det lagt til tre snarveier for å hoppe direkte til starten av permisjonen, permisjonsslutt eller barnehagestart.
-
-## 2026-02-25
-
-### Ny identitet og landingsside
-Appen heter nå Permisjonsplanleggeren. En ekte forside på perm-planlegger.vercel.app gir deg en rask oversikt og tar deg direkte til planleggingen — uten omveier.
-
-### Permisjonshorisont i kalenderen
-Øverst i kalenderen vises nå en tidslinje som alltid forteller deg hvor langt permisjonen rekker, hvor stort gapet til barnehage er, og hvilken måned du ser på.
-
-### Månedlig økonomi — se hva dere faktisk har
-Månedsoversikten viser nå hva familien tjener per måned under permisjon sammenlignet med normalt, med fargeindikator og mulighet til å sette en månedlig minstegrense.
 
 ## 2026-02-24
 

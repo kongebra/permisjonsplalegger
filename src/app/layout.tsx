@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
@@ -95,7 +94,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="no">
+    <html lang="nb">
       <head>
         <script
           type="application/ld+json"
@@ -109,7 +108,7 @@ export default function RootLayout({
           Hopp til hovedinnhold
         </a>
         <div className="flex-1">
-          <Providers>{children}</Providers>
+          {children}
         </div>
         <SiteFooter />
       </body>

@@ -215,7 +215,7 @@ describe('calculateGap', () => {
 });
 
 // ============================================================
-// Integration: standard scenario from PROGRESS.md
+// Integration: standard scenario (termin 5. juli 2026)
 // ============================================================
 describe('standard scenario: termin 5. juli 2026, 80%, both parents', () => {
   const dueDate = new Date(2026, 6, 5);

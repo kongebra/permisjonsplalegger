@@ -13,7 +13,7 @@ import { HelpCircle } from 'lucide-react';
 import { InfoBox } from '@/components/ui/info-box';
 import { formatCurrency } from '@/lib/format';
 import type { ParentEconomy, ParentRights, Coverage } from '@/lib/types';
-import { G } from '@/lib/constants';
+import { G, MAX_BASIS } from '@/lib/constants';
 import posthog from 'posthog-js';
 
 interface EconomyStepProps {
@@ -55,7 +55,7 @@ function ParentEconomySection({
   coverage: Coverage;
   onSalaryEntered: (parent: string) => void;
 }) {
-  const sixG = 6 * G;
+  const sixG = MAX_BASIS;
   const hasTrackedSalary = useRef(false);
 
   return (
@@ -134,7 +134,7 @@ function ParentEconomySection({
                 Tjener man mer enn dette, dekker noen arbeidsgivere differansen.
               </p>
               <p className="mt-1 text-muted-foreground">
-                1G = {formatCurrency(G)} (per 1. mai 2025)
+                1G = {formatCurrency(G)} (per 1. mai 2026)
               </p>
             </HelpButton>
           </div>

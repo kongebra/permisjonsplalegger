@@ -12,7 +12,7 @@ import {
   startOfDay,
   subDays,
 } from 'date-fns';
-import { resolveDayData, resolveBands } from '@/components/calendar';
+import { resolveDayData, resolveBands, NO_GAP } from '@/components/calendar';
 import type { CalendarDayData, PeriodBandData } from '@/components/calendar';
 import type { LeaveSegment, CustomPeriod } from '@/lib/types';
 import type { CalendarEvent, IconMarker } from './types';
@@ -149,8 +149,6 @@ export function usePickerMonths({
     [iconMarkers],
   );
 
-  // Dummy gap (picker doesn't show gap styling on day cells)
-  const dummyGap = useMemo(() => ({ start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 }), []);
   const today = useMemo(() => startOfDay(new Date()), []);
 
   // Resolve data for a single month
@@ -168,7 +166,7 @@ export function usePickerMonths({
       const days = allDays.map((date) =>
         resolveDayData(date, {
           segments,
-          gap: dummyGap,
+          gap: NO_GAP,
           dueDate,
           daycareStart,
           holidayMap,
@@ -188,7 +186,7 @@ export function usePickerMonths({
 
       return { month: monthStart, days, weekBands };
     };
-  }, [segments, customPeriods, dummyGap, dueDate, daycareStart, holidayMap, today, selectionStart, selectionEnd]);
+  }, [segments, customPeriods, dueDate, daycareStart, holidayMap, today, selectionStart, selectionEnd]);
 
   return {
     months,

@@ -12,6 +12,7 @@ import {
 } from "date-fns";
 import { nb } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { dateKey } from "./resolve-day";
 import { DayCell } from "./DayCell";
 import { PeriodBandRenderer } from "./PeriodBandRenderer";
 import type {
@@ -71,7 +72,7 @@ export function MonthGrid({
   const dayMap = useMemo(() => {
     const map = new Map<string, CalendarDayData>();
     for (const day of days) {
-      const key = day.date.toISOString().split("T")[0];
+      const key = dateKey(day.date);
       map.set(key, day);
     }
     return map;
@@ -82,7 +83,7 @@ export function MonthGrid({
       const weekDays: CalendarDayData[] = [];
       for (let i = 0; i < 7; i++) {
         const date = addDays(weekStart, i);
-        const key = date.toISOString().split("T")[0];
+        const key = dateKey(date);
         const day = dayMap.get(key);
         if (day) {
           weekDays.push(day);

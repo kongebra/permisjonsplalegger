@@ -88,7 +88,7 @@ function Calendar({
             : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
           defaultClassNames.caption_label,
         ),
-        table: "w-full border-collapse",
+        table: "w-full",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
           "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
@@ -168,16 +168,43 @@ function Calendar({
             <ChevronDownIcon className={cn("size-4", className)} {...props} />
           );
         },
+        // Erstatter alle tabell-elementer med divs for å unngå Safari-feil
+        // der <table>/<tbody>-høyde ikke beregnes riktig med flex <tr>-barn
+        MonthGrid: ({ className, ...props }) => (
+          <div
+            className={cn(className)}
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
+        ),
+        Weekdays: (props) => (
+          <div
+            aria-hidden="true"
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
+        ),
+        Weekday: (props) => (
+          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+        ),
+        Weeks: (props) => (
+          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+        ),
+        Week: ({ week, ...props }) => (
+          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+        ),
+        Day: ({ day, modifiers, ...props }) => <div {...props} />,
         DayButton: CalendarDayButton,
         WeekNumber: ({ children, ...props }) => {
           return (
-            <td {...props}>
+            <div {...(props as React.HTMLAttributes<HTMLDivElement>)}>
               <div className="flex size-(--cell-size) items-center justify-center text-center">
                 {children}
               </div>
-            </td>
+            </div>
           );
         },
+        WeekNumberHeader: (props) => (
+          <div {...(props as React.HTMLAttributes<HTMLDivElement>)} />
+        ),
         ...components,
       }}
       {...props}

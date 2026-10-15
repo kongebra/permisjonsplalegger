@@ -4,6 +4,9 @@ import type { LeaveSegment, CustomPeriod, GapInfo } from '@/lib/types';
 import type { CalendarDayData, CalendarDayPeriod } from './types';
 import { DayStatus, STATUS_COLORS, getDayStatusStyle, getSegmentPattern } from './colors';
 
+/** Tom gap for visninger uten gap-konsept (planlegger og periodevelger). */
+export const NO_GAP: GapInfo = { start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 };
+
 interface ResolveDayContext {
   segments: LeaveSegment[];
   gap: GapInfo;
@@ -21,8 +24,9 @@ interface ResolveDayContext {
   selectionEnd?: Date | null;
 }
 
-function dateKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+/** Datonøkkel (yyyy-MM-dd) i lokal tid, brukes av alle kalender-oppslag. */
+export function dateKey(date: Date): string {
+  return format(date, 'yyyy-MM-dd');
 }
 
 /**
