@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useCumulativeTimeSeries } from '@/store/hooks';
+import { useEconomyComparison } from '@/store/hooks';
+import { getCoverageVerdict } from '@/lib/calculator/economy';
+import { formatCurrency } from '@/lib/format';
 import type { TimeSeriesPoint } from '@/lib/types';
 
 const CHART_HEIGHT = 200;
@@ -20,7 +22,8 @@ function formatKr(n: number): string {
 
 function Chart({ data }: { data: TimeSeriesPoint[] }) {
   const maxVal = Math.max(...data.map(d => Math.max(d.cumulative80, d.cumulative100)));
-  const minVal = 0;
+  // Tap (provisjon, feriepenger) kan i sjeldne tilfeller gi negativ sum de første månedene
+  const minVal = Math.min(0, ...data.map(d => Math.min(d.cumulative80, d.cumulative100)));
   const valueRange = maxVal - minVal || 1;
 
   // Mål containerbredden og bruk den som viewBox-bredde (1 enhet = 1 px)
@@ -143,25 +146,32 @@ function Chart({ data }: { data: TimeSeriesPoint[] }) {
 }
 
 export function CumulativeLiquidityChart() {
-  const data = useCumulativeTimeSeries();
+  const result = useEconomyComparison();
+  const data = result?.timeSeries;
 
-  if (!data || data.length === 0) return null;
+  if (!result || !data || data.length === 0) return null;
 
-  const last = data[data.length - 1];
-  const diff = last.cumulative80 - last.cumulative100;
+  // Samme tall og samme vinner som kortet under grafen
+  const { winner, amount } = getCoverageVerdict(result.difference);
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium">Kumulativ inntekt</h3>
-        {Math.abs(diff) > 1000 && (
-          <span className="text-xs text-muted-foreground">
-            {diff > 0 ? '80%' : '100%'} gir {formatKr(Math.abs(diff))} kr mer totalt
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground text-right">
+          {winner
+            ? `${winner}% gir ${formatCurrency(amount)} mer totalt`
+            : 'Samme sum totalt'}
+        </span>
       </div>
 
       <Chart data={data} />
+
+      <p className="text-xs text-muted-foreground">
+        Fra første permisjonsdag til barnehagestart, eller til siste permisjonsdag hvis den
+        kommer senere. Provisjonstap og tapt feriepengeopptjening er trukket fra i månedene
+        de oppstår.
+      </p>
 
       <div className="flex gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">

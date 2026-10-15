@@ -97,8 +97,9 @@ export interface LeaveResult {
 
 export interface EconomyBreakdown {
   navPayout: number;
+  salaryIncome: number; // Lønn på arbeidsdager utenfor egen permisjon, før gapet trekkes fra
   commissionLoss: number;
-  gapCost: number;
+  gapCost: number; // Lønn som tapes i det ulønnede gapet
   gapTakenBy: Parent | null;
   feriepengeDifference: number;
 }
@@ -108,11 +109,29 @@ export interface ScenarioResult {
   breakdown: EconomyBreakdown;
 }
 
+/**
+ * Input til økonomisammenligningen: de samme valgene som kalenderen bygger
+ * permisjonen fra. `sharedWeeksToMother` er i valgt dekningsgrads enhet.
+ */
+export interface EconomyComparisonInput {
+  dueDate: Date;
+  coverage: Coverage;
+  rights: ParentRights;
+  sharedWeeksToMother: number;
+  daycareStartDate: Date;
+  prematureWeeks?: number;
+  motherEconomy: ParentEconomy;
+  fatherEconomy?: ParentEconomy;
+}
+
 export interface EconomyResult {
   scenario80: ScenarioResult;
   scenario100: ScenarioResult;
   difference: number; // Positiv = 100% lønner seg, negativ = 80% lønner seg
   recommendation: string;
+  gap80: GapInfo; // Gapet i 80%-planen
+  gap100: GapInfo; // Gapet i 100%-planen
+  timeSeries: TimeSeriesPoint[]; // Likviditetsgrafen, siste punkt = totalene over
 }
 
 export interface CalculatorResult {

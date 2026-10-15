@@ -18,9 +18,8 @@ import {
   type PersistenceSlice,
 } from './slices/persistenceSlice';
 import type { SavedPlan, Coverage, ParentRights, ParentEconomy } from '@/lib/types';
-import { calculateLeave, subtractWeeks, weeksBetween } from '@/lib/calculator';
+import { calculateLeave, getPrematureWeeks } from '@/lib/calculator';
 import { reinitializePreservingUserPeriods } from '@/lib/planner/initialize-periods';
-import { LEAVE_CONFIG } from '@/lib/constants';
 
 // Combined store type
 export type PlannerStore = WizardSlice &
@@ -167,11 +166,7 @@ export const usePlannerStore = create<PlannerStore>()(
 
       // Compute premature weeks from current state (not part of settings)
       const { prematureBirthDate } = usePlannerStore.getState();
-      const normalLeaveStart = subtractWeeks(settings.dueDate, LEAVE_CONFIG[settings.coverage].preBirth);
-      const prematureWeeks =
-        prematureBirthDate && prematureBirthDate < subtractWeeks(settings.dueDate, 7)
-          ? Math.max(0, Math.round(weeksBetween(prematureBirthDate, normalLeaveStart)))
-          : 0;
+      const prematureWeeks = getPrematureWeeks(settings.dueDate, settings.coverage, prematureBirthDate);
 
       const newLeaveResult = calculateLeave(
         settings.dueDate,

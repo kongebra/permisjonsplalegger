@@ -7,13 +7,13 @@ import {
   calculateCommissionLoss,
   calculateGapCost,
   calculateFeriepengeDifference,
-  calculate100Scenario,
+  calculateScenarioGapCost,
   compareScenarios,
-  generateCumulativeTimeSeries,
   countWorkingDaysInGap,
 } from './economy';
+import { countWorkdaysInRange } from './dates';
 import { G, MAX_BASIS, WORK_DAYS_PER_MONTH, FERIEPENGER_RATE, FERIEPENGER_NAV_WEEKS } from '../constants';
-import type { ParentEconomy, GapInfo } from '../types';
+import type { EconomyComparisonInput, ParentEconomy, ParentRights, GapInfo } from '../types';
 
 // ============================================================
 // calculateBasis — 6G cap
@@ -126,6 +126,24 @@ describe('countWorkingDaysInGap', () => {
     const date = new Date(2026, 7, 17);
     expect(countWorkingDaysInGap(date, date)).toBe(0);
   });
+
+  // Gapet i kalenderen, banneret og oppsummeringen (gap.workDays) teller ikke
+  // helligdager. Gap-kostnaden må bruke samme tall.
+  test('helligdager teller ikke: man 1. mai til man 8. mai 2028 = 4 arbeidsdager', () => {
+    const labourDay = new Date(2028, 4, 1); // man 1. mai 2028 (Arbeidernes dag)
+    const nextMonday = new Date(2028, 4, 8);
+    expect(countWorkingDaysInGap(labourDay, nextMonday)).toBe(4);
+  });
+
+  test('gap-kostnaden bruker samme arbeidsdager som gap.workDays', () => {
+    const start = new Date(2028, 4, 1);
+    const end = new Date(2028, 4, 8);
+    const gap: GapInfo = { start, end, weeks: 1, days: 7, workDays: countWorkdaysInRange(start, end) };
+    const result = calculateScenarioGapCost(makeEconomy({ monthlySalary: 50_000 }), undefined, 26, 0, gap);
+    // 4 arbeidsdager x 50 000 / 21,7 = 9 216,59
+    expect(gap.workDays).toBe(4);
+    expect(result.cost).toBeCloseTo(9_216.59, 2);
+  });
 });
 
 // ============================================================
@@ -219,11 +237,32 @@ function makeGap(days: number): GapInfo {
   };
 }
 
+// Termin 14. sep 2026 (permisjonsstart 24. aug 2026), barnehagestart 1. sep 2027
+const DUE_DATE = new Date(2026, 8, 14);
+const DAYCARE = new Date(2027, 8, 1);
+
+function compareBoth(
+  motherEconomy: ParentEconomy,
+  fatherEconomy: ParentEconomy | undefined,
+  overrides: Partial<EconomyComparisonInput> = {},
+) {
+  return compareScenarios({
+    dueDate: DUE_DATE,
+    coverage: 100,
+    rights: 'both',
+    sharedWeeksToMother: 8,
+    daycareStartDate: DAYCARE,
+    motherEconomy,
+    fatherEconomy,
+    ...overrides,
+  });
+}
+
 describe('compareScenarios', () => {
   test('returns both scenarios with difference and recommendation', () => {
     const mother = makeEconomy({ monthlySalary: 50_000 });
     const father = makeEconomy({ monthlySalary: 40_000 });
-    const result = compareScenarios(mother, father, 9, makeGap(60), makeGap(90), 'both');
+    const result = compareBoth(mother, father);
 
     expect(result.scenario80).toBeDefined();
     expect(result.scenario100).toBeDefined();
@@ -235,7 +274,7 @@ describe('compareScenarios', () => {
   test('small difference gives neutral recommendation', () => {
     // Nearly equal scenarios
     const mother = makeEconomy({ monthlySalary: 30_000 });
-    const result = compareScenarios(mother, undefined, 9, makeGap(0), makeGap(0), 'both');
+    const result = compareBoth(mother, undefined);
     if (Math.abs(result.difference) <= 10000) {
       expect(result.recommendation).toContain('familiens situasjon');
     }
@@ -260,12 +299,11 @@ describe('acceptance: high earner with commission (78k + 12k)', () => {
     expect(loss80 - loss100).toBeGreaterThan(20_000);
   });
 
-  test('comparison shows meaningful difference', () => {
-    const gap80 = makeGap(30); // Less gap with 80%
-    const gap100 = makeGap(90); // More gap with 100%
-    const result = compareScenarios(motherEconomy, fatherEconomy, 9, gap80, gap100, 'both');
-    // The difference should be significant (not near zero)
-    expect(Math.abs(result.difference)).toBeGreaterThan(10_000);
+  test('comparison shows that 100% pays off significantly', () => {
+    const result = compareBoth(motherEconomy, fatherEconomy);
+    // KRAVSPEC: "100 % lønner seg betydelig". Positiv forskjell = 100% gir mest.
+    expect(result.difference).toBeGreaterThan(10_000);
+    expect(result.scenario80.breakdown.commissionLoss).toBeGreaterThan(result.scenario100.breakdown.commissionLoss);
   });
 });
 
@@ -276,21 +314,47 @@ describe('acceptance: gap test (100% ends may, daycare aug)', () => {
   test('gap cost uses working days, not calendar days', () => {
     const mother = makeEconomy({ monthlySalary: 50_000 });
     const gap100 = makeGap(92); // ~3 months gap
-    const scenario = calculate100Scenario(mother, undefined, 26, 0, gap100);
+    const result = calculateScenarioGapCost(mother, undefined, 26, 0, gap100);
     const workingDays = countWorkingDaysInGap(gap100.start, gap100.end);
-    expect(scenario.breakdown.gapCost).toBeGreaterThan(0);
-    expect(scenario.breakdown.gapCost).toBeCloseTo(
-      calculateDailyRate(50_000) * workingDays
-    );
+    expect(result.cost).toBeGreaterThan(0);
+    expect(result.cost).toBeCloseTo(calculateDailyRate(50_000) * workingDays);
   });
 
-  test('80% with less gap can win over 100% with large gap', () => {
-    const mother = makeEconomy({ monthlySalary: 40_000 });
-    const gap80 = makeGap(0); // No gap
-    const gap100 = makeGap(92); // 3 month gap
-    const result = compareScenarios(mother, undefined, 9, gap80, gap100, 'both');
-    // 80% should be better when gap is 0 vs 92 days
-    expect(result.difference).toBeLessThan(0); // negative means 80% better
+  // Kun mor, 40 000 kr/mnd, termin 22. jun 2026 (start 1. jun 2026). 100% slutter mandag
+  // 10. mai 2027, 80% slutter mandag 2. aug 2027, barnehagestart søndag 1. aug 2027.
+  // Gapet ved 100% er 10. mai - 1. aug 2027: 12 uker = 60 hverdager minus 17. mai = 59 arbeidsdager.
+  // Begge regnes til 2. aug 2027.
+  //   ukesgrunnlag 480 000 / 52 = 9 230,77, dagsats 40 000 / 21,7 = 1 843,32,
+  //   feriepenger 941,54 per uke og 188,31 per arbeidsdag
+  //   100%: 49 * 9 230,77 = 452 307,69, lønn i gapet 59 * 1 843,32 = 108 755,76 tapes helt,
+  //         feriepenger 37 * 941,54 + 59 * 188,31 = 45 947,08, total 406 360,62
+  //   80%:  61 * 9 230,77 * 0,8 = 450 461,54, feriepenger 46 * 941,54 = 43 310,77, total 407 150,77
+  const gapCase = () =>
+    compareBoth(makeEconomy({ monthlySalary: 40_000 }), undefined, {
+      rights: 'mother-only',
+      dueDate: new Date(2026, 5, 22),
+      daycareStartDate: new Date(2027, 7, 1),
+    });
+
+  test('tapt arbeidsinntekt i gapet trekkes fra i 100%-alternativet', () => {
+    const result = gapCase();
+    expect(result.scenario80.breakdown.gapCost).toBe(0);
+    expect(result.scenario100.breakdown.gapCost).toBeCloseTo(108_755.76, 1);
+    // Ingen lønn i gapet: lønnen som ellers ville kommet trekkes fra igjen
+    expect(result.scenario100.breakdown.salaryIncome).toBeCloseTo(108_755.76, 1);
+    // Juni 2027 ligger helt i gapet: ingen inntekt, bare tapt feriepengeopptjening (22 * 188,31)
+    const june = result.timeSeries.find((p) => p.month.getTime() === new Date(2027, 5, 1).getTime());
+    expect(june?.income100).toBeCloseTo(-22 * 188.31, 0);
+    expect(result.scenario100.total).toBeCloseTo(406_360.62, 1);
+  });
+
+  test('12 ekstra uker med 80% veier opp for gapet: nesten likt totalt', () => {
+    // Tidligere ble de 12 ukene telt to ganger: som NAV-utbetaling ved 80% og som
+    // tapt lønn i gapet ved 100%. Over samme tidsrom er forskjellen bare 790,15 kr.
+    const result = gapCase();
+    expect(result.scenario80.total).toBeCloseTo(407_150.77, 1);
+    expect(result.difference).toBeCloseTo(406_360.62 - 407_150.77, 1);
+    expect(result.recommendation).toContain('familiens situasjon');
   });
 });
 
@@ -303,38 +367,6 @@ describe('acceptance: gap optimization (lower earner takes gap)', () => {
     const fatherDaily = calculateDailyRate(500_000 / 12);
     const result = calculateGapCost(motherDaily, fatherDaily, 60);
     expect(result.takenBy).toBe('father');
-  });
-});
-
-describe('calculate100Scenario: gap går til forelder med permisjon i planen', () => {
-  const gap: GapInfo = {
-    start: new Date(2027, 1, 1),
-    end: new Date(2027, 1, 15),
-    weeks: 2,
-    days: 14,
-    workDays: 10,
-  };
-  const highEarner: ParentEconomy = {
-    monthlySalary: 60_000,
-    monthlyCommissionLoss: 0,
-    employerCoversAbove6G: false,
-    employerPaysFeriepenger: true,
-  };
-  const lowEarner: ParentEconomy = { ...highEarner, monthlySalary: 30_000 };
-
-  test('far uten uker tar ikke gapet selv om han tjener minst', () => {
-    const result = calculate100Scenario(highEarner, lowEarner, 40, 0, gap);
-    expect(result.breakdown.gapTakenBy).toBe('mother');
-  });
-
-  test('mor uten uker (kun far) tar ikke gapet selv om hun tjener minst', () => {
-    const result = calculate100Scenario(lowEarner, highEarner, 0, 40, gap);
-    expect(result.breakdown.gapTakenBy).toBe('father');
-  });
-
-  test('begge har uker: lavest dagsats tar gapet', () => {
-    const result = calculate100Scenario(highEarner, lowEarner, 20, 15, gap);
-    expect(result.breakdown.gapTakenBy).toBe('father');
   });
 });
 
@@ -369,37 +401,56 @@ describe('calculateFeriepengeDifference with feriepengegrunnlag', () => {
 // ============================================================
 // Cumulative time series
 // ============================================================
-describe('generateCumulativeTimeSeries', () => {
+describe('compareScenarios: tidsserie til likviditetsgrafen', () => {
   const mother = makeEconomy({ monthlySalary: 50_000 });
   const father = makeEconomy({ monthlySalary: 40_000 });
-  const dueDate = new Date(2027, 2, 15); // March 15, 2027
+  const dueDate = new Date(2027, 2, 15); // March 15, 2027 (permisjonsstart 22. feb 2027)
   const daycare = new Date(2028, 7, 1); // August 1, 2028
-
-  test('returns non-empty array of time series points', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
-    expect(result.length).toBeGreaterThan(0);
+  const seriesInput = (
+    rights: ParentRights,
+    fatherEconomy: ParentEconomy | undefined,
+    overrides: Partial<ParentEconomy> = {},
+  ): EconomyComparisonInput => ({
+    dueDate,
+    coverage: 80,
+    rights,
+    sharedWeeksToMother: 9,
+    daycareStartDate: daycare,
+    motherEconomy: { ...mother, ...overrides },
+    fatherEconomy: fatherEconomy && { ...fatherEconomy, ...overrides },
   });
 
-  test('cumulative values are monotonically non-decreasing', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
-    for (let i = 1; i < result.length; i++) {
-      expect(result[i].cumulative80).toBeGreaterThanOrEqual(result[i - 1].cumulative80);
-      expect(result[i].cumulative100).toBeGreaterThanOrEqual(result[i - 1].cumulative100);
+  test('går fra permisjonsstart til måneden før barnehagestart', () => {
+    const { timeSeries } = compareScenarios(seriesInput('both', father));
+    expect(timeSeries[0].month).toEqual(new Date(2027, 1, 1));
+    expect(timeSeries[timeSeries.length - 1].month).toEqual(new Date(2028, 6, 1));
+  });
+
+  test('kumulativ verdi er summen av månedene', () => {
+    const { timeSeries } = compareScenarios(seriesInput('both', father));
+    let sum80 = 0;
+    let sum100 = 0;
+    for (const point of timeSeries) {
+      sum80 += point.income80;
+      sum100 += point.income100;
+      expect(point.cumulative80).toBeCloseTo(sum80, 6);
+      expect(point.cumulative100).toBeCloseTo(sum100, 6);
     }
   });
 
-  test('each point has positive monthly income', () => {
-    const result = generateCumulativeTimeSeries(mother, father, dueDate, 'both', 9, daycare);
-    for (const point of result) {
-      expect(point.income80).toBeGreaterThanOrEqual(0);
-      expect(point.income100).toBeGreaterThanOrEqual(0);
+  test('uten provisjon er tapt feriepengeopptjening i gapet det eneste som kan gi negativ måned', () => {
+    // Far (40 000) tar gapet: maks 23 arbeidsdager * 480 000 * 0,102 / 260 = 4 331,08
+    const { timeSeries } = compareScenarios(seriesInput('both', father, { employerPaysFeriepenger: true }));
+    for (const point of timeSeries) {
+      expect(point.income80).toBeGreaterThanOrEqual(-4_331.08);
+      expect(point.income100).toBeGreaterThanOrEqual(-4_331.08);
     }
   });
 
   test('works with mother-only rights', () => {
-    const result = generateCumulativeTimeSeries(mother, undefined, dueDate, 'mother-only', 9, daycare);
-    expect(result.length).toBeGreaterThan(0);
-    expect(result[result.length - 1].cumulative80).toBeGreaterThan(0);
+    const { timeSeries } = compareScenarios(seriesInput('mother-only', undefined));
+    expect(timeSeries.length).toBeGreaterThan(0);
+    expect(timeSeries[timeSeries.length - 1].cumulative80).toBeGreaterThan(0);
   });
 });
 

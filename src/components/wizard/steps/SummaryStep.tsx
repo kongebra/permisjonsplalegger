@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LEAVE_CONFIG, WORK_DAYS_PER_WEEK } from '@/lib/constants';
-import { compareScenarios, hasEconomyInput } from '@/lib/calculator/economy';
-import { calculateLeave, getTotalLeaveWeeks } from '@/lib/calculator';
+import { getCoverageVerdict, hasEconomyInput } from '@/lib/calculator/economy';
+import { getTotalLeaveWeeks } from '@/lib/calculator';
 import { formatCurrency, formatWeeks, formatWorkdays } from '@/lib/format';
 import type { Coverage, ParentRights, JobSettings, LeaveResult, ParentEconomy, EconomyResult } from '@/lib/types';
 import { format } from 'date-fns';
@@ -24,6 +24,7 @@ interface SummaryStepProps {
   motherEconomy?: ParentEconomy;
   fatherEconomy?: ParentEconomy;
   leaveResult: LeaveResult;
+  economyResult: EconomyResult | null; // Fra useEconomyComparison, samme tall som økonomi-fanen
   onGoBack: (step: number) => void;
   onComplete: () => void;
 }
@@ -45,50 +46,31 @@ function ExplanationPanel({ result, rights, gap80WorkDays, gap100WorkDays, mothe
   fatherVacationDays: number;
 }) {
   const { scenario80, scenario100, difference } = result;
-  const favors100 = difference > 0;
+  // Gapet fra alternativet som gir mest (100% ved lik sum)
+  const favors100 = getCoverageVerdict(difference).winner !== 80;
 
-  // Antall uker avhenger av rettighetene (kun far har 40/52, ellers 49/61)
-  const weeks100 = getTotalLeaveWeeks(100, rights);
-  const weeks80 = getTotalLeaveWeeks(80, rights);
-
-  // Build short explanation based on which scenario wins and why
-  const getExplanation = () => {
-    if (Math.abs(difference) <= 5000) {
-      return 'Forskjellen er liten. Valget handler mer om hvor lang permisjon familien ønsker.';
-    }
-    if (favors100) {
-      if (gap100WorkDays > gap80WorkDays) {
-        return `100% gir full lønn i ${weeks100} uker. Selv om gapet er lengre (${formatWorkdays(gap100WorkDays)} mot ${formatWorkdays(gap80WorkDays)}), veier den høyere NAV-utbetalingen opp.`;
-      }
-      return `100% gir full lønn i ${weeks100} uker, noe som gir høyere total utbetaling enn 80% over ${weeks80} uker.`;
-    }
-    return `80% gir permisjon i ${weeks80} uker - ${formatWeeks(weeks80 - weeks100)} mer enn 100%. Det gir et kortere gap (${formatWorkdays(gap80WorkDays)} mot ${formatWorkdays(gap100WorkDays)}) og lavere totalkostnad.`;
-  };
-
-  // Only show factors that actually differ meaningfully (> 500 kr)
+  // Alle rader tas med, slik at netto er summen av radene (samme oppstilling som økonomi-fanen)
   const factors: { label: string; val80: number; val100: number; isLoss: boolean }[] = [];
 
-  if (Math.abs(scenario100.breakdown.navPayout - scenario80.breakdown.navPayout) > 500) {
+  factors.push({
+    label: 'NAV-utbetaling',
+    val80: scenario80.breakdown.navPayout,
+    val100: scenario100.breakdown.navPayout,
+    isLoss: false,
+  });
+  if (scenario80.breakdown.salaryIncome > 0 || scenario100.breakdown.salaryIncome > 0) {
     factors.push({
-      label: 'NAV-utbetaling',
-      val80: scenario80.breakdown.navPayout,
-      val100: scenario100.breakdown.navPayout,
+      label: 'Lønn utenfor permisjon',
+      val80: scenario80.breakdown.salaryIncome,
+      val100: scenario100.breakdown.salaryIncome,
       isLoss: false,
     });
   }
   if (scenario80.breakdown.gapCost > 0 || scenario100.breakdown.gapCost > 0) {
     factors.push({
-      label: 'Gap-kostnad',
+      label: 'Udekket gap',
       val80: scenario80.breakdown.gapCost,
       val100: scenario100.breakdown.gapCost,
-      isLoss: true,
-    });
-  }
-  if (scenario80.breakdown.feriepengeDifference > 0 || scenario100.breakdown.feriepengeDifference > 0) {
-    factors.push({
-      label: 'Tapt feriepenger',
-      val80: scenario80.breakdown.feriepengeDifference,
-      val100: scenario100.breakdown.feriepengeDifference,
       isLoss: true,
     });
   }
@@ -100,11 +82,20 @@ function ExplanationPanel({ result, rights, gap80WorkDays, gap100WorkDays, mothe
       isLoss: true,
     });
   }
+  if (scenario80.breakdown.feriepengeDifference > 0 || scenario100.breakdown.feriepengeDifference > 0) {
+    factors.push({
+      label: 'Tapt feriepenger',
+      val80: scenario80.breakdown.feriepengeDifference,
+      val100: scenario100.breakdown.feriepengeDifference,
+      isLoss: true,
+    });
+  }
 
   return (
     <div className="space-y-3 pt-2 border-t border-[var(--color-info-fg)]/15">
+      {/* Samme forklaring som på økonomi-fanen */}
       <p className="text-xs text-[var(--color-info-fg)]">
-        {getExplanation()}
+        {result.recommendation}
       </p>
 
       {/* Factor table */}
@@ -209,11 +200,11 @@ function RecommendationBox({ economyResult, rights, gap80WorkDays, gap100WorkDay
 }) {
   const [showExplanation, setShowExplanation] = useState(false);
 
-  const recommendedCoverage = economyResult.difference > 5000 ? 100 : economyResult.difference < -5000 ? 80 : null;
-  const recommendationText = recommendedCoverage === 100
-    ? '100% dekning kan lønne seg for deres situasjon'
-    : recommendedCoverage === 80
-    ? '80% dekning kan lønne seg for deres situasjon'
+  // Samme vinner og terskel som økonomi-fanen
+  const verdict = getCoverageVerdict(economyResult.difference);
+  const recommendedCoverage = verdict.isSmall ? null : verdict.winner;
+  const recommendationText = recommendedCoverage
+    ? `${recommendedCoverage}% dekning gir ca. ${formatCurrency(verdict.amount)} mer for deres situasjon`
     : 'Forskjellen mellom 80% og 100% er liten for deres situasjon';
 
   const handleToggleExplanation = () => {
@@ -294,6 +285,7 @@ export function SummaryStep({
   motherEconomy,
   fatherEconomy,
   leaveResult,
+  economyResult,
   onGoBack,
   onComplete,
 }: SummaryStepProps) {
@@ -331,26 +323,6 @@ export function SummaryStep({
   // Economy summary
   const hasEconomyData = hasEconomyInput(rights, motherEconomy, fatherEconomy);
   const economyLabel = hasEconomyData ? 'Lønn angitt' : 'Ikke angitt';
-
-  // Calculate gaps for BOTH scenarios (80% and 100% have different leave lengths → different gaps)
-  const effectiveDaycareDate = daycareEnabled && daycareDate
-    ? daycareDate
-    : new Date(dueDate.getFullYear() + 3, 7, 1);
-
-  const leaveResult80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
-  const leaveResult100 = calculateLeave(dueDate, 100, rights, sharedWeeksToMother, 0, effectiveDaycareDate);
-
-  // Calculate economy result if data exists — now with correct per-scenario gaps
-  const economyResult = hasEconomyData && motherEconomy
-    ? compareScenarios(
-        motherEconomy,
-        fatherEconomy,
-        sharedWeeksToMother,
-        leaveResult80.gap,
-        leaveResult100.gap,
-        rights,
-      )
-    : null;
 
   return (
     <div className="space-y-4">
@@ -433,8 +405,8 @@ export function SummaryStep({
         <RecommendationBox
           economyResult={economyResult}
           rights={rights}
-          gap80WorkDays={leaveResult80.gap.workDays}
-          gap100WorkDays={leaveResult100.gap.workDays}
+          gap80WorkDays={economyResult.gap80.workDays}
+          gap100WorkDays={economyResult.gap100.workDays}
           motherVacationDays={rights !== 'father-only' ? motherJobSettings?.vacationDays ?? 0 : 0}
           fatherVacationDays={rights !== 'mother-only' ? fatherJobSettings?.vacationDays ?? 0 : 0}
         />

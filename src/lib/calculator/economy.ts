@@ -6,9 +6,11 @@ import {
   MAX_BASIS,
   COVERAGE_RATE,
   WORK_DAYS_PER_MONTH,
-  LEAVE_CONFIG,
+  WORK_DAYS_PER_WEEK,
   FERIEPENGER_NAV_WEEKS,
   FERIEPENGER_RATE,
+  SMALL_ECONOMY_DIFFERENCE,
+  MIN_RECOMMENDATION_REASON_SHARE,
 } from '../constants';
 import type {
   Coverage,
@@ -16,12 +18,23 @@ import type {
   ParentEconomy,
   ParentRights,
   ScenarioResult,
+  EconomyComparisonInput,
   EconomyResult,
   GapInfo,
-  LeaveSegment,
+  LeaveResult,
   TimeSeriesPoint,
 } from '../types';
-import { calculateLeave, getParentLeaveWeeks } from './dates';
+import { isHoliday } from '../holidays';
+import { addDays, calculateLeave, countWorkdaysInRange } from './dates';
+import { convertSharedWeeksToMother } from './leave-inputs';
+
+// Brukes når en forelder uten rett i planen ikke har oppgitt økonomi
+export const NO_ECONOMY: ParentEconomy = {
+  monthlySalary: 0,
+  monthlyCommissionLoss: 0,
+  employerCoversAbove6G: false,
+  employerPaysFeriepenger: false,
+};
 
 /**
  * Har brukeren oppgitt nok økonomi til at sammenligningen gir mening for rettighetene?
@@ -43,20 +56,12 @@ export function hasEconomyInput(
 }
 
 /**
- * Teller antall arbeidsdager (man–fre) mellom to datoer.
- * Brukes for å beregne reelt inntektstap i et gap – helgedager teller ikke.
+ * Teller arbeidsdager (man-fre, uten helligdager) mellom to datoer.
+ * Brukes for å beregne reelt inntektstap i et gap. Bruker samme telling som
+ * gap.workDays, slik at gap-kostnaden, banneret og oppsummeringen er enige.
  */
 export function countWorkingDaysInGap(start: Date, end: Date): number {
-  let count = 0;
-  const current = new Date(start);
-  while (current < end) {
-    const day = current.getDay();
-    if (day >= 1 && day <= 5) { // Mandag (1) til fredag (5)
-      count++;
-    }
-    current.setDate(current.getDate() + 1);
-  }
-  return count;
+  return countWorkdaysInRange(start, end);
 }
 
 /**
@@ -177,7 +182,7 @@ export function calculateFeriepengeDifference(
  * Gapet er tiden etter at permisjonen er brukt opp, og samme regel brukes
  * i månedsoversikten og likviditetsgrafen (kun mor -> mor, kun far -> far).
  * Har ingen av dem uker, faller vi tilbake på alle med oppgitt økonomi.
- * Gap teller kun arbeidsdager (man-fre), ikke helgedager.
+ * Gap teller kun arbeidsdager (man-fre uten helligdager), ikke helgedager.
  */
 export function calculateScenarioGapCost(
   motherEconomy: ParentEconomy,
@@ -204,168 +209,176 @@ export function calculateScenarioGapCost(
   );
 }
 
+
+/** Tidsrommet sammenligningen regnes over (eksklusiv slutt) */
+export interface EconomyHorizon {
+  start: Date;
+  end: Date;
+}
+
+/** Netto inntekt i én kalendermåned for ett scenario */
+export interface MonthlyNetIncome {
+  month: Date;
+  income: number;
+}
+
+export interface ScenarioCalculation extends ScenarioResult {
+  monthly: MonthlyNetIncome[];
+}
+
+/** Er dagen innenfor [start, end)? */
+function isWithin(day: Date, start: Date, end: Date): boolean {
+  return day >= start && day < end;
+}
+
+/** Arbeidsdag: mandag-fredag som ikke er helligdag (samme telling som gap.workDays) */
+function isWorkday(day: Date): boolean {
+  const weekday = day.getDay();
+  return weekday >= 1 && weekday <= 5 && !isHoliday(day);
+}
+
+/** Feriepengeopptjening per uke for en forelder */
+function weeklyFeriepenger(economy: ParentEconomy): number {
+  const annual = economy.feriepengegrunnlag ?? economy.monthlySalary * 12;
+  return (annual * FERIEPENGER_RATE) / 52;
+}
+
 /**
- * Beregner totaløkonomi for 80%-scenariet
+ * Beregner ett scenario dag for dag over et felles tidsrom.
+ *
+ * Definisjon av "mest penger": samlet inntekt for familien fra første
+ * permisjonsdag til barnehagestart (eller til siste permisjonsdag hvis den er
+ * senere), etter provisjonstap og tapt feriepengeopptjening. Begge scenarioer
+ * regnes over samme tidsrom, slik at forskjellen er reell:
+ *   - permisjonsdag: NAV-sats (grunnlag x dekningsgrad / 364 per kalenderdag,
+ *     dvs. grunnlag / 52 per uke), provisjonen tapes, og feriepengeopptjening
+ *     tapes etter de første 12/15 ukene (med mindre arbeidsgiver betaler)
+ *   - hverdag utenfor permisjon: dagsats (månedslønn / 21,7). Helligdager
+ *     betales også, slik 21,7 dager per måned forutsetter, så en arbeidsuke
+ *     gir like mye som en permisjonsuke med 100 % dekning
+ *   - arbeidsdag i gapet for den som tar gapet: ulønnet, så både lønn,
+ *     provisjon og feriepengeopptjening tapes (helligdager i gapet gir
+ *     ingenting og telles ikke, som i gap.workDays)
+ * Totalen er NAV + lønn utenfor permisjon - udekket gap - provisjonstap
+ * - tapt feriepengeopptjening. Samme dagsverdier summeres per måned til
+ * likviditetsgrafen, så grafens siste punkt er lik totalen.
  */
-export function calculate80Scenario(
-  motherEconomy: ParentEconomy,
+export function calculateScenario(
+  coverage: Coverage,
+  leave: LeaveResult,
+  motherEconomy: ParentEconomy | undefined,
   fatherEconomy: ParentEconomy | undefined,
-  motherWeeks: number,
-  fatherWeeks: number,
-  gap: GapInfo
-): ScenarioResult {
-  const coverage: Coverage = 80;
-
-  // Mor
-  const motherBasis = calculateBasis(
-    motherEconomy.monthlySalary,
-    motherEconomy.employerCoversAbove6G
-  );
-  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, COVERAGE_RATE[80]);
-  const motherCommissionLoss = calculateCommissionLoss(
-    motherEconomy.monthlyCommissionLoss,
-    motherWeeks
-  );
-  const motherFeriepengeDiff = calculateFeriepengeDifference(
-    motherEconomy.monthlySalary,
-    motherWeeks,
-    motherEconomy.employerPaysFeriepenger,
-    coverage,
-    motherEconomy.feriepengegrunnlag,
-  );
-
-  // Far (hvis relevant)
-  let fatherNavPayout = 0;
-  let fatherCommissionLoss = 0;
-  let fatherFeriepengeDiff = 0;
-
-  if (fatherEconomy && fatherWeeks > 0) {
-    const fatherBasis = calculateBasis(
-      fatherEconomy.monthlySalary,
-      fatherEconomy.employerCoversAbove6G
-    );
-    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, COVERAGE_RATE[80]);
-    fatherCommissionLoss = calculateCommissionLoss(
-      fatherEconomy.monthlyCommissionLoss,
-      fatherWeeks
-    );
-    fatherFeriepengeDiff = calculateFeriepengeDifference(
-      fatherEconomy.monthlySalary,
-      fatherWeeks,
-      fatherEconomy.employerPaysFeriepenger,
-      coverage,
-      fatherEconomy.feriepengegrunnlag,
-    );
-  }
-
-  const { cost: gapCost, takenBy } = calculateScenarioGapCost(
-    motherEconomy,
+  horizon: EconomyHorizon,
+): ScenarioCalculation {
+  const { takenBy: gapTakenBy } = calculateScenarioGapCost(
+    motherEconomy ?? NO_ECONOMY,
     fatherEconomy,
-    motherWeeks,
-    fatherWeeks,
-    gap
+    motherEconomy ? leave.mother.weeks : 0,
+    leave.father.weeks,
+    leave.gap,
   );
 
-  const navPayout = motherNavPayout + fatherNavPayout;
-  const commissionLoss = motherCommissionLoss + fatherCommissionLoss;
-  const feriepengeDifference = motherFeriepengeDiff + fatherFeriepengeDiff;
+  let navPayout = 0;
+  let salaryIncome = 0;
+  let gapCost = 0;
+  let commissionLoss = 0;
+  let feriepengeDifference = 0;
+  const monthly: MonthlyNetIncome[] = [];
 
-  const total = navPayout - commissionLoss - gapCost - feriepengeDifference;
+  const parents: { parent: Parent; economy: ParentEconomy }[] = [];
+  if (motherEconomy) parents.push({ parent: 'mother', economy: motherEconomy });
+  if (fatherEconomy) parents.push({ parent: 'father', economy: fatherEconomy });
+
+  const rates = parents.map(({ parent, economy }) => ({
+    parent,
+    economy,
+    leaveSegments: leave.segments.filter(
+      (s) => s.parent === parent && s.type !== 'gap' && s.type !== 'vacation',
+    ),
+    navPerDay: calculateNavPayout(calculateBasis(economy.monthlySalary, economy.employerCoversAbove6G), 1, COVERAGE_RATE[coverage]) / 7,
+    salaryPerWorkday: calculateDailyRate(economy.monthlySalary),
+    commissionPerLeaveDay: calculateCommissionLoss(economy.monthlyCommissionLoss, 1) / 7,
+    commissionPerWorkday: economy.monthlyCommissionLoss / WORK_DAYS_PER_MONTH,
+    feriepengerPerLeaveDay: economy.employerPaysFeriepenger ? 0 : weeklyFeriepenger(economy) / 7,
+    feriepengerPerWorkday: weeklyFeriepenger(economy) / WORK_DAYS_PER_WEEK,
+    navCoveredDays: FERIEPENGER_NAV_WEEKS[coverage] * 7,
+    leaveDaysSoFar: 0,
+  }));
+
+  let monthStart: Date | null = null;
+  let monthIncome = 0;
+
+  for (let day = new Date(horizon.start); day < horizon.end; day = addDays(day, 1)) {
+    if (!monthStart || day.getMonth() !== monthStart.getMonth() || day.getFullYear() !== monthStart.getFullYear()) {
+      if (monthStart) monthly.push({ month: monthStart, income: monthIncome });
+      monthStart = new Date(day.getFullYear(), day.getMonth(), 1);
+      monthIncome = 0;
+    }
+
+    const weekday = day.getDay() >= 1 && day.getDay() <= 5;
+    const inGap = isWithin(day, leave.gap.start, leave.gap.end);
+
+    for (const rate of rates) {
+      if (rate.leaveSegments.some((s) => isWithin(day, s.start, s.end))) {
+        const lostFeriepenger = rate.leaveDaysSoFar >= rate.navCoveredDays ? rate.feriepengerPerLeaveDay : 0;
+        rate.leaveDaysSoFar++;
+        navPayout += rate.navPerDay;
+        commissionLoss += rate.commissionPerLeaveDay;
+        feriepengeDifference += lostFeriepenger;
+        monthIncome += rate.navPerDay - rate.commissionPerLeaveDay - lostFeriepenger;
+      } else if (inGap && rate.parent === gapTakenBy) {
+        // Ulønnet i gapet: ingen lønn, provisjon eller feriepengeopptjening.
+        // Gapet teller arbeidsdager uten helligdager, som gap.workDays.
+        if (isWorkday(day)) {
+          salaryIncome += rate.salaryPerWorkday;
+          gapCost += rate.salaryPerWorkday;
+          commissionLoss += rate.commissionPerWorkday;
+          feriepengeDifference += rate.feriepengerPerWorkday;
+          monthIncome -= rate.commissionPerWorkday + rate.feriepengerPerWorkday;
+        }
+      } else if (weekday) {
+        // Fastlønn betales også for helligdager, og 21,7 dager per måned regner dem med
+        salaryIncome += rate.salaryPerWorkday;
+        monthIncome += rate.salaryPerWorkday;
+      }
+    }
+  }
+  if (monthStart) monthly.push({ month: monthStart, income: monthIncome });
 
   return {
-    total,
+    total: navPayout + salaryIncome - gapCost - commissionLoss - feriepengeDifference,
     breakdown: {
       navPayout,
+      salaryIncome,
       commissionLoss,
       gapCost,
-      gapTakenBy: takenBy,
+      gapTakenBy,
       feriepengeDifference,
     },
+    monthly,
   };
 }
 
 /**
- * Beregner totaløkonomi for 100%-scenariet
+ * Hvilken dekningsgrad gir mest, og er forskjellen liten?
+ * Brukes av kortet, anbefalingen, grafen og oppsummeringen, så de alltid er enige.
  */
-export function calculate100Scenario(
-  motherEconomy: ParentEconomy,
-  fatherEconomy: ParentEconomy | undefined,
-  motherWeeks: number,
-  fatherWeeks: number,
-  gap: GapInfo
-): ScenarioResult {
-  const coverage: Coverage = 100;
-
-  // Mor
-  const motherBasis = calculateBasis(
-    motherEconomy.monthlySalary,
-    motherEconomy.employerCoversAbove6G
-  );
-  const motherNavPayout = calculateNavPayout(motherBasis, motherWeeks, COVERAGE_RATE[100]);
-  const motherCommissionLoss = calculateCommissionLoss(
-    motherEconomy.monthlyCommissionLoss,
-    motherWeeks
-  );
-  const motherFeriepengeDiff = calculateFeriepengeDifference(
-    motherEconomy.monthlySalary,
-    motherWeeks,
-    motherEconomy.employerPaysFeriepenger,
-    coverage,
-    motherEconomy.feriepengegrunnlag,
-  );
-
-  // Far (hvis relevant)
-  let fatherNavPayout = 0;
-  let fatherCommissionLoss = 0;
-  let fatherFeriepengeDiff = 0;
-
-  if (fatherEconomy && fatherWeeks > 0) {
-    const fatherBasis = calculateBasis(
-      fatherEconomy.monthlySalary,
-      fatherEconomy.employerCoversAbove6G
-    );
-    fatherNavPayout = calculateNavPayout(fatherBasis, fatherWeeks, COVERAGE_RATE[100]);
-    fatherCommissionLoss = calculateCommissionLoss(
-      fatherEconomy.monthlyCommissionLoss,
-      fatherWeeks
-    );
-    fatherFeriepengeDiff = calculateFeriepengeDifference(
-      fatherEconomy.monthlySalary,
-      fatherWeeks,
-      fatherEconomy.employerPaysFeriepenger,
-      coverage,
-      fatherEconomy.feriepengegrunnlag,
-    );
-  }
-
-  const { cost: gapCost, takenBy } = calculateScenarioGapCost(
-    motherEconomy,
-    fatherEconomy,
-    motherWeeks,
-    fatherWeeks,
-    gap
-  );
-
-  const navPayout = motherNavPayout + fatherNavPayout;
-  const commissionLoss = motherCommissionLoss + fatherCommissionLoss;
-  const feriepengeDifference = motherFeriepengeDiff + fatherFeriepengeDiff;
-
-  const total = navPayout - commissionLoss - gapCost - feriepengeDifference;
-
+export function getCoverageVerdict(difference: number): {
+  winner: Coverage | null;
+  amount: number;
+  isSmall: boolean;
+} {
+  const amount = Math.round(Math.abs(difference));
   return {
-    total,
-    breakdown: {
-      navPayout,
-      commissionLoss,
-      gapCost,
-      gapTakenBy: takenBy,
-      feriepengeDifference,
-    },
+    winner: amount === 0 ? null : difference > 0 ? 100 : 80,
+    amount,
+    isSmall: amount <= SMALL_ECONOMY_DIFFERENCE,
   };
 }
 
 /**
- * Genererer anbefaling basert på differanse og hva som faktisk bidrar
+ * Genererer anbefaling ut fra hva som faktisk gir forskjellen.
+ * Årsakene sorteres etter hvor mye de betyr for vinneren.
  */
 function generateRecommendation(
   difference: number,
@@ -373,222 +386,126 @@ function generateRecommendation(
   scenario100: ScenarioResult,
   extraWeeks80: number,
 ): string {
-  if (Math.abs(difference) <= 10000) {
+  const { winner, isSmall } = getCoverageVerdict(difference);
+  if (isSmall || winner === null) {
     return 'Forskjellen er liten. Vurder hva som passer best for familiens situasjon.';
   }
 
-  // Build explanation based on what actually contributes
-  const reasons: string[] = [];
-  const navDiff = scenario100.breakdown.navPayout - scenario80.breakdown.navPayout;
-  const gapDiff = scenario100.breakdown.gapCost - scenario80.breakdown.gapCost;
-  const commissionDiff = scenario100.breakdown.commissionLoss - scenario80.breakdown.commissionLoss;
-  const feriepengeDiff = scenario100.breakdown.feriepengeDifference - scenario80.breakdown.feriepengeDifference;
+  const b80 = scenario80.breakdown;
+  const b100 = scenario100.breakdown;
+  // Positivt tall = fordel for 100%
+  const contributions: { reason100: string; reason80: string; value: number }[] = [
+    { reason100: 'høyere NAV-utbetaling', reason80: 'høyere samlet NAV-utbetaling', value: b100.navPayout - b80.navPayout },
+    {
+      reason100: 'mer lønn fordi dere er tilbake i jobb tidligere',
+      reason80: 'mer lønn fra jobb',
+      value: b100.salaryIncome - b100.gapCost - (b80.salaryIncome - b80.gapCost),
+    },
+    { reason100: 'mindre provisjonstap', reason80: 'mindre provisjonstap', value: b80.commissionLoss - b100.commissionLoss },
+    {
+      reason100: 'mindre tapt feriepengeopptjening',
+      reason80: 'mindre tapt feriepengeopptjening',
+      value: b80.feriepengeDifference - b100.feriepengeDifference,
+    },
+  ];
 
-  // difference = total100 - total80: positiv betyr at 100% lønner seg
-  if (difference > 0) {
-    if (navDiff > 0) reasons.push('høyere NAV-utbetaling');
-    if (gapDiff < 0) reasons.push('kortere udekket gap');
-    if (commissionDiff < 0) reasons.push('mindre provisjonstap');
-    if (feriepengeDiff < 0) reasons.push('mindre tapt feriepengeopptjening');
-    const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
-    return `100% gir høyere utbetaling per uke, og gapet er håndterbart i dette tilfellet.${reason}`;
-  }
-
-  if (gapDiff > 0) reasons.push('kortere udekket gap');
-  if (navDiff < 0) reasons.push('høyere samlet NAV-utbetaling');
-  if (commissionDiff > 0) reasons.push('mindre provisjonstap');
-  if (feriepengeDiff > 0) reasons.push('mindre tapt feriepengeopptjening');
+  // Høyst to årsaker, og bare de som utgjør en merkbar del av forskjellen
+  const sign = winner === 100 ? 1 : -1;
+  const minimum = Math.abs(difference) * MIN_RECOMMENDATION_REASON_SHARE;
+  const reasons = contributions
+    .filter((c) => sign * c.value >= minimum)
+    .sort((a, b) => sign * b.value - sign * a.value)
+    .slice(0, 2)
+    .map((c) => (winner === 100 ? c.reason100 : c.reason80));
   const reason = reasons.length > 0 ? ` Hovedårsak: ${reasons.join(' og ')}.` : '';
-  return `Selv med lavere NAV-sats gir 80%-permisjonen ${extraWeeks80} uker ekstra, som gir kortere gap.${reason}`;
+
+  if (winner === 100) {
+    return `100% gir høyere utbetaling per uke og mest penger totalt, selv om 80%-permisjonen varer ${extraWeeks80} uker lenger.${reason}`;
+  }
+  return `80%-permisjonen varer ${extraWeeks80} uker lenger og gir mest penger totalt, selv med lavere NAV-sats.${reason}`;
 }
 
 /**
- * Sammenligner 80% og 100% scenarioer.
+ * Bygger permisjonen for begge dekningsgrader fra samme input som kalenderen.
+ * Valgt dekningsgrad bruker fellesukene slik de er lagret; den andre får dem
+ * omregnet med samme regel som når brukeren bytter dekningsgrad.
+ */
+export function buildScenarioLeaves(input: EconomyComparisonInput): {
+  leave80: LeaveResult;
+  leave100: LeaveResult;
+  sharedWeeksToMother80: number;
+  sharedWeeksToMother100: number;
+} {
+  const { dueDate, coverage, rights, sharedWeeksToMother, daycareStartDate, prematureWeeks = 0 } = input;
+  const sharedWeeksToMother80 = convertSharedWeeksToMother(sharedWeeksToMother, coverage, 80);
+  const sharedWeeksToMother100 = convertSharedWeeksToMother(sharedWeeksToMother, coverage, 100);
+
+  return {
+    leave80: calculateLeave(dueDate, 80, rights, sharedWeeksToMother80, 0, daycareStartDate, [], undefined, prematureWeeks),
+    leave100: calculateLeave(dueDate, 100, rights, sharedWeeksToMother100, 0, daycareStartDate, [], undefined, prematureWeeks),
+    sharedWeeksToMother80,
+    sharedWeeksToMother100,
+  };
+}
+
+/**
+ * Felles tidsrom for begge scenarioer: fra første permisjonsdag til
+ * barnehagestart, eller til siste permisjonsdag hvis permisjonen varer lenger.
+ */
+export function getEconomyHorizon(leave80: LeaveResult, leave100: LeaveResult, daycareStartDate: Date): EconomyHorizon {
+  const starts = [...leave80.segments, ...leave100.segments].map((s) => s.start.getTime());
+  // gap.start er dagen etter siste permisjonsdag i hvert scenario
+  const ends = [daycareStartDate.getTime(), leave80.gap.start.getTime(), leave100.gap.start.getTime()];
+  const start = starts.length > 0 ? Math.min(...starts) : daycareStartDate.getTime();
+  return { start: new Date(start), end: new Date(Math.max(...ends)) };
+}
+
+/**
+ * Sammenligner 80% og 100% dekningsgrad over samme tidsrom.
  *
  * Hvor mange uker hver forelder har følger av rettighetene: kun mor har hele
  * permisjonen, kun far har fars egne uker (40/52), og når begge har rett deles
- * kvoter og fellesperiode. `sharedWeeksToMother` oppgis i 80%-enhet og skaleres
- * til 100% (kun relevant når begge har rett). Økonomien til en forelder uten
- * rett i planen teller ikke med.
+ * kvoter og fellesperiode. Økonomien til en forelder uten rett i planen teller
+ * ikke med. Kortet, anbefalingen og likviditetsgrafen bruker alle dette
+ * resultatet, så de kan ikke vise forskjellige svar.
  */
-export function compareScenarios(
-  motherEconomy: ParentEconomy,
-  fatherEconomy: ParentEconomy | undefined,
-  sharedWeeksToMother: number,
-  gap80: GapInfo,
-  gap100: GapInfo,
-  rights: ParentRights,
-): EconomyResult {
-  const sharedRatio = sharedWeeksToMother / LEAVE_CONFIG[80].shared;
-  const sharedWeeksToMother100 = Math.round(LEAVE_CONFIG[100].shared * sharedRatio);
+export function compareScenarios(input: EconomyComparisonInput): EconomyResult {
+  const { rights, motherEconomy, fatherEconomy, daycareStartDate } = input;
+  const { leave80, leave100 } = buildScenarioLeaves(input);
+  const horizon = getEconomyHorizon(leave80, leave100, daycareStartDate);
 
-  const weeks80 = getParentLeaveWeeks(80, rights, sharedWeeksToMother);
-  const weeks100 = getParentLeaveWeeks(100, rights, sharedWeeksToMother100);
+  const entitledMother = rights === 'father-only' ? undefined : motherEconomy;
+  const entitledFather = rights === 'mother-only' ? undefined : fatherEconomy;
 
-  const entitledFatherEconomy = rights === 'mother-only' ? undefined : fatherEconomy;
+  const calc80 = calculateScenario(80, leave80, entitledMother, entitledFather, horizon);
+  const calc100 = calculateScenario(100, leave100, entitledMother, entitledFather, horizon);
 
-  const scenario80 = calculate80Scenario(
-    motherEconomy,
-    entitledFatherEconomy,
-    weeks80.mother,
-    weeks80.father,
-    gap80
-  );
-
-  const scenario100 = calculate100Scenario(
-    motherEconomy,
-    entitledFatherEconomy,
-    weeks100.mother,
-    weeks100.father,
-    gap100
-  );
-
-  const difference = scenario100.total - scenario80.total;
+  const difference = calc100.total - calc80.total;
+  // Ukene per forelder hentes fra samme permisjon som kalenderen viser,
+  // inkludert ekstra uker ved prematur fødsel
   const extraWeeks80 =
-    weeks80.mother + weeks80.father - (weeks100.mother + weeks100.father);
-  const recommendation = generateRecommendation(
-    difference,
-    scenario80,
-    scenario100,
-    extraWeeks80
-  );
+    leave80.mother.weeks + leave80.father.weeks - (leave100.mother.weeks + leave100.father.weeks);
+
+  const { monthly: monthly80, ...scenario80 } = calc80;
+  const { monthly: monthly100, ...scenario100 } = calc100;
+
+  let cumulative80 = 0;
+  let cumulative100 = 0;
+  const timeSeries: TimeSeriesPoint[] = monthly80.map((point, i) => {
+    const income80 = point.income;
+    const income100 = monthly100[i]?.income ?? 0;
+    cumulative80 += income80;
+    cumulative100 += income100;
+    return { month: point.month, income80, income100, cumulative80, cumulative100 };
+  });
 
   return {
     scenario80,
     scenario100,
     difference,
-    recommendation,
+    recommendation: generateRecommendation(difference, scenario80, scenario100, extraWeeks80),
+    gap80: leave80.gap,
+    gap100: leave100.gap,
+    timeSeries,
   };
-}
-
-/**
- * Beregner månedlig inntekt for én forelder basert på permisjonsperioder.
- * For dager i permisjon: NAV-sats. For dager utenfor (inkl. gap): 0.
- * For dager etter gap (tilbake i jobb): full lønn.
- */
-function calcMonthIncome(
-  monthStart: Date,
-  daysInMonth: number,
-  segments: LeaveSegment[],
-  parent: 'mother' | 'father',
-  economy: ParentEconomy,
-  coverage: Coverage,
-  gapStart: Date,
-  gapEnd: Date,
-  isGapParent: boolean,
-): number {
-  if (economy.monthlySalary <= 0) return 0;
-
-  const basis = calculateBasis(economy.monthlySalary, economy.employerCoversAbove6G);
-  const monthlyNav = monthlyNavPayout(basis, coverage);
-  const monthlySalary = economy.monthlySalary;
-
-  const parentSegments = segments.filter(s => s.parent === parent);
-
-  let navDays = 0;
-  let salaryDays = 0;
-
-  for (let d = 0; d < daysInMonth; d++) {
-    const day = new Date(monthStart);
-    day.setDate(day.getDate() + d);
-
-    const inLeave = parentSegments.some(s =>
-      s.type !== 'gap' && s.type !== 'vacation' && day >= s.start && day < s.end
-    );
-    const inVacation = parentSegments.some(s =>
-      s.type === 'vacation' && day >= s.start && day < s.end
-    );
-
-    if (inLeave) {
-      navDays++;
-    } else if (inVacation) {
-      salaryDays++;
-    } else if (isGapParent && day >= gapStart && day < gapEnd) {
-      // Unpaid gap
-    } else {
-      salaryDays++;
-    }
-  }
-
-  return Math.round((navDays / daysInMonth) * monthlyNav + (salaryDays / daysInMonth) * monthlySalary);
-}
-
-/**
- * Genererer kumulativ tidsserie for 80% vs 100% scenario.
- * Brukes av likviditetsgrafen (§3.3.2).
- */
-export function generateCumulativeTimeSeries(
-  motherEconomy: ParentEconomy,
-  fatherEconomy: ParentEconomy | undefined,
-  dueDate: Date,
-  rights: ParentRights,
-  sharedWeeksToMother: number,
-  daycareStartDate: Date,
-): TimeSeriesPoint[] {
-  // Beregn permisjonsperioder for begge scenarioer
-  const config80 = LEAVE_CONFIG[80];
-  const config100 = LEAVE_CONFIG[100];
-
-  const sharedRatio = sharedWeeksToMother / config80.shared;
-  const sharedToMother100 = Math.round(config100.shared * sharedRatio);
-
-  const leave80 = calculateLeave(dueDate, 80, rights, sharedWeeksToMother, 0, daycareStartDate);
-  const leave100 = calculateLeave(dueDate, 100, rights, sharedToMother100, 0, daycareStartDate);
-
-  // Determine gap parent (lower earner)
-  const gapParent: Parent =
-    rights === 'mother-only' ? 'mother' :
-    rights === 'father-only' ? 'father' :
-    motherEconomy.monthlySalary <= (fatherEconomy?.monthlySalary ?? 0) ? 'mother' : 'father';
-
-  // Determine month range: from leave start to daycare start
-  const leaveStart = new Date(Math.min(leave80.mother.start.getTime(), leave100.mother.start.getTime()));
-  const rangeStart = new Date(leaveStart.getFullYear(), leaveStart.getMonth(), 1);
-
-  // End at daycare start month
-  const rangeEnd = new Date(daycareStartDate.getFullYear(), daycareStartDate.getMonth(), 1);
-
-  const points: TimeSeriesPoint[] = [];
-  let cumulative80 = 0;
-  let cumulative100 = 0;
-  let current = new Date(rangeStart);
-
-  while (current <= rangeEnd) {
-    const year = current.getFullYear();
-    const month = current.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    // Calculate 80% scenario monthly income
-    const motherIncome80 = rights !== 'father-only'
-      ? calcMonthIncome(current, daysInMonth, leave80.segments, 'mother', motherEconomy, 80, leave80.gap.start, leave80.gap.end, gapParent === 'mother')
-      : 0;
-    const fatherIncome80 = rights !== 'mother-only' && fatherEconomy
-      ? calcMonthIncome(current, daysInMonth, leave80.segments, 'father', fatherEconomy, 80, leave80.gap.start, leave80.gap.end, gapParent === 'father')
-      : 0;
-    const income80 = motherIncome80 + fatherIncome80;
-
-    // Calculate 100% scenario monthly income
-    const motherIncome100 = rights !== 'father-only'
-      ? calcMonthIncome(current, daysInMonth, leave100.segments, 'mother', motherEconomy, 100, leave100.gap.start, leave100.gap.end, gapParent === 'mother')
-      : 0;
-    const fatherIncome100 = rights !== 'mother-only' && fatherEconomy
-      ? calcMonthIncome(current, daysInMonth, leave100.segments, 'father', fatherEconomy, 100, leave100.gap.start, leave100.gap.end, gapParent === 'father')
-      : 0;
-    const income100 = motherIncome100 + fatherIncome100;
-
-    cumulative80 += income80;
-    cumulative100 += income100;
-
-    points.push({
-      month: new Date(current),
-      income80,
-      income100,
-      cumulative80,
-      cumulative100,
-    });
-
-    current = new Date(year, month + 1, 1);
-  }
-
-  return points;
 }
