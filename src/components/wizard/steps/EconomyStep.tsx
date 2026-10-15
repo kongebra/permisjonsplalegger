@@ -134,7 +134,7 @@ function ParentEconomySection({
                 Tjener man mer enn dette, dekker noen arbeidsgivere differansen.
               </p>
               <p className="mt-1 text-muted-foreground">
-                1G = {formatCurrency(G)} (per 1. mai 2025)
+                1G = {formatCurrency(G)} (per 1. mai 2026)
               </p>
             </HelpButton>
           </div>

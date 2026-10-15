@@ -254,8 +254,8 @@ export default function Home() {
 
             <h3>Grunnbeløpet (G)</h3>
             <p>
-              Kalkulatoren bruker G = 130 160 kr (gjeldende fra 1. mai 2025).
-              6G = 780 960 kr er maksimalt grunnlag for foreldrepenger.
+              Kalkulatoren bruker G = 136 549 kr (gjeldende fra 1. mai 2026).
+              6G = 819 294 kr er maksimalt grunnlag for foreldrepenger.
             </p>
 
             <h3>Personvern</h3>
