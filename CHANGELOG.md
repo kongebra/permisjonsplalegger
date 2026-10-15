@@ -40,6 +40,8 @@
 - Økonomien bruker fellesukene i valgt dekningsgrad, som kalenderen
 - Økonomien tar med ekstra uker ved prematur fødsel
 - Kort, graf og anbefaling sammenligner 80% og 100% over samme tidsrom
+- Fastlønn teller også helligdager i økonomisammenligningen
+- Anbefalingen nevner bare de to viktigste årsakene
 
 ### Opprydding
 
