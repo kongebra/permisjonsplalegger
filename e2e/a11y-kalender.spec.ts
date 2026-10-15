@@ -29,8 +29,9 @@ test.describe('Tilgjengelighet: Kalender (/planlegger/kalender)', () => {
 
   test('Økonomi-fanen har ingen axe-brudd', async ({ page }) => {
     // Switch to economy tab
-    await page.getByRole('tab', { name: /økonomi/i }).click();
-    await page.waitForTimeout(500);
+    const economyTab = page.getByRole('tab', { name: /økonomi/i });
+    await economyTab.click();
+    await expect(economyTab).toHaveAttribute('aria-selected', 'true');
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
