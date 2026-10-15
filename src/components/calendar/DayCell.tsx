@@ -142,7 +142,9 @@ export function DayCell({
     return (
       <div
         className={cn(
-          'aspect-square rounded-sm flex items-center justify-center text-xs',
+          // Celler på maks 48x48px, sentrert i kolonnen. Med ren aspect-square ble de ~100px
+          // høye på brede skjermer og lot periodebjelken sveve i et stort tomrom mellom ukene.
+          'w-full max-w-12 h-12 justify-self-center rounded-sm flex items-center justify-center text-xs',
           statusClassName,
           isRedDay && 'text-destructive font-bold',
           day.isDueDate && 'ring-2 ring-duedate ring-inset font-bold',
