@@ -1,78 +1,73 @@
-# Kravspesifikasjon: Permisjonsøkonomi-kalkulator (MVP)
+# Kravspesifikasjon: Permisjonsplanleggeren
 
-> **Status (feb 2026):** Kjernefunksjonalitet implementert som wizard (8 steg) + interaktiv kalender.
-> Gjenstående fra denne spekken: Likviditetsgraf (3.3), fullstendig feriepenge-breakdown, tooltips for juni-lønn.
-> Se `docs/PROGRESS.md` for full implementasjonsstatus.
+Status: kjernefunksjonaliteten er implementert som en wizard med interaktiv kalender og en økonomi-fane.
+Det som gjenstår står i `docs/BACKLOG.md`.
+Antall uker, satser og grenser står i `docs/nav/` og `src/lib/constants.ts`, ikke her.
 
----
+## 1. Bakgrunn og formål
 
-## 1. Bakgrunn og Formål
+Mange foreldre taper store summer (ofte 50 000 til 100 000 kr) på å velge 80 % dekningsgrad fremfor 100 % dekningsgrad kombinert med ulønnet permisjon.
+Det gjelder særlig arbeidstakere med lønn over 6G, provisjonslønn eller gode feriepengeavtaler hos arbeidsgiver.
 
-Mange foreldre taper store summer (ofte 50 000 – 100 000 kr) på å velge 80 % dekningsgrad fremfor 100 % dekningsgrad kombinert med ulønnet permisjon. Dette gjelder spesielt for arbeidstakere med lønn over 6G, provisjonsbasert lønn, eller gode feriepengeavtaler gjennom arbeidsgiver.
+Vanlige kalkulatorer (NAV m.fl.) tar ikke høyde for:
 
-Dagens kalkulatorer (NAV m.fl.) er for enkle og tar ikke høyde for:
-
-1. **"Gapet"** mellom permisjonsslutt og barnehagestart (ofte mai–august).
-2. **Arbeidsgivers spesifikke dekningsgrad** (f.eks. dekker fastlønn over 6G, men ikke provisjon).
-3. **Tap av feriepengeopptjening** året etter (NAV vs. Arbeidsgiver).
-
----
+1. "Gapet" mellom permisjonsslutt og barnehagestart (ofte mai til august).
+2. Arbeidsgivers dekningsgrad (for eksempel fastlønn over 6G, men ikke provisjon).
+3. Tap av feriepengeopptjening året etter (NAV mot arbeidsgiver).
 
 ## 2. Brukerhistorier
 
-- **Som en forelder med provisjonslønn**, ønsker jeg å se hvor mye jeg taper i provisjon ved å velge lengre permisjon (80 %), slik at jeg kan vurdere om fritiden er verdt prisen.
-- **Som et foreldrepar**, ønsker vi å se totalkostnaden av å ta ulønnet permisjon frem til barnehagestart, slik at vi vet om vi har råd til å velge 100 % dekningsgrad for å maksimere totalutbetalingen.
-- **Som en arbeidstaker med god feriepengeavtale**, ønsker jeg å vite hvordan valget mitt påvirker feriepengene neste år, slik at jeg ikke får en negativ overraskelse i juni året etter permisjon.
-
----
+- Som forelder med provisjonslønn vil jeg se hvor mye jeg taper i provisjon ved lengre permisjon (80 %), slik at jeg kan vurdere om fritiden er verdt prisen.
+- Som foreldrepar vil vi se totalkostnaden av ulønnet permisjon frem til barnehagestart, slik at vi vet om vi har råd til 100 % dekningsgrad.
+- Som arbeidstaker med god feriepengeavtale vil jeg vite hvordan valget påvirker feriepengene neste år, slik at jeg ikke får en overraskelse i juni.
 
 ## 3. Beregningsregler
 
-### Scenario A: 80 % Dekningsgrad
+### Scenario A: 80 % dekningsgrad
 
-1. Beregne total utbetaling basert på 80 % av grunnlaget i 59 uker.
-2. Hvis _Dekning over 6G = Nei_: Begrens grunnlaget til 6G _før_ 80 % beregnes.
-3. Trekke fra provisjonstap for hele perioden brukeren er i permisjon.
+1. Total utbetaling er 80 % av grunnlaget over hele perioden (uker fra `docs/nav/foreldrepenger.md`).
+2. Hvis arbeidsgiver ikke dekker over 6G, begrenses grunnlaget til 6G før 80 % beregnes.
+3. Provisjonstap trekkes fra for hele perioden brukeren er i permisjon.
 
-### Scenario B: 100 % Dekningsgrad + Ulønnet
+### Scenario B: 100 % dekningsgrad og ulønnet permisjon
 
-1. Beregne total utbetaling basert på 100 % av grunnlaget i 49 uker.
-2. Identifisere **"Gapet"** (antall uker fra permisjonsslutt til barnehagestart).
-3. Beregne kostnaden av ulønnet permisjon i gapet (tapt arbeidsinntekt).
-   - Systemet skal beregne basert på at den med lavest inntekt tar ulønnet perm, eller en definert fordeling.
+1. Total utbetaling er 100 % av grunnlaget over den kortere perioden.
+2. "Gapet" er tiden fra permisjonsslutt til barnehagestart.
+3. Kostnaden av ulønnet permisjon i gapet regnes som tapt arbeidsinntekt.
+   Forelderen med lavest dagsats tar den ulønnede permisjonen.
+   Gapet regnes i arbeidsdager, ikke kalenderdager.
 
-### Feriepenger (År 2)
+### Feriepenger (år 2)
 
-- Beregne differansen i utbetalte feriepenger året etter permisjon.
-- Logikk: _Full lønn fra arbeidsgiver_ gir full opptjening. _NAV-utbetaling_ gir sterkt redusert opptjening.
+- Differansen i utbetalte feriepenger året etter permisjon skal beregnes.
+- Full lønn fra arbeidsgiver gir full opptjening.
+- NAV-utbetaling gir opptjening bare for de første ukene (se `docs/nav/foreldrepenger.md`).
 
----
+## 4. Utdata
 
-## 4. Utdata og Visualisering
-
-- **Totalregnskapet:** En tydelig sum som viser netto differanse mellom valgene.
-  - _Eks: "Dere tjener totalt 45 000 kr mer på å velge 100 % + ulønnet permisjon."_
-- **Likviditets-graf:** *(Ikke implementert ennå)* En visuell fremstilling (linjediagram) av akkumulert inntekt gjennom perioden frem til barnehagestart.
-- **Anbefaling for "Gapet":** En tekst som viser hvem av foreldrene det lønner seg at tar den ulønnede permisjonen (basert på dagsats).
-
----
+- **Totalregnskap:** en tydelig sum for netto differanse mellom valgene.
+  Eksempel: "Dere tjener totalt 45 000 kr mer på å velge 100 % og ulønnet permisjon."
+- **Likviditetsgraf:** akkumulert inntekt frem til barnehagestart (80 % mot 100 %).
+- **Anbefaling for gapet:** hvem som bør ta den ulønnede permisjonen.
 
 ## 5. Akseptansekrav
 
-Disse scenarioene må bestås:
+Hvert scenario har en test med navn `acceptance:` i `src/lib/calculator/economy.test.ts`.
 
-1. **Høytlønnet med provisjon:**
-   - Gitt en bruker med 78k fast + 12k provisjon, der arbeidsgiver dekker fastlønn men ikke provisjon.
-   - Applikasjonen skal vise at brukeren taper mer penger totalt sett jo lenger permisjonen varer, og at 100 % lønner seg betydelig.
+1. **Høytlønnet med provisjon:** 78k fast og 12k provisjon, der arbeidsgiver dekker fastlønn men ikke provisjon.
+   Appen skal vise at tapet øker med lengre permisjon, og at 100 % lønner seg betydelig.
+2. **Gap-testen:** 100 % permisjon slutter i mai og barnehagen starter i august.
+   Tapt arbeidsinntekt for de tre månedene skal trekkes fra i 100 %-alternativet.
+3. **Feriepenge-sjokket:** "NAV betaler feriepenger" mot "arbeidsgiver betaler" skal gi en tydelig differanse i utbetaling neste år.
+4. **Optimalisering av ulønnet permisjon:** tjener mor 800k og far 500k, skal appen foreslå at far tar den ulønnede permisjonen i gapet.
 
-2. **"Gap"-testen:**
-   - Gitt at 100 % permisjon slutter i mai, og barnehage starter i august.
-   - Applikasjonen skal korrekt trekke fra tapt arbeidsinntekt for disse 3 månedene i totalregnestykket for 100 %-alternativet.
+## 6. Beslutninger som ikke står i koden
 
-3. **Feriepenge-sjokket:**
-   - Gitt at bruker velger "NAV betaler feriepenger" vs. "Arbeidsgiver betaler".
-   - Resultatet skal vise en tydelig differanse i utbetaling for "Neste år".
-
-4. **Optimalisering av ulønnet perm:**
-   - Hvis Mor tjener 800k og Far tjener 500k.
-   - Applikasjonen skal foreslå at det er mest lønnsomt at Far tar den ulønnede permisjonen i gapet.
+- **Wizard til planlegger:** wizarden beregner et `LeaveResult`.
+  `initializePeriodsFromLeave()` (`src/lib/planner/initialize-periods.ts`) gjør det om til redigerbare `CustomPeriod[]`.
+  Bare `preBirth` og `mandatory` er låst.
+  Resten kan brukeren redigere.
+- **Zustand framfor React Context:** enklere deling av state mellom wizard og planlegger, angre-stack i `periodsSlice`, og finkornede abonnement med `useShallow`.
+- **Personvern:** planleggeren lagrer planen i `localStorage` under nøkkelen `permisjonsplan-v1`.
+  PostHog bruker `persistence: "memory"` og lagrer ingenting i nettleseren.
+  Derfor trengs ingen samtykke-banner (ekomloven §2-7b).

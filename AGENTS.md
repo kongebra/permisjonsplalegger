@@ -1,45 +1,59 @@
-# AGENTS.md
+# Permisjonsplanlegger
 
-## 🎯 Prosjektmål
+En permisjonsplanlegger med interaktiv kalender, ikke bare en kalkulator.
+Brukeren legger opp løpet med permisjon, ferie og jobb.
+Appen viser "gapet" mellom permisjonsslutt og barnehagestart, og beregner behovet for ferie eller ulønnet permisjon.
+Appen finner den økonomisk beste dekningsgraden (80 % eller 100 %) for brukerens plan.
 
-Dette er en **permisjonsplanlegger**, ikke bare en enkel kalkulator. Målet er å hjelpe brukere med å skape den optimale planen for sin permisjon gjennom en interaktiv kalender.
+Stack: Next.js 16 (App Router), React 19, Zustand, `date-fns` v4, Tailwind 4, bun.
 
-- **Planlegging:** Brukere skal kunne legge opp løpet med permisjon, ferie og jobb.
-- **"Gapet":** Visualisere tidsrommet mellom permisjonsslutt og barnehagestart, og beregne behovet for ferie eller ulønnet permisjon.
-- **Økonomi:** Finne den beste økonomiske løsningen (80% vs 100% dekningsgrad) basert på brukerens unike plan.
+## Kommandoer
 
-## 🌿 Branching & PR-flyt
+- `bun run dev` - utviklingsserver.
+- `bun run lint` - ESLint, inkludert `jsx-a11y` på recommended-nivå.
+- `bun run test` - enhetstester med `bun test` (beregningene i `src/lib/calculator/`).
+- `bun run build` - produksjonsbygg.
+- `bun run test:e2e` - Playwright-tester i `e2e/`.
+- `bun run test:a11y` - kun UU-testene i `e2e/` (axe-core).
 
-- **Hoved-branch:** `main`.
-- **Workflow:** All ny funksjonalitet og feilretting **skal** gjøres via Pull Requests (PR), selv om vi kun har én hoved-branch. Dette er for å sikre review fra GitHub Copilot og opprettholde kodekvalitet.
+## Struktur
 
-## 🛠 Verktøy og Skills (Kritiske kommandoer)
+- `src/app/` - ruter, `src/components/` - UI gruppert etter område.
+- `src/store/` - Zustand-store, delt i slices under `src/store/slices/`.
+- `src/lib/calculator/` - kjernelogikk for datoer og økonomi, med tester.
+- `src/lib/constants.ts` - faste verdier som G og permisjonskvoter.
+- `docs/nav/` - NAVs regelverk som appen bygger på; les relevant fil før du endrer NAV-logikk.
+- `docs/UU-SJEKKLISTE.md` - UU-status og sjekkliste.
+- `docs/KRAVSPEC.md` - krav, beregningsregler og akseptansekrav.
+- `docs/BACKLOG.md` - arbeid som ikke er gjort ennå.
 
-- **Kjøring:** `bun run dev`.
-- **Validering:** `bun run lint`
-- **Bygg:** `bun run build`.
+## Regler
 
-## 🧠 Domenelogikk: Planleggeren
+- Datoer: internt er sluttdatoer eksklusive (dagen etter siste dag).
+  I UI er sluttdatoer inklusive (den faktiske siste dagen).
+- Bruk alltid `date-fns` v4 for datologikk.
+- All beregning av økonomi og datoer skal skje i `src/lib/calculator/`.
+- All plan-logikk og plan-data skal ligge i Zustand-storen i `src/store/`.
+- Faste verdier (G, maks beregningsgrunnlag, kvoter) skal ligge i `src/lib/constants.ts` og importeres derfra.
+- Vi følger NAVs regelverk (5-dagers uker) så langt det lar seg gjøre, men vi er et uavhengig verktøy.
+- Barnehagestart følger `docs/nav/barnehagerett.md`: barn født i september-november kan starte tidligere, barn født i desember venter til neste august-opptak.
+- UI skal tydelig opplyse om at vi ikke samarbeider med NAV, og at beregningene er veiledende.
+- UU: hold høy standard og oppfyll alle relevante WCAG-krav.
+- Språk: kommentarer skrives på norsk, variabler og annen kode på engelsk.
 
-- **Dato-håndtering (Kritisk):** - Internt: Eksklusive sluttdatoer (dagen etter siste dag).
-  - UI: Inklusive sluttdatoer (viser den faktiske siste dagen).
-  - Bruk alltid `date-fns` v4 for logikk.
-- **Barnehagestart:** Se `docs/nav/barnehagerett.md` for lovhjemmel og implementasjonslogikk (september/november-fødte kan starte tidligere; desember-fødte venter til neste august-opptak).
-- **NAV-regler:** Vi tilstriber å følge NAVs regelverk (5-dagers uker), men vi er et uavhengig verktøy.
+## Arbeidsflyt
 
-## 🏗 Teknisk Standard
+- Hoved-branchen er `main`.
+- All ny funksjonalitet og feilretting skal gjøres via pull request, slik at GitHub Copilot får gjort review.
+- PR-beskrivelsen skal avsluttes med en folkelig, ikke-teknisk oppsummering av endringen.
+- Oppdater `CHANGELOG.md` i rot med en kort, ikke-teknisk beskrivelse av endringen.
+  Bruk én `## ÅÅÅÅ-MM-DD`-heading per dag, og legg nye `###`-seksjoner under en eksisterende heading for samme dag i stedet for å lage duplikate datoer.
 
-- **State:** All plan-logikk og data skal ligge i **Zustand-store** (`src/store/`).
-- **Beregninger:** All kjerne-logikk for økonomi og datoer skal skje i `src/lib/calculator/`.
-- **Konstanter:** Faste verdier (G, maks beregningsgrunnlag) skal ligge i `src/lib/constants.ts` – ikke hardkodes andre steder.
-- **UU (Universell Utforming):** Vi skal opprettholde en høy UU-standard og fylle alle relevante WCAG-krav for å sikre en inkluderende brukeropplevelse.
+## Før du er ferdig
 
-## ✅ Sjekkliste for ferdigstillelse
-
-1. **Logikk:** Er beregningene gjort ved hjelp av funksjonene i `src/lib/calculator/`?
-2. **NAV-sjekk:** Har du sjekket `docs/nav/*.md` for å sikre at logikken er i tråd med NAVs dokumenterte regler?
-3. **Disclaimer:** Er det tydelig opplyst i UI at vi _ikke_ er i samarbeid med NAV, og at beregningene er veiledende?
-4. **Kalender-UX:** Fungerer justeringer i kalenderen sømløst, og oppdateres "gapet" korrekt når brukeren legger til ferie eller flytter perioder?
-5. **PR-beskrivelse:** Er det lagt ved en folkelig, ikke-teknisk oppsummering av endringen nederst i PR-en?
-6. **Språk:** Er kommentarer på **norsk** og variabler/kode på **engelsk**?
-7. **Changelog:** Er `CHANGELOG.md` i rot oppdatert med en kort, ikke-teknisk beskrivelse av endringen? Bruk én `## ÅÅÅÅ-MM-DD`-heading per dag og legg nye `###`-seksjoner under eksisterende heading for den dagen — ikke opprett duplikate datoer.
+1. `bun run lint` passerer.
+2. Beregninger bruker funksjonene i `src/lib/calculator/`.
+3. Logikken stemmer med `docs/nav/*.md`.
+4. Justeringer i kalenderen fungerer sømløst, og "gapet" oppdateres riktig når brukeren legger til ferie eller flytter perioder.
+5. Disclaimer om NAV og veiledende beregninger er fortsatt synlig i UI.
+6. `CHANGELOG.md` er oppdatert, og PR-beskrivelsen har en ikke-teknisk oppsummering nederst.
