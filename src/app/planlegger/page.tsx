@@ -55,11 +55,20 @@ export default function PlanleggerPage() {
     );
 
   // SSR-safe: null on server, boolean on client
-  const hasSavedPlan = useSyncExternalStore(
+  const liveHasSavedPlan = useSyncExternalStore(
     emptySubscribe,
     () => getHasSavedPlan(),
     () => null as boolean | null,
   );
+
+  // Spørsmålet "fantes det en lagret plan da siden ble åpnet?" skal bare
+  // avgjøres én gang. Veiviseren autolagrer underveis, og ruteren re-rendrer
+  // siden når veiviseren oppdaterer #steg-N. Leser vi localStorage på nytt da,
+  // bytter siden til "Velkommen tilbake" midt i veiviseren.
+  const [hasSavedPlan, setHasSavedPlan] = useState<boolean | null>(null);
+  if (hasSavedPlan === null && liveHasSavedPlan !== null) {
+    setHasSavedPlan(liveHasSavedPlan);
+  }
 
   const [userChoice, setUserChoice] = useState<UserChoice>("none");
 
