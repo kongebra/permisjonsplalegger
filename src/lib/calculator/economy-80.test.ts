@@ -178,6 +178,18 @@ describe('calculateScenario: gap', () => {
     expect(result.total).toBeCloseTo(payout - 2_353.85, 2);
   });
 
+  test('helligdager i gapet gir verken lønn eller gap-kostnad', () => {
+    // Mor har 33 uker fra 14. sep 2026, så permisjonen slutter 3. mai 2027. Gapet
+    // 3. mai - 24. mai 2027 har 15 hverdager, men 6. mai (Kristi himmelfart) og
+    // 17. mai er helligdager: 13 arbeidsdager.
+    const { leave, horizon } = plan(33, 0, new Date(2027, 4, 24));
+    expect(leave.gap.start).toEqual(new Date(2027, 4, 3));
+    expect(leave.gap.workDays).toBe(13);
+    const result = calculateScenario(80, leave, economy(), undefined, horizon);
+    expect(result.breakdown.gapCost).toBeCloseTo(13 * (50_000 / 21.7), 2);
+    expect(result.breakdown.salaryIncome).toBeCloseTo(13 * (50_000 / 21.7), 2);
+  });
+
   test('provisjonen tapes også i et ulønnet gap: 10 x 3 000 / 21,7', () => {
     const result = scenario(80, economy({ monthlyCommissionLoss: 3_000 }), undefined, 20, 0, GAP_END);
     expect(result.breakdown.commissionLoss).toBeCloseTo(3_000 * (20 / 4.33) + (3_000 / 21.7) * 10, 2);
@@ -223,11 +235,12 @@ describe('calculateScenario: begge foreldre', () => {
     expect(result.breakdown.feriepengeDifference).toBeCloseTo(motherLoss + fatherLoss, 2);
   });
 
-  test('forelderen som ikke har permisjon tjener lønn på arbeidsdagene, uten helligdager', () => {
+  test('forelderen som ikke har permisjon tjener lønn alle hverdager, også helligdager', () => {
     // Mor har permisjon 14. sep 2026 - 1. feb 2027 (20 uker). Far jobber hele tiden:
-    // 100 hverdager minus 1. juledag (fre 25. des) og 1. nyttårsdag (fre 1. jan) = 98.
+    // 100 hverdager. Fastlønn betales også 1. juledag og 1. nyttårsdag (21,7 dager per
+    // måned regner med helligdager), ellers ville 100% tapt på hver helligdag.
     const result = scenario(80, economy(), economy({ monthlySalary: 40_000, monthlyCommissionLoss: 5_000 }), 20, 0);
-    expect(result.breakdown.salaryIncome).toBeCloseTo(98 * (40_000 / 21.7), 2); // 180 645,16
+    expect(result.breakdown.salaryIncome).toBeCloseTo(100 * (40_000 / 21.7), 2); // 184 331,80
     // Far har ingen permisjon, så hans provisjon og NAV teller ikke
     expect(result.breakdown.navPayout).toBeCloseTo((600_000 / 52) * 20 * 0.8, 2);
     expect(result.breakdown.commissionLoss).toBe(0);

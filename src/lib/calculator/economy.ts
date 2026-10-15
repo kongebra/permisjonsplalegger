@@ -252,9 +252,12 @@ function weeklyFeriepenger(economy: ParentEconomy): number {
  *   - permisjonsdag: NAV-sats (grunnlag x dekningsgrad / 364 per kalenderdag,
  *     dvs. grunnlag / 52 per uke), provisjonen tapes, og feriepengeopptjening
  *     tapes etter de første 12/15 ukene (med mindre arbeidsgiver betaler)
- *   - arbeidsdag utenfor permisjon: dagsats (månedslønn / 21,7)
+ *   - hverdag utenfor permisjon: dagsats (månedslønn / 21,7). Helligdager
+ *     betales også, slik 21,7 dager per måned forutsetter, så en arbeidsuke
+ *     gir like mye som en permisjonsuke med 100 % dekning
  *   - arbeidsdag i gapet for den som tar gapet: ulønnet, så både lønn,
- *     provisjon og feriepengeopptjening tapes
+ *     provisjon og feriepengeopptjening tapes (helligdager i gapet gir
+ *     ingenting og telles ikke, som i gap.workDays)
  * Totalen er NAV + lønn utenfor permisjon - udekket gap - provisjonstap
  * - tapt feriepengeopptjening. Samme dagsverdier summeres per måned til
  * likviditetsgrafen, så grafens siste punkt er lik totalen.
@@ -311,7 +314,7 @@ export function calculateScenario(
       monthIncome = 0;
     }
 
-    const workday = isWorkday(day);
+    const weekday = day.getDay() >= 1 && day.getDay() <= 5;
     const inGap = isWithin(day, leave.gap.start, leave.gap.end);
 
     for (const rate of rates) {
@@ -322,16 +325,20 @@ export function calculateScenario(
         commissionLoss += rate.commissionPerLeaveDay;
         feriepengeDifference += lostFeriepenger;
         monthIncome += rate.navPerDay - rate.commissionPerLeaveDay - lostFeriepenger;
-      } else if (workday) {
-        salaryIncome += rate.salaryPerWorkday;
-        monthIncome += rate.salaryPerWorkday;
-        if (inGap && rate.parent === gapTakenBy) {
-          // Ulønnet i gapet: ingen lønn, provisjon eller feriepengeopptjening
+      } else if (inGap && rate.parent === gapTakenBy) {
+        // Ulønnet i gapet: ingen lønn, provisjon eller feriepengeopptjening.
+        // Gapet teller arbeidsdager uten helligdager, som gap.workDays.
+        if (isWorkday(day)) {
+          salaryIncome += rate.salaryPerWorkday;
           gapCost += rate.salaryPerWorkday;
           commissionLoss += rate.commissionPerWorkday;
           feriepengeDifference += rate.feriepengerPerWorkday;
-          monthIncome -= rate.salaryPerWorkday + rate.commissionPerWorkday + rate.feriepengerPerWorkday;
+          monthIncome -= rate.commissionPerWorkday + rate.feriepengerPerWorkday;
         }
+      } else if (weekday) {
+        // Fastlønn betales også for helligdager, og 21,7 dager per måned regner dem med
+        salaryIncome += rate.salaryPerWorkday;
+        monthIncome += rate.salaryPerWorkday;
       }
     }
   }

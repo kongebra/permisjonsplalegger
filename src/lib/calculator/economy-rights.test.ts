@@ -393,13 +393,13 @@ describe('compareScenarios: begge, hvem som er tilbake i jobb når', () => {
   //   80%:  mor 32 uker til 5. apr 2027, far 29 uker til 25. okt 2027, ingen gap.
   // Felles tidsrom: 24. aug 2026 til 25. okt 2027. Forskjellen 100% - 80%:
   //   NAV: 572 307,69 - 568 615,38 = 3 692,31
-  //   mor jobber 22. feb - 5. apr 2027 i tillegg: 30 hverdager - påske (25., 26., 29. mar) = 27 dager
-  //     27 * 2 764,98 = 74 654,38
-  //   far: jobber 1. sep - 25. okt 2027 (38 dager) ved 100%, men 22. feb - 5. apr (27 dager) ved 80%
-  //     (38 - 27) * 1 843,32 = 20 276,50
+  //   mor jobber 22. feb - 5. apr 2027 i tillegg: 30 hverdager (påsken betales som fastlønn)
+  //     30 * 2 764,98 = 82 949,31
+  //   far: jobber 1. sep - 25. okt 2027 (38 dager) ved 100%, men 22. feb - 5. apr (30 dager) ved 80%
+  //     (38 - 30) * 1 843,32 = 14 746,54
   //   feriepenger: 100% (14 * 1 412,31 + 11 * 941,54 + 22 gapdager * 188,31 = 34 271,99)
   //     mot 80% (17 * 1 412,31 + 14 * 941,54 = 37 190,77): 2 918,78 mindre tap ved 100%
-  //   Sum: 3 692,31 + 74 654,38 + 20 276,50 + 2 918,78 = 101 541,97
+  //   Sum: 3 692,31 + 82 949,31 + 14 746,54 + 2 918,78 = 104 306,94
   const result = compareScenarios({
     dueDate: new Date(2026, 8, 14),
     coverage: 100,
@@ -410,8 +410,8 @@ describe('compareScenarios: begge, hvem som er tilbake i jobb når', () => {
     fatherEconomy: economy({ monthlySalary: 40_000 }),
   });
 
-  test('100% gir 101 541,97 kr mer fordi mor er tilbake i jobb tidligere', () => {
-    expect(result.difference).toBeCloseTo(101_541.97, 1);
+  test('100% gir 104 306,94 kr mer fordi mor er tilbake i jobb tidligere', () => {
+    expect(result.difference).toBeCloseTo(104_306.94, 1);
     expect(result.scenario100.breakdown.gapTakenBy).toBe('father');
     // Gap 2. aug - 1. sep 2027 = 22 arbeidsdager * 1 843,32
     expect(result.scenario100.breakdown.gapCost).toBeCloseTo(22 * (40_000 / 21.7), 1);
@@ -446,6 +446,13 @@ describe('kort, graf og anbefaling er enige for alle rettigheter og dekningsgrad
       expect(last.cumulative80).toBeCloseTo(result.scenario80.total, 4);
       expect(last.cumulative100).toBeCloseTo(result.scenario100.total, 4);
       expect(last.cumulative100 - last.cumulative80).toBeCloseTo(result.difference, 4);
+      // Gap-raden på kortet bruker samme arbeidsdager som gap-banneret (gap.workDays)
+      const salaries = { mother: 60_000, father: 40_000 };
+      for (const [scenario, gap] of [[result.scenario80, result.gap80], [result.scenario100, result.gap100]] as const) {
+        const takenBy = scenario.breakdown.gapTakenBy;
+        const expectedGapCost = takenBy ? gap.workDays * (salaries[takenBy] / 21.7) : 0;
+        expect(scenario.breakdown.gapCost).toBeCloseTo(expectedGapCost, 4);
+      }
       // Anbefalingen peker samme vei som tallene
       const { winner, isSmall } = getCoverageVerdict(result.difference);
       if (isSmall) expect(result.recommendation).toContain('Forskjellen er liten');
