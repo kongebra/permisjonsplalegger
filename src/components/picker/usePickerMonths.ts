@@ -121,10 +121,11 @@ export function usePickerMonths({
   const centerDate = initialScrollDate ?? new Date();
 
   // Generate month list (stable unless centerDate changes)
+  const centerYear = centerDate.getFullYear();
+  const centerMonth = centerDate.getMonth();
   const months = useMemo(
-    () => generateMonthList(centerDate, rangeMonths),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [centerDate.getFullYear(), centerDate.getMonth(), rangeMonths],
+    () => generateMonthList(new Date(centerYear, centerMonth, 1), rangeMonths),
+    [centerYear, centerMonth, rangeMonths],
   );
 
   // Pre-calculate placeholder heights

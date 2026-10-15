@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import { nb } from "date-fns/locale";
 import { MonthGrid } from "@/components/calendar";
@@ -15,6 +15,36 @@ interface PickerMonthListProps {
   onDaySelect: (date: Date) => void;
   initialScrollDate?: Date;
   showLegend?: boolean;
+}
+
+interface ResolvedMonthGridProps {
+  month: Date;
+  resolveMonthData: (month: Date) => PickerMonthData;
+  onDaySelect: (date: Date) => void;
+}
+
+// Løser månedsdata først når måneden er synlig, og memoiserer per måned.
+// Memoiseringen nullstilles automatisk når resolveren endres.
+function ResolvedMonthGrid({
+  month,
+  resolveMonthData,
+  onDaySelect,
+}: ResolvedMonthGridProps) {
+  const data = useMemo(
+    () => resolveMonthData(month),
+    [resolveMonthData, month],
+  );
+  return (
+    <MonthGrid
+      month={data.month}
+      days={data.days}
+      weekBands={data.weekBands}
+      interactive={false}
+      showWeekdayRow={false}
+      pickerMode
+      callbacks={{ onDateSelect: onDaySelect }}
+    />
+  );
 }
 
 export function PickerMonthList({
@@ -102,26 +132,6 @@ export function PickerMonthList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resolve month data only for visible months (memoized per-month)
-  const resolvedCache = useRef(new Map<number, PickerMonthData>());
-
-  const prevResolveRef = useRef(resolveMonthData);
-  if (prevResolveRef.current !== resolveMonthData) {
-    resolvedCache.current.clear();
-    prevResolveRef.current = resolveMonthData;
-  }
-
-  const getMonthData = useCallback(
-    (idx: number): PickerMonthData => {
-      const cached = resolvedCache.current.get(idx);
-      if (cached) return cached;
-      const data = resolveMonthData(months[idx]);
-      resolvedCache.current.set(idx, data);
-      return data;
-    },
-    [resolveMonthData, months],
-  );
-
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">
       {/* Sticky header: weekdays + optional legend */}
@@ -180,20 +190,11 @@ export function PickerMonthList({
             className="mb-6"
           >
             {visibleMonths.has(idx) ? (
-              (() => {
-                const data = getMonthData(idx);
-                return (
-                  <MonthGrid
-                    month={data.month}
-                    days={data.days}
-                    weekBands={data.weekBands}
-                    interactive={false}
-                    showWeekdayRow={false}
-                    pickerMode
-                    callbacks={{ onDateSelect: onDaySelect }}
-                  />
-                );
-              })()
+              <ResolvedMonthGrid
+                month={month}
+                resolveMonthData={resolveMonthData}
+                onDaySelect={onDaySelect}
+              />
             ) : (
               <h3 className="text-sm font-semibold text-center mb-2 capitalize text-muted-foreground/50">
                 {format(month, "MMMM yyyy", { locale: nb })}
