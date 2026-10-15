@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "bun test",
+    "test": "bun test src",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test e2e/a11y"
   },
