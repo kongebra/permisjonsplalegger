@@ -33,6 +33,8 @@ export function MonthlyIncomeOverview() {
   const normalIncome = getPlannerNormalIncome(rights, motherEconomy, fatherEconomy);
   // Ferie over permisjon kan gi mer enn vanlig lønn, så stolpene skaleres mot største måned
   const barScale = Math.max(normalIncome, ...monthlyData.map((m) => m.total));
+  // Strek for vanlig lønn når stolpene er skalert, slik at tomrom ikke ser ut som tap
+  const normalMarker = barScale > normalIncome && normalIncome > 0 ? (normalIncome / barScale) * 100 : null;
 
   const formatKr = (n: number) => Math.round(n).toLocaleString('nb-NO');
 
@@ -78,7 +80,7 @@ export function MonthlyIncomeOverview() {
               <span className="sr-only">
                 Foreldrepenger {formatKr(m.navIncome)} kr, lønn og feriepenger {formatKr(m.employerIncome)} kr.
               </span>
-              <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex" aria-hidden="true">
+              <div className="relative flex-1 h-3 bg-muted rounded-sm overflow-hidden flex" aria-hidden="true">
                 {m.navIncome > 0 && barScale > 0 && (
                   <div
                     className="h-full bg-chart-1"
@@ -89,6 +91,12 @@ export function MonthlyIncomeOverview() {
                   <div
                     className="h-full bg-chart-2"
                     style={{ width: `${(m.employerIncome / barScale) * 100}%` }}
+                  />
+                )}
+                {normalMarker !== null && (
+                  <div
+                    className="absolute inset-y-0 w-0.5 bg-foreground/50"
+                    style={{ left: `${normalMarker}%` }}
                   />
                 )}
               </div>
@@ -117,6 +125,12 @@ export function MonthlyIncomeOverview() {
           <span className="w-2.5 h-2.5 rounded-sm bg-chart-2" />
           <span>Lønn og feriepenger</span>
         </div>
+        {normalMarker !== null && (
+          <div className="flex items-center gap-1">
+            <span className="w-0.5 h-2.5 bg-foreground/50" />
+            <span>Vanlig lønn</span>
+          </div>
+        )}
       </div>
 
       {/* Budsjettgrense-hjelp */}

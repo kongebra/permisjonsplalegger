@@ -44,6 +44,13 @@ test('Ferie i egen permisjon gir foreldrepenger og feriepenger, uansett rekkefø
   await expect(row).toContainText(/Foreldrepenger 50\s000 kr, lønn og feriepenger 20\s000 kr/);
   await expect(row.getByRole('img', { name: 'Feriemåned' })).toBeVisible();
 
+  // Månedsoversikten med ferie, inkludert kontrast
+  const economyResults = await new AxeBuilder({ page })
+    .include('[role="tabpanel"]')
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+  expect(economyResults.violations).toEqual([]);
+
   // Lagre, legg ferien først i lista og last planen på nytt
   await page.getByRole('button', { name: 'Lagre' }).click();
   await expect
