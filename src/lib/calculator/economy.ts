@@ -252,7 +252,7 @@ function weeklyFeriepenger(economy: ParentEconomy): number {
  * regnes over samme tidsrom, slik at forskjellen er reell:
  *   - permisjonsdag: NAV-sats (grunnlag x dekningsgrad / 364 per kalenderdag,
  *     dvs. grunnlag / 52 per uke), provisjonen tapes, og feriepengeopptjening
- *     tapes etter de første 12/15 ukene (med mindre arbeidsgiver betaler)
+ *     tapes etter de første 12/15 ukene som er felles for begge foreldre (med mindre arbeidsgiver betaler)
  *   - hverdag utenfor permisjon: dagsats (månedslønn / 21,7). Helligdager
  *     betales også, slik 21,7 dager per måned forutsetter, så en arbeidsuke
  *     gir like mye som en permisjonsuke med 100 % dekning
@@ -301,9 +301,13 @@ export function calculateScenario(
     commissionPerWorkday: economy.monthlyCommissionLoss / WORK_DAYS_PER_MONTH,
     feriepengerPerLeaveDay: economy.employerPaysFeriepenger ? 0 : weeklyFeriepenger(economy) / 7,
     feriepengerPerWorkday: weeklyFeriepenger(economy) / WORK_DAYS_PER_WEEK,
-    navCoveredDays: FERIEPENGER_NAV_WEEKS[coverage] * 7,
-    leaveDaysSoFar: 0,
   }));
+
+  // De første 12/15 ukene av foreldrepengeperioden gir feriepenger samlet til
+  // begge foreldre, så opptellingen er felles og følger kalenderen.
+  const navCoveredDays = FERIEPENGER_NAV_WEEKS[coverage] * 7;
+  let leaveDaysSoFar = 0;
+  const periodSegments = leave.segments.filter((s) => s.type !== 'gap' && s.type !== 'vacation');
 
   let monthStart: Date | null = null;
   let monthIncome = 0;
@@ -318,10 +322,12 @@ export function calculateScenario(
     const weekday = day.getDay() >= 1 && day.getDay() <= 5;
     const inGap = isWithin(day, leave.gap.start, leave.gap.end);
 
+    const feriepengerCovered = leaveDaysSoFar < navCoveredDays;
+    if (periodSegments.some((s) => isWithin(day, s.start, s.end))) leaveDaysSoFar++;
+
     for (const rate of rates) {
       if (rate.leaveSegments.some((s) => isWithin(day, s.start, s.end))) {
-        const lostFeriepenger = rate.leaveDaysSoFar >= rate.navCoveredDays ? rate.feriepengerPerLeaveDay : 0;
-        rate.leaveDaysSoFar++;
+        const lostFeriepenger = feriepengerCovered ? 0 : rate.feriepengerPerLeaveDay;
         navPayout += rate.navPerDay;
         commissionLoss += rate.commissionPerLeaveDay;
         feriepengeDifference += lostFeriepenger;

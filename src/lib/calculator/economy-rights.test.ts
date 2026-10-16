@@ -399,9 +399,11 @@ describe('compareScenarios: begge, hvem som er tilbake i jobb når', () => {
   //     30 * 2 764,98 = 82 949,31
   //   far: jobber 1. sep - 25. okt 2027 (38 dager) ved 100%, men 22. feb - 5. apr (30 dager) ved 80%
   //     (38 - 30) * 1 843,32 = 14 746,54
-  //   feriepenger: 100% (14 * 1 412,31 + 11 * 941,54 + 22 gapdager * 188,31 = 34 271,99)
-  //     mot 80% (17 * 1 412,31 + 14 * 941,54 = 37 190,77): 2 918,78 mindre tap ved 100%
-  //   Sum: 3 692,31 + 82 949,31 + 14 746,54 + 2 918,78 = 104 306,94
+  //   feriepenger: de første 12/15 ukene er felles og går til mor (hun har permisjon først)
+  //     100%: mor 14 * 1 412,31 + far 23 * 941,54 + 22 gapdager * 188,31 = 45 570,46
+  //     80%:  mor 17 * 1 412,31 + far 29 * 941,54 = 51 313,85
+  //     5 743,39 mindre tap ved 100%
+  //   Sum: 3 692,31 + 82 949,31 + 14 746,54 + 5 743,39 = 107 131,55
   const result = compareScenarios({
     dueDate: new Date(2026, 8, 14),
     coverage: 100,
@@ -412,8 +414,8 @@ describe('compareScenarios: begge, hvem som er tilbake i jobb når', () => {
     fatherEconomy: economy({ monthlySalary: 40_000 }),
   });
 
-  test('100% gir 104 306,94 kr mer fordi mor er tilbake i jobb tidligere', () => {
-    expect(result.difference).toBeCloseTo(104_306.94, 1);
+  test('100% gir 107 131,55 kr mer fordi mor er tilbake i jobb tidligere', () => {
+    expect(result.difference).toBeCloseTo(107_131.55, 1);
     expect(result.scenario100.breakdown.gapTakenBy).toBe('father');
     // Gap 2. aug - 1. sep 2027 = 22 arbeidsdager * 1 843,32
     expect(result.scenario100.breakdown.gapCost).toBeCloseTo(22 * (40_000 / 21.7), 1);
