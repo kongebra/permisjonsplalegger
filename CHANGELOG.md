@@ -6,8 +6,10 @@
 
 ### Rettet
 
+- Feriepengeukene fra NAV deles mellom foreldrene
 - Ferie i permisjonen gir både foreldrepenger og feriepenger
 - Vis vanlig lønn som strek når en måned gir mer enn vanlig
+- Feriepengesatsene stemmer med ferieloven, og teksten om utbetaling er uten måned
 
 ### Opprydding
 
