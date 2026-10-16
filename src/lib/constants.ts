@@ -57,7 +57,10 @@ export const FERIEPENGER_NAV_WEEKS = {
   80: 15,
 } as const;
 
-// Standard feriepenge-sats (10.2% for de fleste, 12% for over 60 år)
+// Feriepengesats etter ferieloven § 10 nr. 2: 10,2 % av feriepengegrunnlaget.
+// Over 60 år med rett til ekstraferie forhøyes satsen med 2,3 prosentpoeng (12,5 %, § 10 nr. 3),
+// men det er ikke modellert. 12 % er en vanlig tariff- eller avtalesats ved fem ukers ferie,
+// ikke lovens sats, og brukes ikke i appen.
 export const FERIEPENGER_RATE = 0.102;
 
 // Ukedager i en arbeidsuke (NAV bruker 5-dagers uke)

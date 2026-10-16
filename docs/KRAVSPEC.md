@@ -74,6 +74,13 @@ Vanlige kalkulatorer (NAV m.fl.) tar ikke høyde for:
   Det gjelder ikke hvis arbeidsgiver betaler feriepenger under permisjonen.
 - At dette gir et reelt tap i feriepengene året etter, er vår tolkning av ferieloven § 10 nr. 1 (se "Ulønnet gap"), ikke en NAV-regel.
 - Tapet trekkes fra totalen i vinduet, selv om feriepengene utbetales året etter.
+- Satsen er 10,2 % (ferieloven § 10 nr. 2).
+  Satsen for over 60 år (12,5 %) og 12 % fra tariffavtaler er ikke modellert.
+- NAV utbetaler sine feriepenger innen utgangen av mai året etter (verifisert, nav.no/feriepenger).
+  Arbeidsgivers utbetaling følger ferieloven § 11 uten fast måned, så UI sier "året etter" uten måned.
+- Kjent forenkling: ved 80 % gir NAV feriepenger av 80 % av lønnen i de første 15 ukene, mens modellen regner full opptjening der.
+  Foreldrepenger over 6G gir heller ikke feriepenger av det overskytende.
+  Se #37.
 
 ## 4. Utdata
 

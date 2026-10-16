@@ -211,7 +211,7 @@ function ParentEconomySection({
               <HelpButton>
                 <div className="space-y-2">
                   <p>Feriepengegrunnlaget er inntekten du opptjente i fjor som danner
-                  grunnlaget for feriepengene du får utbetalt i juni.</p>
+                  grunnlaget for feriepengene du får utbetalt året etter.</p>
                   <p>Hvis du ikke fyller inn, bruker vi årslønn ({formatCurrency(economy.monthlySalary * 12)}) som estimat.</p>
                 </div>
               </HelpButton>
@@ -232,13 +232,13 @@ function ParentEconomySection({
             />
           </div>
 
-          {/* Juni-trekk forklaring */}
+          {/* Forklaring av lavere feriepenger året etter */}
           <InfoBox variant="info">
-            <p className="font-medium">Hvorfor trekkes jeg i lønn i juni?</p>
-            <p className="mt-1">I juni utbetales feriepenger basert på forrige års inntekt.
+            <p className="font-medium">Hvorfor blir feriepengene lavere året etter?</p>
+            <p className="mt-1">Feriepenger utbetales året etter, basert på inntekten du hadde i opptjeningsåret.
             Når NAV betaler foreldrepenger, opptjener du kun feriepenger
             for de første {FERIEPENGER_NAV_WEEKS[coverage]} ukene.
-            Resten av permisjonen gir ingen opptjening — så juni-lønnen
+            Resten av permisjonen gir ingen opptjening, så feriepengene
             året etter blir lavere enn normalt.</p>
           </InfoBox>
         </>

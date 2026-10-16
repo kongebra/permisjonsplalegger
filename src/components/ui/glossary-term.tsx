@@ -19,7 +19,7 @@ const GLOSSARY: Record<string, string> = {
   '6G': 'Ca 780 000 kr per år. Dette er det meste NAV kan utbetale, uansett lønnsnivå.',
   gap: 'Perioden mellom permisjonsslutt og barnehagestart.',
   feriepenger:
-    'Ekstra utbetaling i juni basert på inntekt året før (10.2% av lønnen).',
+    'Utbetaling året etter, basert på inntekt året før (10,2 % av lønnen etter ferieloven).',
 };
 
 interface GlossaryTermProps {

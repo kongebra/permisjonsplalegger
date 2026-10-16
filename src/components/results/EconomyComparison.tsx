@@ -133,7 +133,7 @@ export function EconomyComparison({ result, rights }: EconomyComparisonProps) {
         )}
         {(scenario100.breakdown.feriepengeDifference > 0 || scenario80.breakdown.feriepengeDifference > 0) && (
           <p className="text-xs text-muted-foreground">
-            Tapt feriepengeopptjening vises i juni-lønnen året etter - NAV dekker kun
+            Tapt feriepengeopptjening gir lavere feriepenger året etter - NAV dekker kun
             opptjening for de første {FERIEPENGER_NAV_WEEKS[100]} ukene (100%) eller {FERIEPENGER_NAV_WEEKS[80]} ukene (80%) av permisjonen,
             og ulønnet permisjon i gapet gir ingen opptjening.
           </p>
