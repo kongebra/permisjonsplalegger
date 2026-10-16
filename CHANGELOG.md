@@ -4,9 +4,15 @@
 
 ## 2026-10-16
 
+### Rettet
+
+- Ferie i permisjonen gir både foreldrepenger og feriepenger
+- Vis vanlig lønn som strek når en måned gir mer enn vanlig
+
 ### Opprydding
 
 - Fjern død kode
+- Fjern gammel kode for å skyve permisjon ved ferie
 
 ## 2026-10-15
 
