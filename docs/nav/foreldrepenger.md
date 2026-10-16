@@ -126,6 +126,8 @@ NAV utbetaler feriepenger på **10,2%** av foreldrepengene – men bare for et b
 - **100%-valget:** Første 12 uker gir feriepengegrunnlag
 - **80%-valget:** Første 15 uker gir feriepengegrunnlag
 
+De første 12/15 ukene er **felles for begge foreldre**, regnet fra starten av den totale foreldrepengeperioden. Hver forelder får feriepenger bare for ukene hen selv fikk foreldrepenger. Tar mor 10 uker og far deretter 10 uker ved 100 %, får mor 10 uker og far 2 uker (kilde: nav.no/feriepenger).
+
 Feriepengene utbetales i **mai året etter**.
 
 > **Viktig for kalkulatoren:** Hvis arbeidsgiver betaler full lønn under permisjon, gjelder arbeidsgiverens feriepengeregler (10,2% eller 12% av full lønn). Hvis NAV betaler, er det bare de første 12/15 ukene som teller.

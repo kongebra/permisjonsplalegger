@@ -156,6 +156,42 @@ describe('calculateScenario: feriepenger', () => {
   });
 });
 
+describe('calculateScenario: feriepengeuker er felles for begge foreldre', () => {
+  // NAV: de første 12 (100 %) eller 15 (80 %) ukene av foreldrepengeperioden
+  // gir feriepenger samlet til begge. Mor har 10 uker, så far, kronologisk.
+  // Mor 600 000 i året: 600 000 x 0,102 / 52 = 1 176,92 per uke.
+  // Far 480 000 i året: 480 000 x 0,102 / 52 = 941,54 per uke.
+  const mother = economy({ employerPaysFeriepenger: false });
+  const father = economy({ monthlySalary: 40_000, employerPaysFeriepenger: false });
+
+  test('100 %: mor bruker 10 av 12 uker, far får 2 og taper 8 uker', () => {
+    const result = scenario(100, mother, father, 10, 10);
+    // 20 uker totalt, 8 over grensen, alle på far: 8 x 941,54 = 7 532,31
+    expect(result.breakdown.feriepengeDifference).toBeCloseTo(7_532.31, 2);
+  });
+
+  test('80 %: mor bruker 10 av 15 uker, far får 5 og taper 5 uker', () => {
+    const result = scenario(80, mother, father, 10, 10);
+    // 5 uker over grensen, alle på far: 5 x 941,54 = 4 707,69
+    expect(result.breakdown.feriepengeDifference).toBeCloseTo(4_707.69, 2);
+  });
+
+  test('grensen nås hos mor, så far får ingen uker', () => {
+    const result = scenario(100, mother, father, 14, 6);
+    // Mor: 2 uker over grensen = 2 x 1 176,92. Far: alle 6 uker over = 6 x 941,54
+    expect(result.breakdown.feriepengeDifference).toBeCloseTo(2 * 1_176.923 + 6 * 941.538, 1);
+  });
+
+  test('uker i gapet teller ikke som foreldrepengeuker', () => {
+    const result = scenario(100, mother, father, 5, 5, addWeeks(START, 14));
+    // 10 permisjonsuker, alle innenfor 12 uker: ingen tapt opptjening fra permisjonen.
+    // Gapet tas av far (lavest dagsats): 4 uker
+    const gapWorkdays = 20; // 23. nov - 21. des 2026, ingen helligdager
+    const gapLoss = gapWorkdays * ((480_000 * 0.102) / 260);
+    expect(result.breakdown.feriepengeDifference).toBeCloseTo(gapLoss, 1);
+  });
+});
+
 describe('calculateScenario: gap', () => {
   // Mor har 20 uker til mandag 1. feb 2027. Gapet varer til mandag 15. feb 2027:
   // 14 kalenderdager = 10 arbeidsdager. Dagsats 50 000 / 21,7 = 2 304,15.
@@ -230,8 +266,9 @@ describe('calculateScenario: begge foreldre', () => {
     const mother = economy({ employerPaysFeriepenger: false });
     const father = economy({ monthlySalary: 40_000, employerPaysFeriepenger: false });
     const result = scenario(80, mother, father, 20, 17);
+    // 37 uker totalt, 15 felles dekket (alle hos mor). Mor taper 5 uker, far alle 17.
     const motherLoss = ((600_000 * 0.102) / 52) * 5;
-    const fatherLoss = ((480_000 * 0.102) / 52) * 2;
+    const fatherLoss = ((480_000 * 0.102) / 52) * 17;
     expect(result.breakdown.feriepengeDifference).toBeCloseTo(motherLoss + fatherLoss, 2);
   });
 
