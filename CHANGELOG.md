@@ -2,6 +2,12 @@
 
 <!-- Generert av `bun run changelog` (scripts/changelog.ts). Ikke rediger for hånd. -->
 
+## 2026-10-16
+
+### Opprydding
+
+- Fjern død kode
+
 ## 2026-10-15
 
 ### Rettet
