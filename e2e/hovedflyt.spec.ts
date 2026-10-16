@@ -7,19 +7,19 @@ const EXPECTED: Record<
   { summary: RegExp; weeks100: string; weeks80: string; quota: string }
 > = {
   'mother-only': {
-    summary: /Mor 49uk.*Far 0uk/s,
+    summary: /Mor 49uk[\s\S]*Far 0uk/,
     weeks100: '100% dekning (49 uker)',
     weeks80: '80% dekning (61 uker)',
     quota: 'Mors permisjon',
   },
   'father-only': {
-    summary: /Mor 0uk.*Far 40uk/s,
+    summary: /Mor 0uk[\s\S]*Far 40uk/,
     weeks100: '100% dekning (40 uker)',
     weeks80: '80% dekning (52 uker)',
     quota: 'Fars kvote',
   },
   both: {
-    summary: /Mor 26uk.*Far 23uk/s,
+    summary: /Mor 26uk[\s\S]*Far 23uk/,
     weeks100: '100% dekning (49 uker)',
     weeks80: '80% dekning (61 uker)',
     quota: 'Fellesperiode',
