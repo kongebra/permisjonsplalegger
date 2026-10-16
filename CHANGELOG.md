@@ -4,6 +4,10 @@
 
 ## 2026-10-16
 
+### Rettet
+
+- Feriepengeukene fra NAV deles mellom foreldrene
+
 ### Opprydding
 
 - Fjern død kode
