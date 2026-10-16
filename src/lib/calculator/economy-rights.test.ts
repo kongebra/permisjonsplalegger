@@ -274,7 +274,7 @@ describe('compareScenarios: prematur fødsel', () => {
   const daycare = new Date(2027, 7, 2);
 
   test('kun mor: 49 + 4 = 53 uker ved 100%, 61 + 4 = 65 uker ved 80%', () => {
-    const leave100 = calculateLeave(dueDate, 100, 'mother-only', 8, 0, daycare, [], undefined, 4);
+    const leave100 = calculateLeave(dueDate, 100, 'mother-only', 8, 0, daycare, [], 4);
     expect(leave100.mother.weeks).toBe(53);
 
     const result = compareScenarios({

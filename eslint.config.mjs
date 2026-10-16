@@ -16,6 +16,12 @@ const eslintConfig = defineConfig([
       ),
     },
   },
+  {
+    // Destrukturering for å utelate props (`{ day, ...props }`) er ikke ubrukte variabler
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

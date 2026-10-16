@@ -341,8 +341,8 @@ describe('calculateLeave with premature birth', () => {
   test('prematureWeeks=0: no change to leave', () => {
     const dueDate = new Date(2027, 4, 1); // 1. mai 2027
     const daycare = new Date(2028, 7, 1);
-    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
-    const withZero = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 0);
+    const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], 0);
+    const withZero = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], 0);
     expect(normal.mother.weeks).toBe(withZero.mother.weeks);
   });
 
@@ -350,7 +350,7 @@ describe('calculateLeave with premature birth', () => {
     const dueDate = new Date(2027, 4, 1);
     const daycare = new Date(2028, 7, 1);
     const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
-    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], 4);
     expect(premature.mother.weeks).toBe(normal.mother.weeks + 4);
   });
 
@@ -358,7 +358,7 @@ describe('calculateLeave with premature birth', () => {
     const dueDate = new Date(2027, 4, 1);
     const daycare = new Date(2028, 7, 1);
     const normal = calculateLeave(dueDate, 100, 'both', 8, 0, daycare);
-    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], undefined, 4);
+    const premature = calculateLeave(dueDate, 100, 'both', 8, 0, daycare, [], 4);
     const expectedStart = subtractWeeks(normal.mother.start, 4);
     expect(premature.mother.start.getTime()).toBe(expectedStart.getTime());
   });

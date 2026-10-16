@@ -46,23 +46,6 @@ Mangler tydelig tekst i UI: `DaycareStep` sier fortsatt bare at de fleste barneh
 
 **Kilde:** `git show 67144c3:docs/IDEAS_01.md`, avsnittet "Barnehagestart - smartere dato".
 
-### 4. Ferie før og etter permisjon i planleggeren
-
-**Hva:** I den gamle modellen (`VacationInput` i den fjernede `/gammel`-ruten, se `git show 828af5b:src/components/input/VacationInput.tsx`) kunne man legge inn feriedager etter mors permisjon og før/etter fars permisjon.
-Hver ferieblokk hadde en avkrysning: tas den samtidig med den andres permisjon (overlapp), eller skyver den den andres permisjon?
-I planleggeren kan brukeren legge inn ferieperioder fritt, men skyving av den andres permisjon finnes ikke.
-
-**Beslutninger:**
-
-- Mor: feriedager etter permisjon, valgfri "Skal tas ut i fars permisjon".
-  Er den ikke avkrysset, skyves fars permisjon tilsvarende.
-- Far/medmor: feriedager før permisjon (med tilsvarende avkrysning) og feriedager etter permisjon (legges bare på i kalenderen).
-
-**Usikkert:** Om dette fortsatt er ønsket når planleggeren lar brukeren plassere ferie selv.
-Avgjør før noe bygges.
-
-**Kilde:** `git show 67144c3:docs/IDEAS_01.md`, avsnittet "Feriedager før/etter permisjon".
-
 ### 5. Fullstendig feriepenge-beregning
 
 **Hva:** `calculateFeriepengeDifference` i `src/lib/calculator/economy.ts` finnes og er testet, og juni-trekk forklares i en infoboks i `EconomyStep`.

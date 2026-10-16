@@ -176,7 +176,6 @@ export const usePlannerStore = create<PlannerStore>()(
         0,
         effectiveDaycareDate,
         [],
-        undefined,
         prematureWeeks,
       );
 

@@ -441,8 +441,8 @@ function buildScenarioLeaves(input: EconomyComparisonInput): {
   const sharedWeeksToMother100 = convertSharedWeeksToMother(sharedWeeksToMother, coverage, 100);
 
   return {
-    leave80: calculateLeave(dueDate, 80, rights, sharedWeeksToMother80, 0, daycareStartDate, [], undefined, prematureWeeks),
-    leave100: calculateLeave(dueDate, 100, rights, sharedWeeksToMother100, 0, daycareStartDate, [], undefined, prematureWeeks),
+    leave80: calculateLeave(dueDate, 80, rights, sharedWeeksToMother80, 0, daycareStartDate, [], prematureWeeks),
+    leave100: calculateLeave(dueDate, 100, rights, sharedWeeksToMother100, 0, daycareStartDate, [], prematureWeeks),
     sharedWeeksToMother80,
     sharedWeeksToMother100,
   };
