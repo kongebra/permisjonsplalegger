@@ -194,6 +194,13 @@ describe('calculateFeriepengeDifference', () => {
     expect(result).toBeGreaterThan(0);
   });
 
+  test('håndregnet: 10,2 % av 600 000 / 52 x 37 uker', () => {
+    // 50 000 x 12 = 600 000. 600 000 x 0,102 = 61 200. / 52 = 1 176,92 per uke. x 37 = 43 546,15
+    expect(FERIEPENGER_RATE).toBe(0.102);
+    const result = calculateFeriepengeDifference(50_000, 49, false, 100);
+    expect(result).toBeCloseTo(43_546.15, 2);
+  });
+
   test('NAV pays 80%: loss for weeks beyond 15', () => {
     const salary = 50_000;
     const weeks = 59;
