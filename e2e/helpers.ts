@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Felles hjelpere for funksjonelle e2e-tester.
@@ -21,7 +21,7 @@ export const RIGHTS_CASES: { rights: Rights; name: string }[] = [
 ];
 
 /** Fast "i dag" slik at datovelgerne og beregninger er like på alle kjøringer. */
-export const FIXED_NOW = new Date('2026-06-15T10:00:00');
+const FIXED_NOW = new Date('2026-06-15T10:00:00');
 
 /** Norske korte månedsnavn slik datovelgerne viser dem. */
 const SHORT_MONTHS = ['jan.', 'feb.', 'mars', 'apr.', 'mai', 'juni', 'juli', 'aug.', 'sep.', 'okt.', 'nov.', 'des.'];
@@ -62,7 +62,7 @@ const LONG_MONTHS = [
   'juli', 'august', 'september', 'oktober', 'november', 'desember',
 ];
 
-export function monthName(month: number) {
+function monthName(month: number) {
   return LONG_MONTHS[month - 1];
 }
 
@@ -129,7 +129,14 @@ function shortMonthIndex(text: string) {
  */
 export async function addVacation(
   page: Page,
-  options: { year: number; month: number; fromDay: number; toDay: number },
+  options: {
+    year: number;
+    month: number;
+    fromDay: number;
+    toDay: number;
+    /** Kjøres med åpen dialog rett før "Legg til" */
+    beforeSave?: (modal: Locator) => Promise<void>;
+  },
 ) {
   await page.getByRole('button', { name: 'Legg til periode' }).click();
   const modal = page.getByRole('dialog', { name: 'Ny periode' });
@@ -146,8 +153,10 @@ export async function addVacation(
 
   const picker = page.getByRole('dialog', { name: 'Velg periode' });
   await expect(picker).toBeVisible();
-  for (let i = 0; i < monthsToMove; i++) {
-    await picker.getByRole('button', { name: 'Neste måned' }).click();
+  // Målmåneden kan ligge før eller etter startdatoen
+  const step = picker.getByRole('button', { name: monthsToMove < 0 ? 'Forrige måned' : 'Neste måned' });
+  for (let i = 0; i < Math.abs(monthsToMove); i++) {
+    await step.click();
   }
 
   // Velgeren viser to måneder; første rutenett er målmåneden
@@ -161,6 +170,7 @@ export async function addVacation(
   await picker.getByRole('button', { name: 'Bekreft' }).click();
   await expect(picker).toBeHidden();
 
+  if (options.beforeSave) await options.beforeSave(modal);
   await modal.getByRole('button', { name: 'Legg til' }).click();
   await expect(modal).toBeHidden();
 }

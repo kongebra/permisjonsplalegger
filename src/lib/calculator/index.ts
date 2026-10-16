@@ -56,7 +56,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     motherEconomy,
     fatherEconomy,
     vacationWeeks,
-    vacation,
     prematureWeeks = 0,
   } = input;
 
@@ -69,7 +68,6 @@ export function calculate(input: CalculatorInput): CalculatorResult {
     overlapWeeks,
     daycareStartDate,
     vacationWeeks,
-    vacation,
     prematureWeeks,
   );
 

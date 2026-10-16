@@ -183,7 +183,6 @@ export function useCalculatedLeave(): LeaveResult {
       0,
       effectiveDaycareDate,
       [],
-      undefined,
       prematureWeeks,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
