@@ -1,69 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { startOfMonth, addMonths, addDays, getDaysInMonth, isAfter } from 'date-fns';
 import { useWizard, usePeriods, useEconomy, useCalculatedLeave } from '@/store/hooks';
-import { calculateBasis, hasEconomyInput, monthlyNavPayout } from '@/lib/calculator/economy';
+import { hasEconomyInput } from '@/lib/calculator/economy';
+import { calculatePlannerMonthlyIncome, getPlannerNormalIncome } from '@/lib/calculator/planner-income';
 import { cn } from '@/lib/utils';
-import type { CustomPeriod, Parent, Coverage, ParentEconomy } from '@/lib/types';
-
-interface ParentMonthResult {
-  navIncome: number;
-  salaryIncome: number;
-  total: number;
-}
-
-interface MonthData {
-  month: Date;
-  totalNav: number;
-  totalSalary: number;
-  total: number;
-}
-
-function calcParentMonth(
-  monthStart: Date,
-  daysInMonth: number,
-  parent: Parent,
-  periods: CustomPeriod[],
-  economy: ParentEconomy,
-  coverage: Coverage,
-  gapStart: Date,
-  gapEnd: Date,
-  isGapParent: boolean,
-): ParentMonthResult {
-  if (economy.monthlySalary <= 0) {
-    return { navIncome: 0, salaryIncome: 0, total: 0 };
-  }
-
-  const basis = calculateBasis(economy.monthlySalary, economy.employerCoversAbove6G);
-  const monthlyNav = monthlyNavPayout(basis, coverage);
-  const monthlySalary = economy.monthlySalary;
-
-  let navDays = 0;
-  let salaryDays = 0;
-
-  const parentPeriods = periods.filter(p => p.parent === parent);
-
-  for (let d = 0; d < daysInMonth; d++) {
-    const day = addDays(monthStart, d);
-    const period = parentPeriods.find(p => day >= p.startDate && day < p.endDate);
-
-    if (period) {
-      if (period.type === 'permisjon') navDays++;
-      else if (period.type === 'ferie') salaryDays++;
-      // ulonnet/annet → ulønnet, telles ikke
-    } else if (isGapParent && day >= gapStart && day < gapEnd) {
-      // I gap hjemme uten betaling
-    } else {
-      salaryDays++;
-    }
-  }
-
-  const navIncome = Math.round((navDays / daysInMonth) * monthlyNav);
-  const salaryIncome = Math.round((salaryDays / daysInMonth) * monthlySalary);
-
-  return { navIncome, salaryIncome, total: navIncome + salaryIncome };
-}
 
 export function MonthlyIncomeOverview() {
   const { coverage, rights, daycareStartDate, daycareEnabled, monthlyBudgetLimit } = useWizard();
@@ -74,60 +15,24 @@ export function MonthlyIncomeOverview() {
   const hasSalary = hasEconomyInput(rights, motherEconomy, fatherEconomy);
   const hasLeavePeriods = periods.some(p => p.type === 'permisjon');
 
-  // Bestemmer hvem som er hjemme i gapet (lavest lønn, samme logikk som calculateGapCost)
-  const gapParent = useMemo((): Parent => {
-    if (rights === 'mother-only') return 'mother';
-    if (rights === 'father-only') return 'father';
-    return motherEconomy.monthlySalary <= fatherEconomy.monthlySalary ? 'mother' : 'father';
-  }, [rights, motherEconomy.monthlySalary, fatherEconomy.monthlySalary]);
-
-  const monthlyData = useMemo((): MonthData[] => {
+  const monthlyData = useMemo(() => {
     if (!hasSalary || !hasLeavePeriods) return [];
-
-    const periodStarts = periods.map(p => p.startDate.getTime());
-    const periodEnds = periods.map(p => p.endDate.getTime());
-    const firstStart = new Date(Math.min(...periodStarts));
-    const lastEnd = new Date(Math.max(...periodEnds));
-
-    const rangeStart = startOfMonth(firstStart);
-    const rangeEnd = daycareEnabled && daycareStartDate && daycareStartDate > lastEnd
-      ? startOfMonth(daycareStartDate)
-      : startOfMonth(lastEnd);
-
-    const { start: gapStart, end: gapEnd } = leaveResult.gap;
-
-    const months: MonthData[] = [];
-    let current = rangeStart;
-
-    while (!isAfter(current, rangeEnd)) {
-      const dim = getDaysInMonth(current);
-
-      const mother = rights !== 'father-only'
-        ? calcParentMonth(current, dim, 'mother', periods, motherEconomy, coverage, gapStart, gapEnd, gapParent === 'mother')
-        : { navIncome: 0, salaryIncome: 0, total: 0 };
-
-      const father = rights !== 'mother-only'
-        ? calcParentMonth(current, dim, 'father', periods, fatherEconomy, coverage, gapStart, gapEnd, gapParent === 'father')
-        : { navIncome: 0, salaryIncome: 0, total: 0 };
-
-      months.push({
-        month: current,
-        totalNav: mother.navIncome + father.navIncome,
-        totalSalary: mother.salaryIncome + father.salaryIncome,
-        total: mother.total + father.total,
-      });
-
-      current = addMonths(current, 1);
-    }
-
-    return months;
-  }, [hasSalary, hasLeavePeriods, periods, leaveResult.gap, daycareEnabled, daycareStartDate, motherEconomy, fatherEconomy, coverage, rights, gapParent]);
+    return calculatePlannerMonthlyIncome({
+      periods,
+      rights,
+      coverage,
+      motherEconomy,
+      fatherEconomy,
+      gap: leaveResult.gap,
+      daycareStartDate: daycareEnabled ? daycareStartDate : null,
+    });
+  }, [hasSalary, hasLeavePeriods, periods, leaveResult.gap, daycareEnabled, daycareStartDate, motherEconomy, fatherEconomy, coverage, rights]);
 
   if (!hasSalary || monthlyData.length === 0) return null;
 
-  const normalIncome =
-    (rights !== 'father-only' ? motherEconomy.monthlySalary : 0) +
-    (rights !== 'mother-only' ? fatherEconomy.monthlySalary : 0);
+  const normalIncome = getPlannerNormalIncome(rights, motherEconomy, fatherEconomy);
+  // Ferie over permisjon kan gi mer enn vanlig lønn, så stolpene skaleres mot største måned
+  const barScale = Math.max(normalIncome, ...monthlyData.map((m) => m.total));
 
   const formatKr = (n: number) => Math.round(n).toLocaleString('nb-NO');
 
@@ -140,18 +45,12 @@ export function MonthlyIncomeOverview() {
         </span>
       </div>
 
-      <div className="space-y-1.5">
+      <ul className="space-y-1.5">
         {monthlyData.map((m) => {
           // Diff vs normalt
           const diff = m.total - normalIncome;
           const diffLabel = diff >= 0 ? `+${formatKr(diff)}` : formatKr(diff);
           const diffColor = diff >= 0 ? 'text-success-fg' : 'text-warning-fg';
-
-          // Feriemåned-markering: noen 'ferie'-perioder overlapper denne måneden?
-          const monthEnd = addMonths(m.month, 1);
-          const hasFerie = periods.some(
-            p => p.type === 'ferie' && p.startDate < monthEnd && p.endDate > m.month,
-          );
 
           // Budsjettindikator på beløpet
           const indicatorColor =
@@ -164,35 +63,38 @@ export function MonthlyIncomeOverview() {
               : '';
 
           return (
-            <div key={m.month.toISOString()} className="flex items-center gap-2">
+            <li key={m.month.toISOString()} className="flex items-center gap-2">
               {/* Månedsnavn + ferie-ikon i fast bredde, slik at stolpene starter likt på alle rader */}
               <div className="w-[4.5rem] shrink-0 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground tabular-nums">
                   {m.month.toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' })}
                 </span>
-                {hasFerie && (
-                  <span className="text-xs" aria-label="Feriemåned">☀️</span>
+                {m.hasVacation && (
+                  <span className="text-xs" role="img" aria-label="Feriemåned">☀️</span>
                 )}
               </div>
 
-              {/* Stolpediagram */}
-              <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex">
-                {m.totalNav > 0 && normalIncome > 0 && (
+              {/* Stolpediagram. Skjermlesere får fordelingen som tekst i stedet. */}
+              <span className="sr-only">
+                Foreldrepenger {formatKr(m.navIncome)} kr, lønn og feriepenger {formatKr(m.employerIncome)} kr.
+              </span>
+              <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden flex" aria-hidden="true">
+                {m.navIncome > 0 && barScale > 0 && (
                   <div
                     className="h-full bg-chart-1"
-                    style={{ width: `${(m.totalNav / normalIncome) * 100}%` }}
+                    style={{ width: `${(m.navIncome / barScale) * 100}%` }}
                   />
                 )}
-                {m.totalSalary > 0 && normalIncome > 0 && (
+                {m.employerIncome > 0 && barScale > 0 && (
                   <div
                     className="h-full bg-chart-2"
-                    style={{ width: `${(m.totalSalary / normalIncome) * 100}%` }}
+                    style={{ width: `${(m.employerIncome / barScale) * 100}%` }}
                   />
                 )}
               </div>
 
-              {/* Beløp + diff */}
-              <div className="text-right shrink-0">
+              {/* Beløp + diff i fast bredde, slik at stolpene slutter likt på alle rader */}
+              <div className="w-20 text-right shrink-0">
                 <div className={cn('text-xs font-medium tabular-nums', indicatorColor)}>
                   {formatKr(m.total)} kr
                 </div>
@@ -200,10 +102,10 @@ export function MonthlyIncomeOverview() {
                   {diffLabel}
                 </div>
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       {/* Forklaring */}
       <div className="flex gap-4 text-xs text-muted-foreground">
@@ -213,7 +115,7 @@ export function MonthlyIncomeOverview() {
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-sm bg-chart-2" />
-          <span>Lønn</span>
+          <span>Lønn og feriepenger</span>
         </div>
       </div>
 

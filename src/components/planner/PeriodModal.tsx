@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { SmartPeriodPicker, buildPickerEvents, buildIconMarkers } from '@/components/picker';
 import { getHolidayMap } from '@/lib/holidays';
 import { countVacationDays } from '@/lib/calculator/dates';
+import { getVacationLeaveOverlap } from '@/lib/calculator/planner-income';
 import { usePlannerStore } from '@/store';
 import { cn } from '@/lib/utils';
 import type { CustomPeriod, PlannerPeriodType, Parent, ParentRights, LeaveResult } from '@/lib/types';
@@ -77,22 +78,25 @@ function PeriodModalContent({
   const isLocked = period?.isLocked === true;
 
   // Reference dates from leave result
-  const motherEnd = leaveResult?.mother.end;
-  const fatherStart = leaveResult?.father.start;
+  // Bare foreldre med permisjon i planen gir mening som plassering
+  const motherEnd = rights !== 'father-only' ? leaveResult?.mother.end : undefined;
+  const fatherStart = rights !== 'mother-only' ? leaveResult?.father.start : undefined;
+  // Ny periode starter der permisjonen slutter
+  const defaultStart = motherEnd ?? leaveResult?.father.end ?? new Date();
 
   const [type, setType] = useState<PlannerPeriodType>(period?.type ?? 'ferie');
   const [parent, setParent] = useState<Parent>(
     period?.parent ?? (rights === 'father-only' ? 'father' : 'mother'),
   );
   const [startDate, setStartDate] = useState<Date>(
-    period?.startDate ?? motherEnd ?? new Date(),
+    period?.startDate ?? defaultStart,
   );
   const [endDate, setEndDate] = useState<Date>(
-    period?.endDate ?? addDays(motherEnd ?? new Date(), 14),
+    period?.endDate ?? addDays(defaultStart, 14),
   );
   const [label, setLabel] = useState(period?.label ?? '');
   const [color, setColor] = useState(period?.color ?? '#9333ea');
-  const [placement, setPlacement] = useState<Placement>(isEditing ? 'custom' : 'after-mother');
+  const [placement, setPlacement] = useState<Placement>(isEditing || !motherEnd ? 'custom' : 'after-mother');
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const motherJobSettings = usePlannerStore((s) => s.motherJobSettings);
@@ -139,9 +143,10 @@ function PeriodModalContent({
         }
         break;
       case 'overlap-father':
+        // Starter samme dag som far, slik at perioden ligger i fars permisjon
         if (fatherStart) {
-          setEndDate(fatherStart);
-          setStartDate(addDays(fatherStart, -duration));
+          setStartDate(fatherStart);
+          setEndDate(addDays(fatherStart, duration));
         }
         break;
       case 'custom':
@@ -152,6 +157,12 @@ function PeriodModalContent({
   // Day count
   const calendarDays = differenceInDays(endDate, startDate);
   const workDays = calendarDays > 0 ? countVacationDays(startDate, endDate, jobType) : 0;
+
+  // Ferie over egen permisjon: forklar hva planen regner med
+  const leaveOverlap =
+    type === 'ferie' && calendarDays > 0
+      ? getVacationLeaveOverlap(allPeriods ?? [], parent, startDate, endDate, period?.id)
+      : 'none';
 
   const handleSave = () => {
     const periodData = {
@@ -388,6 +399,23 @@ function PeriodModalContent({
                 {calendarDays === 1 ? '1 kalenderdag' : `${calendarDays} kalenderdager`} ({workDays === 1 ? '1 feriedag' : `${workDays} feriedager`})
               </p>
             )}
+
+            {/* Alltid montert, slik at skjermlesere får beskjed når varselet dukker opp */}
+            <div aria-live="polite">
+              {leaveOverlap === 'leave' && (
+                <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+                  Ferien ligger i permisjonen din. Planen regner med at du får foreldrepenger og
+                  feriepenger samtidig, og at du bruker feriedager. Vil du heller sette
+                  foreldrepengene på pause, flytt eller kort ned permisjonen så ferien ligger utenfor.
+                </p>
+              )}
+              {leaveOverlap === 'mandatory' && (
+                <p className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+                  De første seks ukene etter fødselen kan ikke kombineres med ferie. Disse dagene
+                  regnes bare som foreldrepenger.
+                </p>
+              )}
+            </div>
 
             {/* Smart period picker (replaces DatePickerOverlay) */}
             {calendarOpen && (

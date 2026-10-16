@@ -174,6 +174,51 @@ De **første 6 ukene** er forbeholdt mor av medisinske grunner.
 
 ---
 
+## Ferie mens du har foreldrepenger
+
+> Kilde: https://www.nav.no/foreldrepenger, avsnittet «Hvis du skal ha ferie» og «Ferie og midlertidig opphold i utlandet».
+> Hentet: 2026-10-16.
+
+Arbeidstakere har rett til å ta ut ferie mens de har foreldrepenger, og kan velge mellom to måter:
+
+- **Opphold i foreldrepengene:** foreldrepengene settes på pause mens du har ferie.
+  I søknaden legger du bare inn periodene med foreldrepenger, og ferien vises som «periode uten uttak».
+  NAV viser til planen i søknaden «for å se hvordan du kan forlenge foreldrepengeperioden når du tar ferie».
+- **Ferie samtidig med foreldrepenger:** du trenger ikke informere Nav.
+  NAV skriver: «Du kan også avvikle foreldrepenger samtidig som du mottar feriepenger fra arbeidsgiveren din.»
+
+De **første 6 ukene** etter fødselen kan ikke kombineres med arbeid eller ferie.
+
+> **Slik gjør kalkulatoren det:** En ferieperiode som ligger i forelderens egen permisjon regnes som ferie samtidig med foreldrepenger: foreldrepenger og feriepenger for de samme dagene.
+> Ferie i de 6 obligatoriske ukene gir bare foreldrepenger, og periodedialogen varsler om det.
+> Opphold modelleres ved at brukeren flytter eller korter ned permisjonen selv, slik «periode uten uttak» fungerer i søknaden.
+> Feriepengene regnes som vanlig lønn for feriedagene.
+> Det er en forenkling: hvor mye og når arbeidsgiver utbetaler feriepenger følger ferieloven og arbeidsgiverens rutiner, og er **ikke verifisert** mot nav.no.
+
+---
+
+## Samtidig uttak (være hjemme samtidig)
+
+> Kilde: https://www.nav.no/foreldrepenger, avsnittet «Være hjemme samtidig».
+> Hentet: 2026-10-16.
+> NAVs planlegger (https://www.nav.no/foreldrepenger/planlegger) lastes i nettleseren med JavaScript og ga ingen tekst ved henting, så reglene under er **ikke verifisert mot planleggeren**, bare mot hovedsiden.
+
+- De første 6 ukene etter fødselen er forbeholdt mor.
+  Fra uke 7 kan foreldrene dele tiden hjemme og på jobb.
+- **150 %-regelen:** «Hvis den ene forelderen har inntil 100 prosent av sin kvote og den andre inntil 50 prosent av fellesperioden, kan dere være hjemme samtidig inntil 150 prosent fra uke 7 etter fødselen.»
+  NAVs eksempel: far har 100 % fedrekvote mens mor jobber 50 % og har 50 % fra fellesperioden.
+- **Aktivitetskrav:** «Når far eller medmor skal ha deler av fellesperioden, er det aktivitetskrav til mor i samme periode.»
+  Se avsnittet [Aktivitetskrav](#aktivitetskrav).
+- **Begge jobber delvis:** foreldrepengene kan til sammen ikke være mer enn 100 %, og begge må søke om å jobbe delvis.
+- Far eller medmor kan ta 2 uker av kvoten samtidig med mor rundt fødselen, fra 2 uker før termin til 6 uker etter fødsel.
+- Flerbarnsdager kan brukes samtidig, og da er det ikke krav til mors aktivitet.
+- Om samtidig uttak bruker kvotedager i takt med prosenten er **ikke uttrykkelig sagt** på siden; eksemplene beskriver uttak i prosent av kvote og fellesperiode.
+
+> **Kalkulatoren** har ingen logikk for samtidig uttak, 150 %-regelen eller gradert uttak.
+> Overlapp mellom foreldrene i kalenderen regnes som fullt uttak for begge.
+
+---
+
 ## Spesielle situasjoner
 
 | Situasjon | Regel |
