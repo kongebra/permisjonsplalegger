@@ -145,25 +145,6 @@ export function useEconomy() {
 }
 
 /**
- * Hook for persistence
- */
-export function usePersistence() {
-  return usePlannerStore(
-    useShallow((state) => ({
-      hasSavedPlan: state.hasSavedPlan,
-      autoSaveEnabled: state.autoSaveEnabled,
-      lastSavedAt: state.lastSavedAt,
-      checkForSavedPlan: state.checkForSavedPlan,
-      setAutoSaveEnabled: state.setAutoSaveEnabled,
-      savePlan: state.savePlan,
-      loadPlan: state.loadPlan,
-      clearSavedPlan: state.clearSavedPlan,
-      resetAll: state.resetAll,
-    }))
-  );
-}
-
-/**
  * Hook for calculated leave result based on current wizard state.
  * Memoized to avoid recalculating on every render — only recalculates
  * when the underlying wizard inputs change.

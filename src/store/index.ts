@@ -273,11 +273,3 @@ if (process.env.NODE_ENV === 'development') {
     }
   );
 }
-
-// Export types
-export type { WizardSlice } from './slices/wizardSlice';
-export type { JobSettingsSlice } from './slices/jobSettingsSlice';
-export type { PeriodsSlice } from './slices/periodsSlice';
-export type { UiSlice } from './slices/uiSlice';
-export type { PersistenceSlice } from './slices/persistenceSlice';
-export type { EconomySlice } from './slices/economySlice';

@@ -46,14 +46,6 @@ export interface PeriodBandData {
   periodId?: string; // For onPeriodSelect
 }
 
-export interface LegendItem {
-  id: string;
-  color: string;
-  pattern: 'solid' | 'dashed' | 'hatched';
-  label: string;
-  inlineStyle?: React.CSSProperties;
-}
-
 export interface MonthGridCallbacks {
   onDateSelect?: (date: Date) => void;
   onPointerDown?: (date: Date) => void;

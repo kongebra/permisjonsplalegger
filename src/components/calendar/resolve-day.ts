@@ -2,7 +2,7 @@ import { startOfDay, isSameDay, getDay, isSameMonth, format, isWithinInterval } 
 import { nb } from 'date-fns/locale';
 import type { LeaveSegment, CustomPeriod, GapInfo } from '@/lib/types';
 import type { CalendarDayData, CalendarDayPeriod } from './types';
-import { DayStatus, STATUS_COLORS, getDayStatusStyle, getSegmentPattern } from './colors';
+import { getSegmentPattern } from './colors';
 
 /** Tom gap for visninger uten gap-konsept (planlegger og periodevelger). */
 export const NO_GAP: GapInfo = { start: new Date(0), end: new Date(0), weeks: 0, days: 0, workDays: 0 };
@@ -27,66 +27,6 @@ interface ResolveDayContext {
 /** Datonøkkel (yyyy-MM-dd) i lokal tid, brukes av alle kalender-oppslag. */
 export function dateKey(date: Date): string {
   return format(date, 'yyyy-MM-dd');
-}
-
-/**
- * Compute the DayStatus for a date (replicates CalendarTimeline getDayStatus logic).
- */
-export function computeDayStatus(
-  date: Date,
-  segments: LeaveSegment[],
-  gap: GapInfo,
-  dueDate: Date,
-  daycareStart: Date,
-): DayStatus {
-  if (isSameDay(date, dueDate)) return 'duedate';
-
-  if (isSameDay(date, daycareStart)) {
-    const dateNorm = startOfDay(date);
-    const vacationOnDaycare = segments.find((seg) => {
-      if (seg.type !== 'vacation') return false;
-      const segStartNorm = startOfDay(seg.start);
-      const segEndNorm = startOfDay(seg.end);
-      return dateNorm >= segStartNorm && dateNorm < segEndNorm;
-    });
-    if (vacationOnDaycare) {
-      return vacationOnDaycare.parent === 'mother'
-        ? 'daycareWithMotherVacation'
-        : 'daycareWithFatherVacation';
-    }
-    return 'daycare';
-  }
-
-  const isOnOrAfterGapStart = isSameDay(date, gap.start) || date > gap.start;
-  const isBeforeGapEnd = date < gap.end && !isSameDay(date, gap.end);
-  if (gap.days > 0 && isOnOrAfterGapStart && isBeforeGapEnd) return 'gap';
-
-  const dateNorm = startOfDay(date);
-  const matchingSegments = segments.filter((seg) => {
-    const segStartNorm = startOfDay(seg.start);
-    const segEndNorm = startOfDay(seg.end);
-    return dateNorm >= segStartNorm && dateNorm < segEndNorm;
-  });
-
-  if (matchingSegments.length > 1) {
-    const motherVacation = matchingSegments.find((s) => s.parent === 'mother' && s.type === 'vacation');
-    const fatherVacation = matchingSegments.find((s) => s.parent === 'father' && s.type === 'vacation');
-    const motherLeave = matchingSegments.find((s) => s.parent === 'mother' && s.type !== 'vacation');
-    const fatherLeave = matchingSegments.find((s) => s.parent === 'father' && s.type !== 'vacation');
-
-    if (motherVacation && fatherLeave) return 'motherVacationOverlapFather';
-    if (fatherVacation && motherLeave) return 'fatherVacationOverlapMother';
-    return 'overlap';
-  }
-
-  if (matchingSegments.length === 1) {
-    const seg = matchingSegments[0];
-    if (seg.type === 'vacation') return seg.parent === 'mother' ? 'motherVacation' : 'fatherVacation';
-    if (seg.type === 'unpaid') return 'unpaid';
-    return seg.parent === 'mother' ? 'mother' : 'father';
-  }
-
-  return 'normal';
 }
 
 /**
@@ -233,8 +173,3 @@ export function buildDayAriaLabel(day: CalendarDayData): string {
   if (day.isLocked) parts.push('låst periode');
   return parts.join(', ');
 }
-
-// Re-export for convenience
-export { computeDayStatus as getDayStatus };
-export type { DayStatus };
-export { STATUS_COLORS, getDayStatusStyle };

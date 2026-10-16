@@ -78,7 +78,7 @@ function generateMonthList(centerDate: Date, rangeMonths: number): Date[] {
 /**
  * Get the number of calendar weeks for a month (4, 5, or 6).
  */
-export function getMonthWeekCount(year: number, month: number): number {
+function getMonthWeekCount(year: number, month: number): number {
   const monthStart = new Date(year, month, 1);
   const monthEnd = new Date(year, month + 1, 0); // last day
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -95,7 +95,7 @@ const MONTH_GAP = 24; // mb-6 between months
  * Calculate deterministic placeholder height for a month.
  * No band renderer — period strips are inside the day cells.
  */
-export function getMonthPlaceholderHeight(weekCount: number): number {
+function getMonthPlaceholderHeight(weekCount: number): number {
   return MONTH_TITLE_H + weekCount * ROW_H + MONTH_GAP;
 }
 

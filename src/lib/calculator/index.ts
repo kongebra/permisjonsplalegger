@@ -96,28 +96,11 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 // Re-eksporter nyttige funksjoner og typer
 export {
   calculateLeave,
-  countVacationDays,
-  buildSegmentsFromPeriods,
-  calculateGapFromPeriods,
-  generatePeriodId,
-  addDays,
-  addWeeks,
   subtractWeeks,
-  daysBetween,
-  weeksBetween,
-  getParentLeaveWeeks,
   getTotalLeaveWeeks,
   countWorkdaysInRange,
 } from './dates';
 export { convertSharedWeeksToMother, getPrematureWeeks } from './leave-inputs';
-export {
-  calculateBasis,
-  hasEconomyInput,
-  calculateDailyRate,
-  calculateNavPayout,
-  compareScenarios,
-  getCoverageVerdict,
-} from './economy';
 export * from '../types';
 export * from '../constants';
 export * from '../holidays';
