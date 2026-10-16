@@ -84,19 +84,7 @@ Reproduser først ende-til-ende i planlegger-kalenderen.
 
 **Kilde:** `git show 67144c3:docs/IDEAS_01.md`, "Kjente bugs".
 
-### 7. Bekreft at to gamle bugs er løst
-
-Begge ser løst ut i koden, men er ikke bekreftet i nettleseren.
-Slett dette punktet når de er bekreftet.
-
-- Barnehagestart-datovelgeren i wizarden viste dagens dato i stedet for estimert dato.
-  Koden bruker nå `getDefaultDaycareStart(dueDate)` som `defaultMonth` og i store.
-- Termindato-valget var vanskelig å hoppe mer enn én måned.
-  Koden bruker nå `captionLayout="dropdown"` med måned og år.
-
-**Kilde:** `git show 67144c3:docs/IDEAS_01.md`, "Kjente bugs".
-
-### 8. Wizard-sidene bør passe på én skjermhøyde
+### 7. Wizard-sidene bør passe på én skjermhøyde
 
 **Hva:** Wizard-stegene bør helst passe uten scrolling, særlig på mobil.
 Vurder mer kompakte komponenter.
@@ -104,25 +92,17 @@ Oppsummeringssteget kan være unntaket.
 
 **Kilde:** `git show 67144c3:docs/IDEAS_01.md`, "UI-issues".
 
-### 9. Tydelige feilmeldinger ved ugyldig input
+### 8. Tydelige feilmeldinger ved ugyldig input
 
 **Hva:** Validering finnes, men mangler tydelige feilmeldinger for ugyldige scenarier.
 
 **Kilde:** `git show 67144c3:docs/PROGRESS.md`, punkt 4.
 
-### 10. Test dark mode
+### 9. Test dark mode
 
 **Hva:** CSS-variablene er definert, men mørk modus er ikke grundig testet.
 
 **Kilde:** `git show 67144c3:docs/PROGRESS.md`, punkt 6.
-
-### 11. Funksjonelle E2E-tester
-
-**Hva:** Enhetstester finnes for `src/lib/calculator/` (inkludert akseptansekravene fra `KRAVSPEC.md`).
-E2E-testene i `e2e/` dekker bare UU (axe-core).
-Mangler: funksjonelle E2E-tester for wizard til kalender, og for periodeopprettelse.
-
-**Kilde:** `git show 67144c3:docs/PROGRESS.md`, punkt 8.
 
 ## Andre åpne punkter
 
