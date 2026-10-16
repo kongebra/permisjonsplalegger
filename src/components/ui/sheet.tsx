@@ -12,22 +12,10 @@ function Sheet({
   return <DialogPrimitive.Root data-slot="sheet" {...props} />
 }
 
-function SheetTrigger({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-  return <DialogPrimitive.Trigger data-slot="sheet-trigger" {...props} />
-}
-
 function SheetPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   return <DialogPrimitive.Portal data-slot="sheet-portal" {...props} />
-}
-
-function SheetClose({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
 function SheetOverlay({
@@ -122,12 +110,8 @@ function SheetDescription({
 
 export {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetOverlay,
-  SheetPortal,
   SheetTitle,
-  SheetTrigger,
 }

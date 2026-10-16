@@ -14,7 +14,6 @@ import type {
   VacationInput,
   GapInfo,
   JobType,
-  ParentPeriodConfig,
 } from '../types';
 
 /**
@@ -689,8 +688,6 @@ export function calculateLeave(
   };
 }
 
-// --- Advanced Period Planner Functions ---
-
 /**
  * Get day of week (0 = Sunday, 1 = Monday, ... 6 = Saturday)
  */
@@ -726,101 +723,4 @@ export function countVacationDays(start: Date, end: Date, jobType: JobType): num
   }
 
   return count;
-}
-
-/**
- * Build LeaveSegment array from period configurations
- * Used when user has explicitly defined periods
- */
-export function buildSegmentsFromPeriods(
-  motherConfig: ParentPeriodConfig,
-  fatherConfig: ParentPeriodConfig,
-): LeaveSegment[] {
-  const segments: LeaveSegment[] = [];
-
-  const processConfig = (config: ParentPeriodConfig) => {
-    for (const period of config.periods) {
-      const weeks = weeksBetween(period.startDate, period.endDate);
-
-      // Map LeavePeriodType to LeaveSegmentType
-      let segmentType: LeaveSegment['type'];
-      switch (period.type) {
-        case 'quota':
-          segmentType = 'quota';
-          break;
-        case 'shared':
-          segmentType = 'shared';
-          break;
-        case 'vacation':
-          segmentType = 'vacation';
-          break;
-        case 'unpaid':
-          segmentType = 'unpaid';
-          break;
-        default:
-          segmentType = 'quota';
-      }
-
-      segments.push({
-        parent: period.parent,
-        type: segmentType,
-        start: period.startDate,
-        end: period.endDate,
-        weeks,
-      });
-    }
-  };
-
-  processConfig(motherConfig);
-  processConfig(fatherConfig);
-
-  // Sort by start date
-  segments.sort((a, b) => a.start.getTime() - b.start.getTime());
-
-  return segments;
-}
-
-/**
- * Calculate gap info from period configurations
- */
-export function calculateGapFromPeriods(
-  motherConfig: ParentPeriodConfig,
-  fatherConfig: ParentPeriodConfig,
-  daycareDate: Date
-): GapInfo {
-  const allPeriods = [...motherConfig.periods, ...fatherConfig.periods];
-
-  if (allPeriods.length === 0) {
-    return {
-      start: daycareDate,
-      end: daycareDate,
-      weeks: 0,
-      days: 0,
-      workDays: 0,
-    };
-  }
-
-  // Find the latest end date
-  const latestEnd = allPeriods.reduce(
-    (max, p) => (p.endDate > max ? p.endDate : max),
-    allPeriods[0].endDate
-  );
-
-  const gapDays = daysBetween(latestEnd, daycareDate);
-  const gapWorkDays = countWorkdaysInRange(latestEnd, daycareDate);
-
-  return {
-    start: latestEnd,
-    end: daycareDate,
-    weeks: Math.max(0, Math.ceil(gapDays / 7)),
-    days: Math.max(0, gapDays),
-    workDays: Math.max(0, gapWorkDays),
-  };
-}
-
-/**
- * Generate a unique ID for a new period
- */
-export function generatePeriodId(): string {
-  return `period-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }

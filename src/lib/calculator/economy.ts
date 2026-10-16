@@ -217,7 +217,7 @@ export interface EconomyHorizon {
 }
 
 /** Netto inntekt i én kalendermåned for ett scenario */
-export interface MonthlyNetIncome {
+interface MonthlyNetIncome {
   month: Date;
   income: number;
 }
@@ -430,7 +430,7 @@ function generateRecommendation(
  * Valgt dekningsgrad bruker fellesukene slik de er lagret; den andre får dem
  * omregnet med samme regel som når brukeren bytter dekningsgrad.
  */
-export function buildScenarioLeaves(input: EconomyComparisonInput): {
+function buildScenarioLeaves(input: EconomyComparisonInput): {
   leave80: LeaveResult;
   leave100: LeaveResult;
   sharedWeeksToMother80: number;
@@ -452,7 +452,7 @@ export function buildScenarioLeaves(input: EconomyComparisonInput): {
  * Felles tidsrom for begge scenarioer: fra første permisjonsdag til
  * barnehagestart, eller til siste permisjonsdag hvis permisjonen varer lenger.
  */
-export function getEconomyHorizon(leave80: LeaveResult, leave100: LeaveResult, daycareStartDate: Date): EconomyHorizon {
+function getEconomyHorizon(leave80: LeaveResult, leave100: LeaveResult, daycareStartDate: Date): EconomyHorizon {
   const starts = [...leave80.segments, ...leave100.segments].map((s) => s.start.getTime());
   // gap.start er dagen etter siste permisjonsdag i hvert scenario
   const ends = [daycareStartDate.getTime(), leave80.gap.start.getTime(), leave100.gap.start.getTime()];

@@ -9,9 +9,6 @@ export type Parent = 'mother' | 'father';
 // Job type affects vacation day counting
 export type JobType = 'office' | 'shift';
 
-// Period types for the advanced leave planner
-export type LeavePeriodType = 'quota' | 'shared' | 'vacation' | 'unpaid';
-
 export interface VacationInput {
   mother: {
     daysAfter: number; // Feriedager etter mors permisjon
@@ -71,7 +68,7 @@ export interface LeaveSegment {
   weeks: number;
 }
 
-export interface ParentLeaveSummary {
+interface ParentLeaveSummary {
   start: Date;
   end: Date;
   weeks: number;
@@ -95,7 +92,7 @@ export interface LeaveResult {
   vacationDaysNeeded: { mother: number; father: number };
 }
 
-export interface EconomyBreakdown {
+interface EconomyBreakdown {
   navPayout: number;
   salaryIncome: number; // Lønn på arbeidsdager utenfor egen permisjon, før gapet trekkes fra
   commissionLoss: number;
@@ -147,28 +144,6 @@ export interface TimeSeriesPoint {
   income100: number;
   cumulative80: number;
   cumulative100: number;
-}
-
-// --- Advanced Period Planner Types ---
-
-/**
- * A single leave period (vacation, quota, shared, or unpaid leave)
- */
-export interface LeavePeriod {
-  id: string;
-  parent: Parent;
-  type: LeavePeriodType;
-  startDate: Date;
-  endDate: Date; // Exclusive (day after last leave day)
-  vacationDaysUsed?: number; // Calculated for vacation periods based on job type
-}
-
-/**
- * Configuration for one parent's periods and job type
- */
-export interface ParentPeriodConfig {
-  jobType: JobType;
-  periods: LeavePeriod[];
 }
 
 /**

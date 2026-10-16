@@ -20,16 +20,6 @@ export interface PersistenceSlice {
   clearSavedPlan: () => void;
 }
 
-// Helper to serialize dates
-function serializeDate(date: Date | null): string | null {
-  return date ? date.toISOString() : null;
-}
-
-// Helper to deserialize dates
-function deserializeDate(dateStr: string | null): Date | null {
-  return dateStr ? new Date(dateStr) : null;
-}
-
 // Helper to serialize periods
 function serializePeriods(periods: CustomPeriod[]): SavedPlan['periods'] {
   return periods.map((p) => ({
@@ -112,4 +102,4 @@ export function loadPlanFromStorage(): SavedPlan | null {
   }
 }
 
-export { serializeDate, deserializeDate, serializePeriods, deserializePeriods };
+export { serializePeriods, deserializePeriods };
