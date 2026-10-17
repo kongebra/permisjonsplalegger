@@ -2,6 +2,12 @@
 
 <!-- Generert av `bun run changelog` (scripts/changelog.ts). Ikke rediger for hånd. -->
 
+## 2026-10-17
+
+### Nytt
+
+- Mor og far får egne valg for når ferien skal ligge
+
 ## 2026-10-16
 
 ### Rettet
