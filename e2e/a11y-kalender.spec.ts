@@ -172,24 +172,31 @@ test.describe('Tilgjengelighet: Periode-modal', () => {
     await fab.click();
 
     await page.waitForSelector('text=Ny periode', { timeout: 5000 });
+    // Dialogen toner inn, og kontrasten måles feil midt i animasjonen
+    await page.evaluate(() =>
+      Promise.all(document.getAnimations().map((animation) => animation.finished)),
+    );
 
+    // Dialogen tester også kontrast, siden valgene har egen valgt-tilstand
     const results = await new AxeBuilder({ page })
+      .include('[role="dialog"]')
       .withTags(['wcag2a', 'wcag2aa'])
-      .disableRules(AXE_DISABLED_RULES)
       .analyze();
 
     expect(results.violations).toEqual([]);
   });
 
-  test('Type-knapper har focus-visible og aria-pressed', async ({ page }) => {
+  test('Type og Forelder er radiogrupper med riktig navn', async ({ page }) => {
     const fab = page.getByRole('button', { name: /legg til|ny periode|\+/i });
     await fab.click();
 
     await page.waitForSelector('text=Ny periode', { timeout: 5000 });
 
-    // Check type buttons have aria-pressed
-    const typeButtons = page.locator('button[aria-pressed]');
-    expect(await typeButtons.count()).toBeGreaterThanOrEqual(2);
+    const modal = page.getByRole('dialog', { name: 'Ny periode' });
+    await expect(modal.getByRole('radiogroup', { name: 'Type' }).getByRole('radio')).toHaveCount(3);
+    await expect(modal.getByRole('radiogroup', { name: 'Forelder' }).getByRole('radio')).toHaveCount(2);
+    // Valgene er ikke lenger knapper med aria-pressed
+    await expect(modal.locator('[aria-pressed]')).toHaveCount(0);
   });
 
   test('Modal kan lukkes med Escape', async ({ page }) => {

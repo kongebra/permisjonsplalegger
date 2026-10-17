@@ -141,10 +141,10 @@ export async function addVacation(
   await page.getByRole('button', { name: 'Legg til periode' }).click();
   const modal = page.getByRole('dialog', { name: 'Ny periode' });
   await expect(modal).toBeVisible();
-  await modal.getByRole('button', { name: 'Egendefinerte datoer' }).click();
+  await modal.getByRole('radio', { name: 'Velg datoer selv' }).click();
 
-  // "Fra"-knappen viser startdatoen, f.eks. "23. nov. 2026"
-  const fromButton = modal.locator('label:text-is("Fra") + button');
+  // "Fra"-knappen har navnet "Fra 23. nov. 2026" og viser startdatoen
+  const fromButton = modal.getByRole('button', { name: /^Fra \d/ });
   const match = (await fromButton.innerText()).match(/(\d+)\. (\S+) (\d{4})/);
   if (!match) throw new Error('Fant ikke startdato i "Fra"-knappen');
   const monthsToMove =
