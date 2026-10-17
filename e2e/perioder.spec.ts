@@ -31,7 +31,7 @@ test.describe('Perioder: opprett, endre og slett', () => {
       // Endre til "Annet" med egen beskrivelse
       await detail.getByRole('button', { name: 'Rediger periode' }).click();
       const modal = page.getByRole('dialog', { name: 'Rediger periode' });
-      await modal.getByRole('button', { name: 'Annet' }).click();
+      await modal.getByRole('radio', { name: 'Annet' }).click();
       await modal.getByLabel('Beskrivelse').fill('Bestemor passer');
       await modal.getByRole('button', { name: 'Oppdater' }).click();
       await expect(modal).toBeHidden();
